@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>App Submitted — Vibe</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root { --dark: #5a5a5a; --black: #111; --white: #fff; --font: 'Inter', system-ui, sans-serif; }
+        body { font-family: var(--font); background: var(--white); color: var(--black); }
+
+        nav { display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 2rem; background: var(--dark); }
+        .nav-left { display: flex; align-items: center; gap: 1.5rem; }
+        .nav-logo { width: 32px; height: 32px; background: #222; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 0.9rem; }
+        .nav-link { color: #fff; text-decoration: none; font-size: 0.9rem; }
+        .nav-right { display: flex; align-items: center; gap: 1rem; }
+        .btn-ghost { background: transparent; border: none; color: #fff; font-size: 0.9rem; cursor: pointer; text-decoration: none; }
+        .btn-outline { background: transparent; border: 1.5px solid #fff; color: #fff; font-size: 0.85rem; padding: 0.4rem 1rem; border-radius: 50px; text-decoration: none; }
+
+        .success {
+            text-align: center;
+            padding: 6rem 2rem;
+        }
+
+        .checkmark {
+            width: 64px; height: 64px;
+            background: #111;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 1.8rem;
+            color: white;
+        }
+
+        .success h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.75rem; }
+        .success p { color: #666; font-size: 0.95rem; margin-bottom: 2rem; }
+
+        .btn-black { background: #111; color: #fff; border: none; padding: 0.7rem 2rem; border-radius: 50px; font-size: 0.9rem; font-weight: 600; cursor: pointer; text-decoration: none; }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+</head>
+<body>
+<nav>
+    <div class="nav-left">
+        <div class="nav-logo">V</div>
+        <a th:href="@{/submit}" class="nav-link">Submit</a>
+        <a th:href="@{/explore}" class="nav-link">Explore</a>
+    </div>
+    <div class="nav-right">
+        <a th:href="@{/login}" class="btn-ghost">Sign in</a>
+        <a th:href="@{/register}" class="btn-outline">Sign up</a>
+    </div>
+</nav>
+
+<div class="success">
+    <div class="checkmark">✓</div>
+    <h1 th:text="'🎉 ' + ${app.name} + ' submitted!'">App submitted!</h1>
+    <p>Your app is under review. We'll notify you once it's approved.</p>
+    <a th:href="@{/explore}" class="btn-black">Explore apps</a>
+</div>
+</body>
+</html>

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Submit Your App — Vibe</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --dark: #5a5a5a;
+            --black: #111;
+            --white: #fff;
+            --light: #f8f8f8;
+            --border: #ddd;
+            --accent: #2563eb;
+            --radius-pill: 50px;
+            --radius: 12px;
+            --font: 'Inter', system-ui, sans-serif;
+        }
+
+        body { font-family: var(--font); background: var(--white); color: var(--black); }
+
+        /* NAV */
+        nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.85rem 2rem;
+            background: var(--dark);
+        }
+        .nav-left { display: flex; align-items: center; gap: 1.5rem; }
+        .nav-logo {
+            width: 32px; height: 32px; background: #222; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-weight: 800; font-size: 0.9rem;
+        }
+        .nav-link { color: #fff; text-decoration: none; font-size: 0.9rem; }
+        .nav-right { display: flex; align-items: center; gap: 1rem; }
+        .btn-ghost { background: transparent; border: none; color: #fff; font-size: 0.9rem; cursor: pointer; text-decoration: none; }
+        .btn-outline { background: transparent; border: 1.5px solid #fff; color: #fff; font-size: 0.85rem; padding: 0.4rem 1rem; border-radius: var(--radius-pill); cursor: pointer; text-decoration: none; }
+
+        /* HEADER BAND */
+        .header-band {
+            background: var(--dark);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+        }
+        .header-band h1 { font-size: 1.8rem; font-weight: 600; }
+
+        /* FORM */
+        .form-wrap {
+            max-width: 460px;
+            margin: 2.5rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .step-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: #888;
+            margin-bottom: 1.5rem;
+        }
+
+        .field {
+            margin-bottom: 1rem;
+        }
+
+        .field input,
+        .field textarea {
+            width: 100%;
+            padding: 0.8rem 1.2rem;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-pill);
+            font-size: 0.9rem;
+            font-family: var(--font);
+            outline: none;
+            transition: border-color 0.15s;
+            color: var(--black);
+        }
+
+        .field textarea {
+            border-radius: 16px;
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .field input:focus,
+        .field textarea:focus {
+            border-color: var(--black);
+        }
+
+        .field input::placeholder,
+        .field textarea::placeholder {
+            color: #aaa;
+        }
+
+        /* Icon upload */
+        .icon-upload {
+            width: 64px;
+            height: 64px;
+            border: 1.5px solid var(--border);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin-bottom: 1rem;
+            background: var(--light);
+            transition: border-color 0.15s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .icon-upload:hover { border-color: var(--accent); }
+
+        .icon-upload .plus {
+            font-size: 1.3rem;
+            color: var(--accent);
+            line-height: 1;
+        }
+
+        .icon-upload .label {
+            font-size: 0.65rem;
+            color: var(--accent);
+            margin-top: 2px;
+        }
+
+        .icon-upload input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .icon-preview {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Submit button */
+        .submit-wrap {
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .btn-black {
+            background: var(--black);
+            color: #fff;
+            border: none;
+            padding: 0.75rem 2.5rem;
+            border-radius: var(--radius-pill);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-black:hover { background: #333; }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+<nav>
+    <div class="nav-left">
+        <div class="nav-logo">V</div>
+        <a th:href="@{/submit}" class="nav-link">Submit</a>
+        <a th:href="@{/explore}" class="nav-link">Explore</a>
+    </div>
+    <div class="nav-right">
+        <a th:href="@{/login}" class="btn-ghost">Sign in</a>
+        <a th:href="@{/register}" class="btn-outline">Sign up</a>
+    </div>
+</nav>
+
+<div class="header-band">
+    <h1>Submit your app</h1>
+</div>
+
+<div class="form-wrap">
+    <p class="step-label">1. Main Details</p>
+
+    <form th:action="@{/submit/details}" th:object="${app}" method="post" enctype="multipart/form-data">
+
+        <!-- URL (pre-filled from landing) -->
+        <div class="field">
+            <input type="url" th:field="*{url}"
+                   placeholder="Your app URL from the previous page" required/>
+        </div>
+
+        <!-- Icon upload -->
+        <label class="icon-upload" id="iconLabel">
+            <img id="iconPreview" class="icon-preview"
+                 th:if="${app.iconUrl != null}"
+                 th:src="${app.iconUrl}" alt="icon"/>
+            <span class="plus" id="iconPlus"
+                  th:style="${app.iconUrl != null} ? 'display:none' : ''">+</span>
+            <span class="label" id="iconText"
+                  th:style="${app.iconUrl != null} ? 'display:none' : ''">Icon</span>
+            <input type="file" name="icon" accept="image/*" id="iconInput"/>
+        </label>
+
+        <!-- App name -->
+        <div class="field">
+            <input type="text" th:field="*{name}" placeholder="App name" required/>
+        </div>
+
+        <!-- Description -->
+        <div class="field">
+            <textarea th:field="*{description}" placeholder="App description"></textarea>
+        </div>
+
+        <!-- Email -->
+        <div class="field">
+            <input type="email" name="ownerEmail" placeholder="Your email" required/>
+        </div>
+
+        <div class="submit-wrap">
+            <button type="submit" class="btn-black">Update</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    const input = document.getElementById('iconInput');
+    const preview = document.getElementById('iconPreview');
+    const plus = document.getElementById('iconPlus');
+    const text = document.getElementById('iconText');
+
+    input.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            if (!preview) {
+                const img = document.createElement('img');
+                img.src = ev.target.result;
+                img.className = 'icon-preview';
+                document.getElementById('iconLabel').prepend(img);
+            } else {
+                preview.src = ev.target.result;
+                preview.style.display = 'block';
+            }
+            if (plus) plus.style.display = 'none';
+            if (text) text.style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+    });
+</script>
+
+</body>
+</html>

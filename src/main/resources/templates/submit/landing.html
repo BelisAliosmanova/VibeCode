@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Submit Your App — Vibe</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --dark: #5a5a5a;
+            --light: #f5f5f5;
+            --black: #111;
+            --white: #fff;
+            --border: #d0d0d0;
+            --radius: 50px;
+            --font: 'Inter', system-ui, sans-serif;
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--white);
+            color: var(--black);
+        }
+
+        /* NAV */
+        nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.85rem 2rem;
+            background: var(--dark);
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .nav-logo {
+            width: 32px;
+            height: 32px;
+            background: #222;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 800;
+            font-size: 0.9rem;
+        }
+
+        .nav-link {
+            color: var(--white);
+            text-decoration: none;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            border: none;
+            color: var(--white);
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1.5px solid var(--white);
+            color: var(--white);
+            font-size: 0.85rem;
+            padding: 0.4rem 1rem;
+            border-radius: var(--radius);
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        /* HERO */
+        .hero {
+            background: var(--dark);
+            color: var(--white);
+            text-align: center;
+            padding: 5rem 2rem 6rem;
+        }
+
+        .hero h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            letter-spacing: -0.5px;
+        }
+
+        .hero p {
+            font-size: 1rem;
+            opacity: 0.75;
+            margin-bottom: 2rem;
+        }
+
+        .hero-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .hero-input {
+            width: 100%;
+            padding: 0.75rem 1.25rem;
+            border-radius: var(--radius);
+            border: none;
+            font-size: 0.9rem;
+            outline: none;
+            background: rgba(255,255,255,0.15);
+            color: var(--white);
+        }
+
+        .hero-input::placeholder { color: rgba(255,255,255,0.6); }
+
+        .btn-black {
+            background: var(--black);
+            color: var(--white);
+            border: none;
+            padding: 0.7rem 2rem;
+            border-radius: var(--radius);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn-black:hover { background: #333; }
+
+        /* CONTENT AREA */
+        .content {
+            min-height: 200px;
+            background: var(--white);
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+<nav>
+    <div class="nav-left">
+        <div class="nav-logo">V</div>
+        <a th:href="@{/submit}" class="nav-link">Submit</a>
+        <a th:href="@{/explore}" class="nav-link">Explore</a>
+    </div>
+    <div class="nav-right">
+        <a th:href="@{/login}" class="btn-ghost">Sign in</a>
+        <a th:href="@{/register}" class="btn-outline">Sign up</a>
+    </div>
+</nav>
+
+<section class="hero">
+    <h1>Show off your amazing app</h1>
+    <p>get visibility, beta users and pro feedback</p>
+
+    <form class="hero-form" th:action="@{/submit/start}" method="post">
+        <input class="hero-input" type="url" name="appUrl"
+               placeholder="Your app URL..." required/>
+        <button type="submit" class="btn-black">Submit app</button>
+    </form>
+</section>
+
+<div class="content"></div>
+
+</body>
+</html>
