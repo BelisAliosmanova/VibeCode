@@ -12,15 +12,11 @@ import java.util.UUID;
 
 @Controller
 @RequestMapping("/apps")
+@RequiredArgsConstructor
 public class AppController {
 
     private final AppService appService;
     private final UserService userService;
-
-    public AppController(AppService appService, UserService userService) {
-        this.appService = appService;
-        this.userService = userService;
-    }
 
     @GetMapping
     public String list(Model model) {
@@ -62,6 +58,18 @@ public class AppController {
     @PostMapping("/{id}")
     public String update(@PathVariable UUID id, @ModelAttribute App app) {
         appService.update(id, app);
+        return "redirect:/apps";
+    }
+
+    @PostMapping("/{id}/approve")
+    public String approve(@PathVariable UUID id) {
+        appService.approve(id);
+        return "redirect:/apps";
+    }
+
+    @PostMapping("/{id}/reject")
+    public String reject(@PathVariable UUID id) {
+        appService.reject(id);
         return "redirect:/apps";
     }
 

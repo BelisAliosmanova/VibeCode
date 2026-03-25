@@ -17,6 +17,8 @@ public class CategoryController {
 
     private final CategoryService categoryService;
 
+    // ── Category CRUD ─────────────────────────────────────────────────────────
+
     @GetMapping
     public String list(Model model) {
         model.addAttribute("categories", categoryService.findAll());
@@ -53,6 +55,8 @@ public class CategoryController {
         return "redirect:/categories";
     }
 
+    // ── Entries CRUD ──────────────────────────────────────────────────────────
+
     @GetMapping("/{id}/entries")
     public String entries(@PathVariable UUID id, Model model) {
         model.addAttribute("category", categoryService.findById(id));
@@ -62,17 +66,21 @@ public class CategoryController {
     }
 
     @PostMapping("/{id}/entries")
-    public String createEntry(@PathVariable UUID id, @ModelAttribute CategoryEntry entry) {
+    public String createEntry(@PathVariable UUID id,
+                              @RequestParam String name,
+                              @RequestParam String slug,
+                              @RequestParam(defaultValue = "0") Integer interest,
+                              @RequestParam(defaultValue = "0") Integer position,
+                              @RequestParam(defaultValue = "false") Boolean visibility) {
+        CategoryEntry entry = CategoryEntry.builder()
+                .name(name)
+                .slug(slug)
+                .interest(interest)
+                .position(position)
+                .visibility(visibility)
+                .build();
         categoryService.createEntry(id, entry);
         return "redirect:/categories/" + id + "/entries";
-    }
-
-    @PostMapping("/{categoryId}/entries/{entryId}")
-    public String updateEntry(@PathVariable UUID categoryId,
-                              @PathVariable UUID entryId,
-                              @ModelAttribute CategoryEntry entry) {
-        categoryService.updateEntry(entryId, entry);
-        return "redirect:/categories/" + categoryId + "/entries";
     }
 
     @PostMapping("/{categoryId}/entries/{entryId}/delete")

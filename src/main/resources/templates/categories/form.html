@@ -2,75 +2,161 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8"/>
-    <title>Category — Vibe</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="${category.id != null} ? 'Edit Category' : 'New Category'">Category — Vibe</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --dark: #5a5a5a; --black: #111; --white: #fff;
+            --light: #f8f8f8; --border: #ddd;
+            --radius-pill: 50px; --font: 'Inter', system-ui, sans-serif;
+        }
+        body { font-family: var(--font); background: var(--white); color: var(--black); }
+
+        nav { display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 2rem; background: var(--dark); }
+        .nav-left { display: flex; align-items: center; gap: 1.5rem; }
+        .nav-logo { width: 32px; height: 32px; background: #222; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 0.9rem; }
+        .nav-link { color: #fff; text-decoration: none; font-size: 0.9rem; opacity: 0.9; }
+        .nav-right { display: flex; align-items: center; gap: 1rem; }
+        .btn-outline-nav { background: transparent; border: 1.5px solid #fff; color: #fff; font-size: 0.85rem; padding: 0.4rem 1rem; border-radius: var(--radius-pill); text-decoration: none; }
+
+        .page { max-width: 520px; margin: 2.5rem auto; padding: 0 1.5rem; }
+
+        .breadcrumb { font-size: 0.8rem; color: #aaa; margin-bottom: 1.5rem; }
+        .breadcrumb a { color: var(--black); text-decoration: none; }
+        .breadcrumb a:hover { text-decoration: underline; }
+
+        .page-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 2rem; }
+
+        .field { margin-bottom: 1.1rem; }
+        .field label { display: block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #888; margin-bottom: 0.4rem; }
+        .field input[type="text"],
+        .field input[type="number"] {
+            width: 100%; padding: 0.75rem 1.1rem;
+            border: 1.5px solid var(--border); border-radius: var(--radius-pill);
+            font-size: 0.9rem; font-family: var(--font); outline: none;
+            transition: border-color 0.15s; color: var(--black); background: var(--white);
+        }
+        .field input:focus { border-color: var(--black); }
+        .field input::placeholder { color: #bbb; }
+        .field-hint { font-size: 0.75rem; color: #aaa; margin-top: 0.3rem; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+        .divider { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+
+        .check-row { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.9rem; cursor: pointer; }
+        .check-row input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--black); }
+        .check-row span { font-size: 0.9rem; color: var(--black); }
+        .check-row small { font-size: 0.78rem; color: #aaa; }
+
+        .btn-row { display: flex; gap: 0.75rem; margin-top: 1.75rem; }
+        .btn-black { background: var(--black); color: #fff; border: none; padding: 0.7rem 2.2rem; border-radius: var(--radius-pill); font-size: 0.9rem; font-weight: 600; cursor: pointer; }
+        .btn-black:hover { background: #333; }
+        .btn-cancel { background: transparent; color: #888; border: 1.5px solid var(--border); padding: 0.7rem 1.5rem; border-radius: var(--radius-pill); font-size: 0.9rem; cursor: pointer; text-decoration: none; }
+        .btn-cancel:hover { border-color: #aaa; color: var(--black); }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 </head>
 <body>
-<main class="main">
+
+<nav>
+    <div class="nav-left">
+        <div class="nav-logo">V</div>
+        <a th:href="@{/apps}" class="nav-link">Apps</a>
+        <a th:href="@{/categories}" class="nav-link">Categories</a>
+        <a th:href="@{/users}" class="nav-link">Users</a>
+    </div>
+    <div class="nav-right">
+        <a th:href="@{/submit}" class="btn-outline-nav">Submit App</a>
+    </div>
+</nav>
+
+<div class="page">
+
     <div class="breadcrumb">
         <a th:href="@{/categories}">Categories</a> /
-        <span th:text="${category.id} != null ? 'Edit' : 'New'">Form</span>
+        <span th:text="${category.id != null} ? 'Edit' : 'New'">New</span>
     </div>
 
-    <div class="page-header">
-        <h1 class="page-title" th:text="${category.id} != null ? 'Edit Category' : 'New Category'">Category</h1>
-    </div>
+    <h1 class="page-title" th:text="${category.id != null} ? 'Edit Category' : 'New Category'">
+        New Category
+    </h1>
 
-    <div class="card" style="max-width: 520px;">
-        <form th:action="${category.id} != null ? @{/categories/{id}(id=${category.id})} : @{/categories}"
-              th:object="${category}" method="post">
+    <form th:action="${category.id != null} ? @{/categories/{id}(id=${category.id})} : @{/categories}"
+          th:object="${category}" method="post">
 
-            <div class="form-group">
-                <label for="name">Name</label>
-                <input id="name" type="text" th:field="*{name}"
-                       placeholder="e.g. Main Category, Features, Pricing" required/>
+        <div class="field">
+            <label for="name">Name</label>
+            <input id="name" type="text" th:field="*{name}"
+                   placeholder="e.g. Main Category, Features, Pricing" required/>
+        </div>
+
+        <div class="field">
+            <label for="slug">Slug</label>
+            <input id="slug" type="text" th:field="*{slug}"
+                   placeholder="e.g. main-category, features, pricing" required/>
+            <p class="field-hint">Auto-filled from name. Used internally.</p>
+        </div>
+
+        <div class="field">
+            <label for="description">Description</label>
+            <input id="description" type="text" th:field="*{description}"
+                   placeholder="e.g. Choose the best category for your app"/>
+            <p class="field-hint">Shown to users as a hint during submission.</p>
+        </div>
+
+        <div class="grid-2">
+            <div class="field">
+                <label for="maxSelected">Max Selections</label>
+                <input id="maxSelected" type="number" th:field="*{maxSelected}" min="1" placeholder="blank = unlimited"/>
+                <p class="field-hint">1 = single select (e.g. Pricing)</p>
             </div>
-
-            <div class="form-group">
-                <label for="slug">Slug</label>
-                <input id="slug" type="text" th:field="*{slug}"
-                       placeholder="e.g. main-category, features, pricing" required/>
+            <div class="field">
+                <label for="position">Position</label>
+                <input id="position" type="number" th:field="*{position}" min="0" placeholder="0"/>
+                <p class="field-hint">Order in the submit flow.</p>
             </div>
+        </div>
 
-            <div class="form-group">
-                <label for="description">Description <span style="color:var(--muted); font-weight:400;">(shown to users)</span></label>
-                <input id="description" type="text" th:field="*{description}"
-                       placeholder="e.g. Choose the best category for your app"/>
-            </div>
+        <hr class="divider"/>
 
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
-                <div class="form-group">
-                    <label for="maxSelected">Max Selections</label>
-                    <input id="maxSelected" type="number" th:field="*{maxSelected}"
-                           min="1" placeholder="Leave blank = unlimited"/>
-                </div>
-                <div class="form-group">
-                    <label for="position">Position <span style="color:var(--muted); font-weight:400;">(order in submit flow)</span></label>
-                    <input id="position" type="number" th:field="*{position}" min="0" placeholder="0"/>
-                </div>
-            </div>
+        <label class="check-row">
+            <input type="checkbox" th:field="*{visibility}"/>
+            <span>Visible in submit flow</span>
+        </label>
 
-            <div class="form-group">
-                <label style="display:flex; align-items:center; gap:0.5rem; text-transform:none; letter-spacing:0; font-size:0.9rem; font-weight:500; color:var(--text);">
-                    <input type="checkbox" th:field="*{visibility}" style="width:auto;"/>
-                    Visible in submit flow
-                </label>
-            </div>
+        <label class="check-row">
+            <input type="checkbox" th:field="*{allowCustom}"/>
+            <span>Allow custom entries</span>
+            <small>— users can type their own (good for Features)</small>
+        </label>
 
-            <div class="form-group">
-                <label style="display:flex; align-items:center; gap:0.5rem; text-transform:none; letter-spacing:0; font-size:0.9rem; font-weight:500; color:var(--text);">
-                    <input type="checkbox" th:field="*{allowCustom}" style="width:auto;"/>
-                    Allow users to add custom entries
-                </label>
-            </div>
+        <div class="btn-row">
+            <button type="submit" class="btn-black"
+                    th:text="${category.id != null} ? 'Save Changes' : 'Create Category'">
+                Create Category
+            </button>
+            <a th:href="@{/categories}" class="btn-cancel">Cancel</a>
+        </div>
+    </form>
+</div>
 
-            <div style="display:flex; gap:0.75rem; margin-top:1.5rem;">
-                <button type="submit" class="btn btn-primary">
-                    <span th:text="${category.id} != null ? 'Save Changes' : 'Create Category'">Submit</span>
-                </button>
-                <a th:href="@{/categories}" class="btn btn-secondary">Cancel</a>
-            </div>
-        </form>
-    </div>
-</main>
+<script>
+    // Auto-generate slug from name
+    const nameInput = document.getElementById('name');
+    const slugInput = document.getElementById('slug');
+    let slugTouched = slugInput.value.trim() !== '';
+
+    slugInput.addEventListener('input', () => { slugTouched = true; });
+    nameInput.addEventListener('input', () => {
+        if (slugTouched) return;
+        slugInput.value = nameInput.value
+            .toLowerCase().trim()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-|-$/g, '');
+    });
+</script>
+
 </body>
 </html>

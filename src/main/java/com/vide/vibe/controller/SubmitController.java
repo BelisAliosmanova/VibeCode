@@ -40,9 +40,14 @@ public class SubmitController {
     }
 
     @PostMapping("/details")
-    public String saveDetails(@ModelAttribute App app,
-                              @RequestParam String ownerEmail,
-                              @RequestParam(required = false) MultipartFile icon) {
+    public String saveDetails(
+            @RequestParam(required = false) UUID appId,
+            @RequestParam String name,
+            @RequestParam(required = false) String description,
+            @RequestParam(required = false) String url,
+            @RequestParam String ownerEmail,
+            @RequestParam(required = false) MultipartFile icon) {
+
         User owner;
         try {
             owner = userService.findByEmail(ownerEmail);
@@ -55,15 +60,31 @@ public class SubmitController {
                     .build());
         }
 
-        App saved = app.getId() != null
-                ? appService.update(app.getId(), app)
-                : appService.create(app, owner.getId());
+        App saved;
+        if (appId != null) {
+            App patch = new App();
+            patch.setName(name);
+            patch.setDescription(description);
+            patch.setUrl(url);
+            saved = appService.update(appId, patch);
+        } else {
+            App newApp = App.builder()
+                    .name(name)
+                    .description(description)
+                    .url(url)
+                    .status(App.Status.DRAFT)
+                    .visibility(App.Visibility.PRIVATE)
+                    .build();
+            saved = appService.create(newApp, owner.getId());
+        }
 
         List<Category> categories = categoryService.findAllVisible();
         if (categories.isEmpty()) {
+            appService.submit(saved.getId());
             return "redirect:/submit/success?appId=" + saved.getId();
         }
-        return "redirect:/submit/step?appId=" + saved.getId() + "&categoryId=" + categories.get(0).getId();
+        return "redirect:/submit/step?appId=" + saved.getId()
+                + "&categoryId=" + categories.get(0).getId();
     }
 
     @GetMapping("/step")
@@ -76,8 +97,7 @@ public class SubmitController {
         List<UUID> selectedIds = categoryService.findSelectedEntryIds(appId, categoryId);
 
         List<Category> allCategories = categoryService.findAllVisible();
-        int currentIndex = allCategories.indexOf(category);
-        currentIndex = findIndexById(allCategories, categoryId);
+        int currentIndex = findIndexById(allCategories, categoryId);
 
         Category prevCategory = currentIndex > 0 ? allCategories.get(currentIndex - 1) : null;
         Category nextCategory = currentIndex < allCategories.size() - 1 ? allCategories.get(currentIndex + 1) : null;
@@ -88,7 +108,7 @@ public class SubmitController {
         model.addAttribute("selectedIds", selectedIds);
         model.addAttribute("prevCategory", prevCategory);
         model.addAttribute("nextCategory", nextCategory);
-        model.addAttribute("stepNumber", currentIndex + 2); // +2 because step 1 is details
+        model.addAttribute("stepNumber", currentIndex + 2);
         model.addAttribute("totalSteps", allCategories.size() + 1);
         model.addAttribute("isLastStep", nextCategory == null);
 
@@ -99,10 +119,29 @@ public class SubmitController {
     public String saveStep(@RequestParam UUID appId,
                            @RequestParam UUID categoryId,
                            @RequestParam(required = false) List<UUID> entryIds,
+                           @RequestParam(required = false) List<String> customEntries,
                            @RequestParam(required = false) UUID nextCategoryId) {
-
         App app = appService.findById(appId);
-        categoryService.saveAppSelections(app, categoryId, entryIds != null ? entryIds : List.of());
+
+        // Create real CategoryEntry records for any custom entries, collect their IDs
+        List<UUID> allEntryIds = new java.util.ArrayList<>(entryIds != null ? entryIds : List.of());
+        if (customEntries != null) {
+            for (String name : customEntries) {
+                if (name == null || name.isBlank()) continue;
+                String slug = name.toLowerCase().trim().replaceAll("[^a-z0-9]+", "-") + "-" + System.currentTimeMillis();
+                com.vide.vibe.model.CategoryEntry custom = com.vide.vibe.model.CategoryEntry.builder()
+                        .name(name.trim())
+                        .slug(slug)
+                        .visibility(true)
+                        .interest(0)
+                        .position(999)
+                        .build();
+                com.vide.vibe.model.CategoryEntry saved = categoryService.createEntry(categoryId, custom);
+                allEntryIds.add(saved.getId());
+            }
+        }
+
+        categoryService.saveAppSelections(app, categoryId, allEntryIds);
 
         if (nextCategoryId != null) {
             return "redirect:/submit/step?appId=" + appId + "&categoryId=" + nextCategoryId;
@@ -122,6 +161,6 @@ public class SubmitController {
         for (int i = 0; i < categories.size(); i++) {
             if (categories.get(i).getId().equals(id)) return i;
         }
-        return -1;
+        return 0;
     }
 }

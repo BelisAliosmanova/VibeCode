@@ -44,20 +44,13 @@ public class AppService {
     @Transactional
     public App update(UUID id, App updated) {
         App existing = findById(id);
-        existing.setName(updated.getName());
-        existing.setDescription(updated.getDescription());
-        existing.setUrl(updated.getUrl());
-        existing.setStatus(updated.getStatus());
-        existing.setVisibility(updated.getVisibility());
-        existing.setVersion(updated.getVersion());
+        if (updated.getName() != null)       existing.setName(updated.getName());
+        if (updated.getDescription() != null) existing.setDescription(updated.getDescription());
+        if (updated.getUrl() != null)         existing.setUrl(updated.getUrl());
+        if (updated.getStatus() != null)      existing.setStatus(updated.getStatus());
+        if (updated.getVisibility() != null)  existing.setVisibility(updated.getVisibility());
+        if (updated.getVersion() != null)     existing.setVersion(updated.getVersion());
         return appRepository.save(existing);
-    }
-
-    @Transactional
-    public void delete(UUID id) {
-        App app = findById(id);
-        app.softDelete();
-        appRepository.save(app);
     }
 
     @Transactional
@@ -65,6 +58,28 @@ public class AppService {
         App app = findById(id);
         app.setStatus(App.Status.SUBMITTED);
         return appRepository.save(app);
+    }
+
+    @Transactional
+    public App approve(UUID id) {
+        App app = findById(id);
+        app.setStatus(App.Status.APPROVED);
+        app.setVisibility(App.Visibility.PUBLIC);
+        return appRepository.save(app);
+    }
+
+    @Transactional
+    public App reject(UUID id) {
+        App app = findById(id);
+        app.setStatus(App.Status.REJECTED);
+        return appRepository.save(app);
+    }
+
+    @Transactional
+    public void delete(UUID id) {
+        App app = findById(id);
+        app.softDelete();
+        appRepository.save(app);
     }
 
     private String generateUniqueSlug(String name) {

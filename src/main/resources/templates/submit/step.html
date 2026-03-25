@@ -269,14 +269,14 @@
             info.textContent = `${selected.size} selected`;
         }
 
-        // Sync hidden inputs
+        // Sync hidden inputs — real entries as UUIDs, custom entries as separate param
         const container = document.getElementById('entryInputs');
         container.innerHTML = '';
         selected.forEach((name, id) => {
             const inp = document.createElement('input');
             inp.type = 'hidden';
-            inp.name = 'entryIds';
-            inp.value = id.startsWith('custom-') ? name : id; // custom entries send name
+            inp.name = id.startsWith('custom-') ? 'customEntries' : 'entryIds';
+            inp.value = id.startsWith('custom-') ? name : id;
             container.appendChild(inp);
         });
     }
