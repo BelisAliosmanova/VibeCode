@@ -2,6 +2,7 @@ package com.vide.vibe.controller;
 
 import com.vide.vibe.model.*;
 import com.vide.vibe.repository.AppMediaRepository;
+import com.vide.vibe.repository.AppRepository;
 import com.vide.vibe.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,9 +19,12 @@ import java.util.stream.Collectors;
 public class ManageController {
 
     private final AppService appService;
+    private final AppRepository appRepository;
     private final CategoryService categoryService;
     private final WorkflowService workflowService;
     private final AppMediaRepository appMediaRepository;
+
+    // ── Page ─────────────────────────────────────────────────────────────────
 
     @GetMapping
     public String manage(@PathVariable UUID appId, Model model) {
@@ -60,98 +64,135 @@ public class ManageController {
 
     @PostMapping("/info")
     @ResponseBody
-    public ResponseEntity<?> updateInfo(
+    public ResponseEntity<Map<String, Object>> updateInfo(
             @PathVariable UUID appId,
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String description,
             @RequestParam(required = false) String url) {
-        App patch = new App();
-        patch.setName(name);
-        patch.setDescription(description);
-        patch.setUrl(url);
-        appService.update(appId, patch);
-        return ResponseEntity.ok(Map.of("ok", true));
+        try {
+            App app = appRepository.findById(appId)
+                    .orElseThrow(() -> new RuntimeException("App not found: " + appId));
+            if (name != null && !name.isBlank())  app.setName(name.trim());
+            if (description != null)              app.setDescription(description.trim());
+            if (url != null)                      app.setUrl(url.trim().isEmpty() ? null : url.trim());
+            appRepository.save(app);
+            return ResponseEntity.ok(Map.of("ok", true));
+        } catch (Exception e) {
+            return ResponseEntity.status(500)
+                    .body(Map.of("error", e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
+        }
     }
 
     // ── Categories ────────────────────────────────────────────────────────────
 
     @PostMapping("/categories/{categoryId}")
     @ResponseBody
-    public ResponseEntity<?> updateCategorySelections(
+    public ResponseEntity<Map<String, Object>> updateCategorySelections(
             @PathVariable UUID appId,
             @PathVariable UUID categoryId,
             @RequestParam(required = false) List<UUID> entryIds) {
-        App app = appService.findById(appId);
-        categoryService.saveAppSelections(app, categoryId, entryIds != null ? entryIds : List.of());
-        return ResponseEntity.ok(Map.of("ok", true));
+        try {
+            App app = appRepository.findById(appId)
+                    .orElseThrow(() -> new RuntimeException("App not found: " + appId));
+            categoryService.saveAppSelections(app, categoryId, entryIds != null ? entryIds : List.of());
+            return ResponseEntity.ok(Map.of("ok", true));
+        } catch (Exception e) {
+            return ResponseEntity.status(500)
+                    .body(Map.of("error", e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
+        }
     }
 
-    // ── Workflows — return JSON so JS builds DOM without reload ───────────────
+    // ── Workflows ─────────────────────────────────────────────────────────────
 
     @PostMapping("/workflows")
     @ResponseBody
-    public ResponseEntity<?> addWorkflow(
+    public ResponseEntity<Map<String, Object>> addWorkflow(
             @PathVariable UUID appId,
             @RequestParam String title,
             @RequestParam(required = false) String description) {
-        Workflow wf = new Workflow();
-        wf.setTitle(title);
-        wf.setDescription(description);
-        Workflow saved = workflowService.create(appId, wf);
-        return ResponseEntity.ok(Map.of(
-                "id", saved.getId().toString(),
-                "title", saved.getTitle()
-        ));
+        try {
+            Workflow wf = new Workflow();
+            wf.setTitle(title.trim());
+            if (description != null) wf.setDescription(description);
+            Workflow saved = workflowService.create(appId, wf);
+            return ResponseEntity.ok(Map.of(
+                    "id", saved.getId().toString(),
+                    "title", saved.getTitle()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(500)
+                    .body(Map.of("error", e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
+        }
     }
 
     @PostMapping("/workflows/{workflowId}/update")
     @ResponseBody
-    public ResponseEntity<?> updateWorkflow(
+    public ResponseEntity<Map<String, Object>> updateWorkflow(
             @PathVariable UUID appId,
             @PathVariable UUID workflowId,
             @RequestParam String title,
             @RequestParam(required = false) String description) {
-        Workflow wf = workflowService.findById(workflowId);
-        wf.setTitle(title);
-        if (description != null) wf.setDescription(description);
-        workflowService.update(workflowId, wf);
-        return ResponseEntity.ok(Map.of("ok", true));
+        try {
+            Workflow wf = workflowService.findById(workflowId);
+            if (title != null && !title.isBlank()) wf.setTitle(title.trim());
+            if (description != null) wf.setDescription(description);
+            workflowService.saveDirectly(wf);
+            return ResponseEntity.ok(Map.of("ok", true));
+        } catch (Exception e) {
+            return ResponseEntity.status(500)
+                    .body(Map.of("error", e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
+        }
     }
 
     @PostMapping("/workflows/{workflowId}/delete")
     @ResponseBody
-    public ResponseEntity<?> deleteWorkflow(
+    public ResponseEntity<Map<String, Object>> deleteWorkflow(
             @PathVariable UUID appId,
             @PathVariable UUID workflowId) {
-        workflowService.delete(workflowId);
-        return ResponseEntity.ok(Map.of("ok", true));
+        try {
+            workflowService.delete(workflowId);
+            return ResponseEntity.ok(Map.of("ok", true));
+        } catch (Exception e) {
+            return ResponseEntity.status(500)
+                    .body(Map.of("error", e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
+        }
     }
 
-    // ── Steps — return JSON so JS builds step boxes without reload ────────────
+    // ── Steps ─────────────────────────────────────────────────────────────────
 
     @PostMapping("/workflows/{workflowId}/steps")
     @ResponseBody
-    public ResponseEntity<?> addStep(
+    public ResponseEntity<Map<String, Object>> addStep(
             @PathVariable UUID appId,
             @PathVariable UUID workflowId,
             @RequestParam String text) {
-        WorkflowStep step = new WorkflowStep();
-        step.setText(text);
-        WorkflowStep saved = workflowService.createStep(workflowId, step);
-        return ResponseEntity.ok(Map.of(
-                "id", saved.getId().toString(),
-                "text", saved.getText(),
-                "position", saved.getPosition()
-        ));
+        try {
+            WorkflowStep step = new WorkflowStep();
+            step.setText(text.trim());
+            WorkflowStep saved = workflowService.createStep(workflowId, step);
+            return ResponseEntity.ok(Map.of(
+                    "id", saved.getId().toString(),
+                    "text", saved.getText(),
+                    "position", saved.getPosition()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(500)
+                    .body(Map.of("error", e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
+        }
     }
 
     @PostMapping("/workflows/{workflowId}/steps/{stepId}/delete")
     @ResponseBody
-    public ResponseEntity<?> deleteStep(
+    public ResponseEntity<Map<String, Object>> deleteStep(
             @PathVariable UUID appId,
             @PathVariable UUID workflowId,
             @PathVariable UUID stepId) {
-        workflowService.deleteStep(stepId);
-        return ResponseEntity.ok(Map.of("ok", true));
+        try {
+            workflowService.deleteStep(stepId);
+            return ResponseEntity.ok(Map.of("ok", true));
+        } catch (Exception e) {
+            return ResponseEntity.status(500)
+                    .body(Map.of("error", e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
+        }
     }
 }

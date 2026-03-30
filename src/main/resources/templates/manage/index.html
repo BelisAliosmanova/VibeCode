@@ -83,41 +83,118 @@
         .btn-update.saving { opacity: 0.6; }
         .btn-update.saved { background: #2d9e6b; }
 
-        /* WORKFLOWS CONTAINER */
-        .workflows-container { border: 1.5px solid var(--border); border-radius: 14px; padding: 1.25rem 1.25rem 1rem; }
-        .workflow-block { margin-bottom: 1.25rem; }
+        /* ── WORKFLOWS ─────────────────────────────────────────────────────── */
+        .workflows-container {
+            border: 1.5px solid var(--border);
+            border-radius: 14px;
+            padding: 1.25rem 1.25rem 1rem;
+        }
 
-        .workflow-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.65rem; }
-        .workflow-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #aaa; white-space: nowrap; }
-        .workflow-title-input { border: none; border-bottom: 1.5px solid transparent; font-size: 0.88rem; font-weight: 700; color: var(--black); font-family: var(--font); outline: none; flex: 1; padding: 1px 2px; background: transparent; min-width: 0; transition: border-color 0.15s; }
+        /* One workflow block */
+        .workflow-block { margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+        .workflow-block:last-of-type { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+
+        /* Header row: label + editable title + delete */
+        .workflow-header {
+            display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.8rem;
+        }
+        .workflow-label {
+            font-size: 0.6rem; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 0.12em; color: #aaa; white-space: nowrap;
+        }
+        .workflow-title-input {
+            border: none; border-bottom: 1.5px solid transparent;
+            font-size: 0.85rem; font-weight: 700; color: var(--black);
+            font-family: var(--font); outline: none; flex: 1;
+            padding: 1px 2px; background: transparent; min-width: 0;
+            transition: border-color 0.15s;
+        }
         .workflow-title-input:hover { border-bottom-color: var(--border); }
         .workflow-title-input:focus { border-bottom-color: var(--black); }
-        .workflow-delete-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 0.75rem; padding: 2px 4px; transition: color 0.12s; flex-shrink: 0; }
+        .workflow-delete-btn {
+            background: none; border: none; color: #ccc; cursor: pointer;
+            font-size: 0.75rem; padding: 2px 4px; transition: color 0.12s; flex-shrink: 0;
+        }
         .workflow-delete-btn:hover { color: var(--danger); }
 
-        /* STEP DIAGRAM — matches the design image exactly */
-        .steps-diagram { display: flex; align-items: center; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 6px; gap: 0; }
+        /* ── Step diagram — matches design image exactly ─────────────────── */
+        /*
+          Layout:  [step-box] → [step-box] → [step-box] → (+)
+          Each step-box is a rounded-rectangle (border-radius 50px for short text
+          naturally makes it pill-shaped; longer text stays rounded-rect).
+        */
+        .steps-diagram {
+            display: flex; align-items: center;
+            flex-wrap: nowrap; overflow-x: auto;
+            padding-bottom: 4px; gap: 0;
+        }
         .steps-diagram::-webkit-scrollbar { height: 3px; }
-        .steps-diagram::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 2px; }
+        .steps-diagram::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
 
-        .step-arrow { color: #aaa; font-size: 0.8rem; flex-shrink: 0; padding: 0 6px; line-height: 1; user-select: none; }
+        /* Arrow between steps */
+        .step-arrow {
+            color: #aaa; font-size: 0.82rem; flex-shrink: 0;
+            padding: 0 5px; line-height: 1; user-select: none;
+        }
 
-        /* Step box — rounded rectangle like design */
-        .step-box { flex-shrink: 0; border: 1.5px solid #bbb; border-radius: 12px; padding: 0.4rem 0.55rem 0.4rem 0.65rem; background: var(--white); min-width: 75px; max-width: 155px; display: flex; align-items: flex-start; gap: 0.25rem; }
+        /* Step box — rounded-rectangle, matches the image */
+        .step-box {
+            flex-shrink: 0;
+            border: 1.5px solid #888;
+            border-radius: 999px;          /* pill for short; auto-stretches for long */
+            padding: 0.4rem 0.85rem;
+            background: var(--white);
+            min-width: 52px;
+            max-width: 160px;
+            display: flex; align-items: flex-start; gap: 0.3rem;
+            position: relative;
+        }
+        /* When text is multi-line, reduce radius so it looks like rounded-rect */
+        .step-box.multiline { border-radius: 14px; }
+
         .step-box-inner { min-width: 0; flex: 1; }
-        .step-box-label { font-size: 0.58rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #aaa; margin-bottom: 2px; white-space: nowrap; }
-        .step-box-text { font-size: 0.75rem; color: var(--black); line-height: 1.35; word-break: break-word; }
-        .step-box-delete { background: none; border: none; color: #ccc; cursor: pointer; font-size: 0.62rem; padding: 0; line-height: 1; flex-shrink: 0; margin-top: 1px; transition: color 0.12s; align-self: flex-start; }
-        .step-box-delete:hover { color: var(--danger); }
+        .step-box-label {
+            font-size: 0.55rem; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 0.08em; color: #aaa; margin-bottom: 2px; white-space: nowrap;
+        }
+        .step-box-text {
+            font-size: 0.72rem; color: var(--black); line-height: 1.35;
+            word-break: break-word;
+        }
+        /* ✕ delete button — appears on hover */
+        .step-box-delete {
+            position: absolute; top: -7px; right: -7px;
+            width: 16px; height: 16px; border-radius: 50%;
+            background: #ccc; border: none; color: white;
+            cursor: pointer; font-size: 0.55rem;
+            display: none; align-items: center; justify-content: center;
+            line-height: 1; padding: 0; transition: background 0.12s;
+        }
+        .step-box:hover .step-box-delete { display: flex; }
+        .step-box-delete:hover { background: var(--danger); }
 
-        /* (+) circle button at end of step row */
-        .add-step-circle { flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid #bbb; background: var(--white); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.1rem; color: #888; transition: border-color 0.15s, color 0.15s; }
+        /* (+) circle at end of step row */
+        .add-step-circle {
+            flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%;
+            border: 1.5px solid #aaa; background: var(--white);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 1.1rem; color: #888;
+            transition: border-color 0.15s, color 0.15s; font-family: var(--font);
+        }
         .add-step-circle:hover { border-color: var(--black); color: var(--black); }
 
-        /* Add workflow link */
-        .add-workflow-row { padding-top: 0.85rem; border-top: 1px solid var(--border); margin-top: 0.35rem; }
-        .add-workflow-btn { background: none; border: none; font-family: var(--font); font-size: 0.78rem; font-weight: 600; color: #888; cursor: pointer; padding: 0; display: flex; align-items: center; gap: 0.3rem; transition: color 0.12s; letter-spacing: 0.03em; }
-        .add-workflow-btn:hover { color: var(--black); }
+        /* Add workflow row */
+        .add-workflow-row {
+            padding-top: 0.85rem; border-top: 1px solid var(--border); margin-top: 0.5rem;
+        }
+        .add-workflow-btn {
+            background: none; border: none; font-family: var(--font);
+            font-size: 0.75rem; font-weight: 700; color: #3b82f6;
+            cursor: pointer; padding: 0; display: flex; align-items: center;
+            gap: 0.25rem; transition: color 0.12s; letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+        .add-workflow-btn:hover { color: #2563eb; }
 
         /* MADE WITH */
         .made-with-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
@@ -279,55 +356,40 @@
                     <div class="workflow-block" th:data-wf-id="${wf.id}" th:id="'wf-' + ${wf.id}">
                         <div class="workflow-header">
                             <span class="workflow-label">WORKFLOW NAME</span>
-
                             <input class="workflow-title-input"
-                                   onblur="handleWorkflowBlur(this)"
+                                   onblur="saveWorkflowTitle(this.dataset.id, this.value)"
                                    placeholder="Workflow name"
                                    th:data-id="${wf.id}"
                                    th:id="'wfTitle-' + ${wf.id}"
                                    th:value="${wf.title}"
                                    type="text"/>
-
                             <button class="workflow-delete-btn"
-                                    onclick="handleDeleteWorkflow(this)"
+                                    onclick="deleteWorkflow(this.dataset.id)"
                                     th:data-id="${wf.id}">
                                 ✕
                             </button>
                         </div>
                         <!-- STEP DIAGRAM -->
                         <div class="steps-diagram" th:id="'steps-' + ${wf.id}">
-
                             <th:block th:each="step, stat : ${workflowSteps.get(wf.id)}">
                                 <span class="step-arrow" th:if="${!stat.first}">→</span>
-
                                 <div class="step-box" th:id="'step-' + ${step.id}">
                                     <div class="step-box-inner">
-                                        <div class="step-box-label">
-                                            STEP <span th:text="${stat.index + 1}"></span>
-                                        </div>
+                                        <div class="step-box-label">STEP <span th:text="${stat.index + 1}"></span></div>
                                         <div class="step-box-text" th:text="${step.text}"></div>
                                     </div>
-
                                     <button class="step-box-delete"
-                                            onclick="handleDeleteStep(this)"
+                                            onclick="deleteStep(this.dataset.wfId, this.dataset.stepId)"
                                             th:data-step-id="${step.id}"
-                                            th:data-wf-id="${wf.id}">
-                                        ✕
-                                    </button>
+                                            th:data-wf-id="${wf.id}">✕</button>
                                 </div>
                             </th:block>
-
                             <!-- arrow before (+) only if steps exist -->
                             <span class="step-arrow"
-                                  th:if="${workflowSteps.get(wf.id) != null and !workflowSteps.get(wf.id).empty}">
-                                →
-                            </span>
-
+                                  th:if="${workflowSteps.get(wf.id) != null and !workflowSteps.get(wf.id).empty}">→</span>
                             <button class="add-step-circle"
-                                    onclick="handleOpenAddStep(this)"
-                                    th:data-wf-id="${wf.id}">
-                                +
-                            </button>
+                                    onclick="openAddStepModal(this.dataset.wfId)"
+                                    th:data-wf-id="${wf.id}">+</button>
                         </div>
                     </div>
                 </th:block>
@@ -402,12 +464,17 @@
         setTimeout(() => t.classList.remove('show'), 2500);
     }
 
-    // ─── MODAL ──────────────────────────────────────────────────────────────
+    // ─── MODAL helpers ──────────────────────────────────────────────────────
+    function openModal(id) { document.getElementById(id).classList.add('open'); }
     function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
     document.querySelectorAll('.modal-overlay').forEach(o =>
         o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); }));
+
     document.addEventListener('keydown', e => {
-        if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+        }
         if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
             if (document.getElementById('addStepModal').classList.contains('open')) createStep();
             else if (document.getElementById('addWorkflowModal').classList.contains('open')) createWorkflow();
@@ -463,11 +530,29 @@
         const fd = new FormData(); fd.append('name', name); fd.append('description', desc);
         try {
             const r = await fetch(`/apps/${APP_ID}/manage/info`, { method: 'POST', body: fd });
-            if (!r.ok) throw new Error('Save failed');
+            const text = await r.text();
+            if (!r.ok) {
+                let msg = `HTTP ${r.status}`;
+                try { msg = JSON.parse(text).error || msg; } catch (_) { msg = text.substring(0, 120) || msg; }
+                throw new Error(msg);
+            }
             const b = document.getElementById('saveBadge');
             b.classList.add('show'); setTimeout(() => b.classList.remove('show'), 2000);
             showToast('Saved');
         } catch (e) { showToast(e.message, true); }
+    }
+
+    // ─── SHARED fetch helper ─────────────────────────────────────────────────
+    async function apiFetch(url, fd) {
+        const r = await fetch(url, { method: 'POST', body: fd });
+        const text = await r.text();
+        let json;
+        try { json = JSON.parse(text); } catch (_) {
+            if (!r.ok) throw new Error(`HTTP ${r.status}: ${text.substring(0, 150)}`);
+            return {};
+        }
+        if (!r.ok) throw new Error(json.error || `HTTP ${r.status}`);
+        return json;
     }
 
     // ─── CATEGORY PILLS ─────────────────────────────────────────────────────
@@ -491,8 +576,7 @@
         btn.textContent = 'Saving…'; btn.classList.add('saving');
         const fd = new FormData(); ids.forEach(id => fd.append('entryIds', id));
         try {
-            const r = await fetch(`/apps/${APP_ID}/manage/categories/${categoryId}`, { method: 'POST', body: fd });
-            if (!r.ok) throw new Error('Save failed');
+            await apiFetch(`/apps/${APP_ID}/manage/categories/${categoryId}`, fd);
             btn.textContent = 'Update'; btn.classList.remove('saving'); btn.classList.add('saved');
             setTimeout(() => btn.classList.remove('saved'), 1500);
             showToast('Updated');
@@ -502,7 +586,7 @@
     // ─── WORKFLOWS ──────────────────────────────────────────────────────────
     function openAddWorkflowModal() {
         document.getElementById('newWorkflowTitle').value = '';
-        document.getElementById('addWorkflowModal').classList.add('open');
+        openModal('addWorkflowModal');
         setTimeout(() => document.getElementById('newWorkflowTitle').focus(), 80);
     }
 
@@ -511,20 +595,17 @@
         if (!title) return;
         const fd = new FormData(); fd.append('title', title);
         try {
-            const r = await fetch(`/apps/${APP_ID}/manage/workflows`, { method: 'POST', body: fd });
-            if (!r.ok) throw new Error('Failed');
+            const data = await apiFetch(`/apps/${APP_ID}/manage/workflows`, fd);
             closeModal('addWorkflowModal');
-            const data = await r.json();
-            appendWorkflowBlock(data.id, title);
+            appendWorkflowBlock(data.id, data.title);
             showToast('Workflow added');
         } catch (e) { showToast(e.message, true); }
     }
 
     async function deleteWorkflow(wfId) {
         if (!confirm('Delete this workflow?')) return;
-        const fd = new FormData();
         try {
-            await fetch(`/apps/${APP_ID}/manage/workflows/${wfId}/delete`, { method: 'POST', body: fd });
+            await apiFetch(`/apps/${APP_ID}/manage/workflows/${wfId}/delete`, new FormData());
             document.getElementById('wf-' + wfId)?.remove();
             showToast('Deleted');
         } catch (e) { showToast(e.message, true); }
@@ -534,17 +615,18 @@
         const title = value.trim(); if (!title) return;
         const fd = new FormData(); fd.append('title', title);
         try {
-            await fetch(`/apps/${APP_ID}/manage/workflows/${wfId}/update`, { method: 'POST', body: fd });
+            await apiFetch(`/apps/${APP_ID}/manage/workflows/${wfId}/update`, fd);
             showToast('Saved');
         } catch (e) { showToast(e.message, true); }
     }
 
     // ─── STEPS ──────────────────────────────────────────────────────────────
     let _activeWfId = null;
+
     function openAddStepModal(wfId) {
         _activeWfId = wfId;
         document.getElementById('newStepText').value = '';
-        document.getElementById('addStepModal').classList.add('open');
+        openModal('addStepModal');
         setTimeout(() => document.getElementById('newStepText').focus(), 80);
     }
 
@@ -553,9 +635,7 @@
         if (!text || !_activeWfId) return;
         const fd = new FormData(); fd.append('text', text);
         try {
-            const r = await fetch(`/apps/${APP_ID}/manage/workflows/${_activeWfId}/steps`, { method: 'POST', body: fd });
-            if (!r.ok) throw new Error('Failed');
-            const data = await r.json();
+            const data = await apiFetch(`/apps/${APP_ID}/manage/workflows/${_activeWfId}/steps`, fd);
             closeModal('addStepModal');
             appendStepBox(_activeWfId, data.id, data.text, data.position);
             showToast('Step added');
@@ -563,9 +643,8 @@
     }
 
     async function deleteStep(wfId, stepId) {
-        const fd = new FormData();
         try {
-            await fetch(`/apps/${APP_ID}/manage/workflows/${wfId}/steps/${stepId}/delete`, { method: 'POST', body: fd });
+            await apiFetch(`/apps/${APP_ID}/manage/workflows/${wfId}/steps/${stepId}/delete`, new FormData());
             removeStepBox(wfId, stepId);
             showToast('Step removed');
         } catch (e) { showToast(e.message, true); }
@@ -579,12 +658,15 @@
         div.innerHTML = `
           <div class="workflow-header">
             <span class="workflow-label">WORKFLOW NAME</span>
-            <input type="text" class="workflow-title-input" id="wfTitle-${wfId}" value="${escHtml(title)}"
-                   placeholder="Workflow name" onblur="saveWorkflowTitle('${wfId}', this.value)"/>
+            <input type="text" class="workflow-title-input" id="wfTitle-${wfId}"
+                   value="${escHtml(title)}" placeholder="Workflow name"
+                   data-id="${wfId}"
+                   onblur="saveWorkflowTitle(this.dataset.id, this.value)"/>
             <button class="workflow-delete-btn" onclick="deleteWorkflow('${wfId}')">✕</button>
           </div>
           <div class="steps-diagram" id="steps-${wfId}">
-            <button class="add-step-circle" onclick="openAddStepModal('${wfId}')">+</button>
+            <button class="add-step-circle" data-wf-id="${wfId}"
+                    onclick="openAddStepModal(this.dataset.wfId)">+</button>
           </div>`;
         list.appendChild(div);
     }
@@ -594,7 +676,7 @@
         const addBtn = diagram.querySelector('.add-step-circle');
         const existingSteps = diagram.querySelectorAll('.step-box').length;
 
-        // Arrow before new step (and before add button)
+        // Insert → arrow before new step if there are already steps
         if (existingSteps > 0) {
             const arrow = document.createElement('span');
             arrow.className = 'step-arrow'; arrow.textContent = '→';
@@ -608,37 +690,52 @@
             <div class="step-box-label">STEP ${existingSteps + 1}</div>
             <div class="step-box-text">${escHtml(text)}</div>
           </div>
-          <button class="step-box-delete" onclick="deleteStep('${wfId}','${stepId}')">✕</button>`;
+          <button class="step-box-delete"
+                  data-wf-id="${wfId}" data-step-id="${stepId}"
+                  onclick="deleteStep(this.dataset.wfId, this.dataset.stepId)">✕</button>`;
         diagram.insertBefore(box, addBtn);
 
-        // Ensure arrow between last step and (+) button
-        const arrows = diagram.querySelectorAll('.step-arrow');
-        const lastArrow = arrows[arrows.length - 1];
-        if (!lastArrow || lastArrow.nextElementSibling !== addBtn) {
+        // Ensure arrow between last step and (+)
+        const prevOfAdd = addBtn.previousElementSibling;
+        if (!prevOfAdd || !prevOfAdd.classList.contains('step-arrow')) {
             const a = document.createElement('span');
             a.className = 'step-arrow'; a.textContent = '→';
             diagram.insertBefore(a, addBtn);
         }
+
+        applyMultilineClass(box);
     }
 
     function removeStepBox(wfId, stepId) {
         const box = document.getElementById('step-' + stepId);
         if (!box) return;
-        // Also remove the preceding or following arrow
         const prev = box.previousElementSibling;
         const next = box.nextElementSibling;
         if (prev?.classList.contains('step-arrow')) prev.remove();
         else if (next?.classList.contains('step-arrow')) next.remove();
         box.remove();
-        // Renumber remaining steps
+        // Renumber
         const diagram = document.getElementById('steps-' + wfId);
         diagram.querySelectorAll('.step-box-label').forEach((lbl, i) => {
             lbl.textContent = 'STEP ' + (i + 1);
         });
     }
 
+    // Apply rounded-rect class if text is long enough to wrap
+    function applyMultilineClass(box) {
+        const textEl = box.querySelector('.step-box-text');
+        if (textEl && textEl.textContent.length > 18) {
+            box.classList.add('multiline');
+        }
+    }
+
+    // Apply on page load to server-rendered steps
+    document.querySelectorAll('.step-box').forEach(applyMultilineClass);
+
     function escHtml(s) {
-        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        return String(s)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 </script>
 

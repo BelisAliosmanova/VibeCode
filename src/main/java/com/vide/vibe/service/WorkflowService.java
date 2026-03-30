@@ -40,13 +40,31 @@ public class WorkflowService {
         return workflowRepository.save(workflow);
     }
 
+    /**
+     * Save a workflow entity directly — used when caller has already
+     * mutated only safe fields (title, description) and must not
+     * risk overwriting position with null.
+     */
+    @Transactional
+    public Workflow saveDirectly(Workflow workflow) {
+        return workflowRepository.save(workflow);
+    }
+
+    /**
+     * Full update — only used from admin flows that supply all fields.
+     * Never called from the manage page to avoid position=null NPE.
+     */
     @Transactional
     public Workflow update(UUID id, Workflow updated) {
         Workflow existing = findById(id);
-        existing.setTitle(updated.getTitle());
-        existing.setDescription(updated.getDescription());
-        existing.setPosition(updated.getPosition());
-        existing.setIsFeatured(updated.getIsFeatured());
+        if (updated.getTitle() != null && !updated.getTitle().isBlank())
+            existing.setTitle(updated.getTitle());
+        if (updated.getDescription() != null)
+            existing.setDescription(updated.getDescription());
+        if (updated.getPosition() != null)
+            existing.setPosition(updated.getPosition());
+        if (updated.getIsFeatured() != null)
+            existing.setIsFeatured(updated.getIsFeatured());
         return workflowRepository.save(existing);
     }
 
@@ -80,8 +98,8 @@ public class WorkflowService {
     @Transactional
     public WorkflowStep updateStep(UUID id, WorkflowStep updated) {
         WorkflowStep existing = findStepById(id);
-        existing.setText(updated.getText());
-        existing.setPosition(updated.getPosition());
+        if (updated.getText() != null)     existing.setText(updated.getText());
+        if (updated.getPosition() != null) existing.setPosition(updated.getPosition());
         return workflowStepRepository.save(existing);
     }
 

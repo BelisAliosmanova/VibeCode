@@ -41,15 +41,30 @@ public class AppService {
         return appRepository.save(app);
     }
 
+    /**
+     * Persist an already-loaded entity directly (used when caller
+     * has already mutated fields and just wants to flush).
+     */
+    @Transactional
+    public App save(App app) {
+        return appRepository.save(app);
+    }
+
     @Transactional
     public App update(UUID id, App updated) {
         App existing = findById(id);
-        if (updated.getName() != null)        existing.setName(updated.getName());
-        if (updated.getDescription() != null)  existing.setDescription(updated.getDescription());
-        if (updated.getUrl() != null)          existing.setUrl(updated.getUrl());
-        if (updated.getStatus() != null)       existing.setStatus(updated.getStatus());
-        if (updated.getVisibility() != null)   existing.setVisibility(updated.getVisibility());
-        if (updated.getVersion() != null)      existing.setVersion(updated.getVersion());
+        if (updated.getName() != null && !updated.getName().isBlank())
+            existing.setName(updated.getName());
+        if (updated.getDescription() != null)
+            existing.setDescription(updated.getDescription());
+        if (updated.getUrl() != null && !updated.getUrl().isBlank())
+            existing.setUrl(updated.getUrl());
+        if (updated.getStatus() != null)
+            existing.setStatus(updated.getStatus());
+        if (updated.getVisibility() != null)
+            existing.setVisibility(updated.getVisibility());
+        if (updated.getVersion() != null)
+            existing.setVersion(updated.getVersion());
         return appRepository.save(existing);
     }
 
