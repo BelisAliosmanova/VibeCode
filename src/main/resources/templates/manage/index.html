@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title th:text="${app.name} + ' — Manage Listing'">Manage Listing</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --dark: #5a5a5a; --black: #111; --white: #fff;
+            --border: #ddd; --light: #f8f8f8; --danger: #e05c5c;
+            --radius-pill: 50px; --font: 'Inter', system-ui, sans-serif;
+        }
+        body { font-family: var(--font); background: var(--white); color: var(--black); font-size: 14px; }
+
+        nav { display: flex; align-items: center; justify-content: space-between; padding: 0.7rem 1.5rem; background: var(--dark); }
+        .nav-left { display: flex; align-items: center; gap: 1.25rem; }
+        .nav-logo { width: 28px; height: 28px; background: #222; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 0.8rem; }
+        .nav-link { color: #fff; text-decoration: none; font-size: 0.85rem; opacity: 0.9; }
+        .nav-right { display: flex; align-items: center; gap: 0.75rem; }
+        .btn-ghost-nav { background: transparent; border: none; color: #fff; font-size: 0.82rem; cursor: pointer; text-decoration: none; }
+        .btn-outline-nav { background: transparent; border: 1.5px solid #fff; color: #fff; font-size: 0.78rem; padding: 0.32rem 0.85rem; border-radius: var(--radius-pill); text-decoration: none; }
+
+        .header-band { background: var(--dark); color: white; text-align: center; padding: 1.5rem; }
+        .header-band h1 { font-size: 1.4rem; font-weight: 600; }
+
+        .page { max-width: 700px; margin: 0 auto; padding: 1.75rem 1.5rem 4rem; }
+
+        /* APP HEADER */
+        .app-header-card { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem; }
+        .app-icon-wrap { width: 72px; height: 72px; flex-shrink: 0; border: 1.5px solid var(--border); border-radius: 16px; overflow: hidden; background: var(--light); display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; }
+        .app-icon-wrap img { width: 100%; height: 100%; object-fit: cover; }
+        .app-icon-placeholder { font-size: 1.6rem; color: #ccc; }
+        .app-icon-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; color: white; font-size: 0.72rem; font-weight: 600; }
+        .app-icon-wrap:hover .app-icon-overlay { display: flex; }
+        .app-header-info { flex: 1; min-width: 0; }
+        .app-name-edit { font-size: 1.15rem; font-weight: 700; outline: none; border-radius: 6px; padding: 2px 4px; margin-left: -4px; display: inline-block; min-width: 40px; }
+        .app-name-edit:focus { background: #f5f5f5; }
+        .app-desc-edit { font-size: 0.8rem; color: #666; line-height: 1.5; outline: none; border-radius: 6px; padding: 2px 4px; margin-left: -4px; display: block; min-height: 1.5em; margin-top: 0.15rem; }
+        .app-desc-edit:focus { background: #f5f5f5; }
+        .save-inline-badge { display: none; font-size: 0.7rem; color: #2d9e6b; font-weight: 600; margin-left: 6px; }
+        .save-inline-badge.show { display: inline; }
+        .pricing-badge { display: inline-flex; align-items: center; background: var(--black); color: #fff; border-radius: var(--radius-pill); padding: 0.18rem 0.75rem; font-size: 0.7rem; font-weight: 600; margin-right: 0.35rem; opacity: 0.4; }
+
+        /* META ROWS */
+        .meta-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.7rem 0; border-top: 1px solid var(--border); flex-wrap: wrap; }
+        .meta-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #888; min-width: 110px; }
+        .stars { display: flex; gap: 2px; }
+        .star { font-size: 0.9rem; color: #ddd; }
+        .score-val { font-size: 0.82rem; font-weight: 700; }
+        .score-label { font-size: 0.75rem; color: #aaa; }
+        .btn-sm { display: inline-flex; align-items: center; padding: 0.3rem 0.9rem; border-radius: var(--radius-pill); font-size: 0.75rem; font-weight: 500; border: 1.5px solid var(--border); background: var(--white); color: var(--black); cursor: pointer; text-decoration: none; font-family: var(--font); white-space: nowrap; transition: border-color 0.12s; }
+        .btn-sm:hover { border-color: #aaa; }
+        .btn-sm-disabled { opacity: 0.4; cursor: default; }
+
+        /* MEDIA */
+        .media-strip { border: 1.5px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 1.5rem; background: var(--light); }
+        .media-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); }
+        .media-cell { background: var(--light); aspect-ratio: 4/3; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; cursor: pointer; }
+        .media-cell img { width: 100%; height: 100%; object-fit: cover; }
+        .play-btn { width: 36px; height: 36px; background: rgba(0,0,0,0.5); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1rem; }
+        .media-placeholder { color: #ccc; font-size: 1.5rem; }
+        .media-upload-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.35); display: none; align-items: center; justify-content: center; color: white; font-size: 0.72rem; font-weight: 600; }
+        .media-cell:hover .media-upload-overlay { display: flex; }
+        .media-dots { display: flex; justify-content: center; gap: 4px; padding: 0.6rem; }
+        .media-dot { width: 6px; height: 6px; border-radius: 50%; background: #ccc; }
+        .media-dot.active { background: var(--black); }
+
+        /* SECTIONS */
+        .section { margin-bottom: 1.75rem; }
+        .section-title { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #333; margin-bottom: 0.75rem; }
+
+        /* PILLS */
+        .pills-wrap { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.6rem; align-items: center; }
+        .pill { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.3rem 0.85rem; border-radius: var(--radius-pill); font-size: 0.75rem; font-weight: 500; border: 1.5px solid; cursor: pointer; user-select: none; transition: all 0.12s; font-family: var(--font); }
+        .pill-selected { background: var(--black); color: #fff; border-color: var(--black); }
+        .pill-unselected { background: var(--white); color: var(--black); border-color: #ccc; }
+        .pill-unselected:hover { border-color: var(--black); }
+        .pill-icon { width: 14px; height: 14px; object-fit: contain; border-radius: 2px; }
+        .hint-text { font-size: 0.72rem; color: #aaa; margin-bottom: 0.75rem; }
+        .btn-update { background: var(--black); color: #fff; border: none; padding: 0.45rem 1.5rem; border-radius: var(--radius-pill); font-size: 0.8rem; font-weight: 600; cursor: pointer; font-family: var(--font); margin-top: 0.5rem; transition: background 0.12s; }
+        .btn-update:hover { background: #333; }
+        .btn-update.saving { opacity: 0.6; }
+        .btn-update.saved { background: #2d9e6b; }
+
+        /* WORKFLOWS CONTAINER */
+        .workflows-container { border: 1.5px solid var(--border); border-radius: 14px; padding: 1.25rem 1.25rem 1rem; }
+        .workflow-block { margin-bottom: 1.25rem; }
+
+        .workflow-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.65rem; }
+        .workflow-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #aaa; white-space: nowrap; }
+        .workflow-title-input { border: none; border-bottom: 1.5px solid transparent; font-size: 0.88rem; font-weight: 700; color: var(--black); font-family: var(--font); outline: none; flex: 1; padding: 1px 2px; background: transparent; min-width: 0; transition: border-color 0.15s; }
+        .workflow-title-input:hover { border-bottom-color: var(--border); }
+        .workflow-title-input:focus { border-bottom-color: var(--black); }
+        .workflow-delete-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 0.75rem; padding: 2px 4px; transition: color 0.12s; flex-shrink: 0; }
+        .workflow-delete-btn:hover { color: var(--danger); }
+
+        /* STEP DIAGRAM — matches the design image exactly */
+        .steps-diagram { display: flex; align-items: center; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 6px; gap: 0; }
+        .steps-diagram::-webkit-scrollbar { height: 3px; }
+        .steps-diagram::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 2px; }
+
+        .step-arrow { color: #aaa; font-size: 0.8rem; flex-shrink: 0; padding: 0 6px; line-height: 1; user-select: none; }
+
+        /* Step box — rounded rectangle like design */
+        .step-box { flex-shrink: 0; border: 1.5px solid #bbb; border-radius: 12px; padding: 0.4rem 0.55rem 0.4rem 0.65rem; background: var(--white); min-width: 75px; max-width: 155px; display: flex; align-items: flex-start; gap: 0.25rem; }
+        .step-box-inner { min-width: 0; flex: 1; }
+        .step-box-label { font-size: 0.58rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #aaa; margin-bottom: 2px; white-space: nowrap; }
+        .step-box-text { font-size: 0.75rem; color: var(--black); line-height: 1.35; word-break: break-word; }
+        .step-box-delete { background: none; border: none; color: #ccc; cursor: pointer; font-size: 0.62rem; padding: 0; line-height: 1; flex-shrink: 0; margin-top: 1px; transition: color 0.12s; align-self: flex-start; }
+        .step-box-delete:hover { color: var(--danger); }
+
+        /* (+) circle button at end of step row */
+        .add-step-circle { flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid #bbb; background: var(--white); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.1rem; color: #888; transition: border-color 0.15s, color 0.15s; }
+        .add-step-circle:hover { border-color: var(--black); color: var(--black); }
+
+        /* Add workflow link */
+        .add-workflow-row { padding-top: 0.85rem; border-top: 1px solid var(--border); margin-top: 0.35rem; }
+        .add-workflow-btn { background: none; border: none; font-family: var(--font); font-size: 0.78rem; font-weight: 600; color: #888; cursor: pointer; padding: 0; display: flex; align-items: center; gap: 0.3rem; transition: color 0.12s; letter-spacing: 0.03em; }
+        .add-workflow-btn:hover { color: var(--black); }
+
+        /* MADE WITH */
+        .made-with-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+        .made-with-badge { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.28rem 0.85rem 0.28rem 0.5rem; border-radius: var(--radius-pill); border: 1.5px solid #e8d5b0; background: #fffbf0; font-size: 0.75rem; font-weight: 600; color: #a07830; }
+        .made-with-icon { width: 16px; height: 16px; object-fit: contain; border-radius: 3px; }
+        .made-with-dot { width: 8px; height: 8px; border-radius: 50%; background: #f5a623; flex-shrink: 0; }
+        .add-circle-btn { width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--white); cursor: pointer; font-size: 1rem; color: #888; display: flex; align-items: center; justify-content: center; }
+
+        .divider { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+
+        /* TOAST */
+        .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--black); color: #fff; padding: 0.55rem 1.25rem; border-radius: var(--radius-pill); font-size: 0.82rem; font-weight: 500; opacity: 0; transition: opacity 0.2s, transform 0.2s; pointer-events: none; z-index: 999; white-space: nowrap; }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .toast.error { background: var(--danger); }
+
+        /* MODALS */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-overlay.open { display: flex; }
+        .modal { background: var(--white); border-radius: 18px; padding: 1.75rem; width: 420px; max-width: 90vw; box-shadow: 0 8px 40px rgba(0,0,0,0.15); }
+        .modal-title { font-size: 1rem; font-weight: 700; margin-bottom: 1.25rem; }
+        .modal-field { margin-bottom: 1rem; }
+        .modal-field label { display: block; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #aaa; margin-bottom: 0.3rem; }
+        .modal-field input { width: 100%; padding: 0.6rem 1rem; border: 1.5px solid var(--border); border-radius: 10px; font-size: 0.88rem; font-family: var(--font); outline: none; transition: border-color 0.15s; color: var(--black); }
+        .modal-field input:focus { border-color: var(--black); }
+        .modal-actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.25rem; }
+        .btn-modal-cancel { background: transparent; border: 1.5px solid var(--border); color: #888; padding: 0.5rem 1.25rem; border-radius: var(--radius-pill); font-size: 0.82rem; cursor: pointer; font-family: var(--font); }
+        .btn-modal-submit { background: var(--black); color: #fff; border: none; padding: 0.5rem 1.5rem; border-radius: var(--radius-pill); font-size: 0.82rem; font-weight: 600; cursor: pointer; font-family: var(--font); }
+        .btn-modal-submit:hover { background: #333; }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+<nav>
+    <div class="nav-left">
+        <div class="nav-logo">V</div>
+        <a class="nav-link" th:href="@{/submit}">Submit</a>
+        <a class="nav-link" th:href="@{/explore}">Explore</a>
+    </div>
+    <div class="nav-right">
+        <a class="btn-ghost-nav" th:href="@{/login}">Sign in</a>
+        <a class="btn-outline-nav" th:href="@{/register}">Sign up</a>
+    </div>
+</nav>
+<div class="header-band"><h1>Manage your listing</h1></div>
+
+<div class="toast" id="toast"></div>
+
+<div class="page">
+
+    <!-- APP HEADER -->
+    <div class="app-header-card">
+        <div class="app-icon-wrap" id="iconWrap" onclick="document.getElementById('iconFileInput').click()">
+            <img alt="icon" id="iconImg" th:if="${app.iconUrl != null}" th:src="${app.iconUrl}"/>
+            <span class="app-icon-placeholder" id="iconPlaceholder" th:if="${app.iconUrl == null}">🖼</span>
+            <div class="app-icon-overlay">Upload</div>
+        </div>
+        <input accept="image/*" id="iconFileInput" style="display:none;" type="file"/>
+
+        <div class="app-header-info">
+            <div>
+                <span class="app-name-edit" contenteditable="true" id="editableName"
+                      th:text="${app.name}"></span>
+                <span class="save-inline-badge" id="saveBadge">✓ Saved</span>
+            </div>
+            <span class="app-desc-edit" contenteditable="true" id="editableDescription"
+                  th:text="${app.description != null ? app.description : 'Add a description...'}"></span>
+            <div style="display:flex;gap:0.4rem;align-items:center;margin-top:0.45rem;flex-wrap:wrap;">
+                <span class="pricing-badge">PRICING</span>
+                <button class="btn-sm" onclick="saveAppInfo()" style="margin-left:auto;">Save changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- RATING -->
+    <div class="meta-row">
+        <span class="meta-label">RATING</span>
+        <div class="stars"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span
+                class="star">★</span><span class="star">★</span></div>
+        <span class="score-label">0/5</span>
+        <button class="btn-sm" style="margin-left:auto;">Get community reviews</button>
+        <button class="btn-sm">Get a PRO review</button>
+        <button class="btn-sm btn-sm-disabled">Get certified status</button>
+    </div>
+    <!-- VISIBILITY -->
+    <div class="meta-row">
+        <span class="meta-label">VISIBILITY SCORE</span>
+        <span class="score-val">26.5</span><span class="score-label">/100</span>
+        <button class="btn-sm" style="margin-left:auto;">View report</button>
+        <button class="btn-sm">Visibility Optimization Agents</button>
+    </div>
+
+    <!-- MEDIA -->
+    <div class="media-strip">
+        <div class="media-grid">
+            <div class="media-cell" onclick="triggerMediaUpload('video')">
+                <th:block th:with="vm=${media.?[type.name()=='VIDEO']}">
+                    <img alt="" id="videoImg" th:if="${!vm.empty}" th:src="${vm[0].url}"/>
+                    <div class="play-btn" th:if="${vm.empty}">▶</div>
+                </th:block>
+                <div class="media-upload-overlay">Upload Video</div>
+            </div>
+            <th:block th:with="ss=${media.?[type.name()=='SCREENSHOT']}">
+                <div class="media-cell" onclick="triggerMediaUpload('shot1')">
+                    <img alt="" id="shot1Img" th:if="${ss.size()>0}" th:src="${ss[0].url}"/>
+                    <span class="media-placeholder" th:if="${ss.size()==0}">🖼</span>
+                    <div class="media-upload-overlay">Upload</div>
+                </div>
+                <div class="media-cell" onclick="triggerMediaUpload('shot2')">
+                    <img alt="" id="shot2Img" th:if="${ss.size()>1}" th:src="${ss[1].url}"/>
+                    <span class="media-placeholder" th:if="${ss.size()<=1}">🖼</span>
+                    <div class="media-upload-overlay">Upload</div>
+                </div>
+            </th:block>
+        </div>
+        <div class="media-dots">
+            <div class="media-dot active"></div>
+            <div class="media-dot"></div>
+            <div class="media-dot"></div>
+        </div>
+    </div>
+    <input accept="image/*,video/*" id="mediaFileInput" style="display:none;" type="file"/>
+
+    <!-- CATEGORIES -->
+    <th:block th:each="ce : ${categorySelections.entrySet()}">
+        <div class="section" th:id="'section-' + ${ce.key.id}">
+            <div class="section-title" th:text="${ce.key.name}">CATEGORY</div>
+            <div class="hint-text"
+                 th:if="${ce.key.description != null and !ce.key.description.isEmpty()}" th:text="${ce.key.description}"></div>
+            <div class="pills-wrap" th:id="'pills-' + ${ce.key.id}">
+                <th:block th:each="entry : ${allEntries.get(ce.key.id)}">
+                    <span class="pill"
+                          onclick="togglePill(this)"
+                          th:classappend="${ce.value.contains(entry)} ? ' pill-selected' : ' pill-unselected'"
+                          th:data-category-id="${ce.key.id}"
+                          th:data-entry-id="${entry.id}"
+                          th:data-max="${ce.key.maxSelected}">
+                        <img alt="" class="pill-icon" th:if="${entry.iconUrl != null}" th:src="${entry.iconUrl}"/>
+                        <span th:text="${entry.name}">Entry</span>
+                    </span>
+                </th:block>
+            </div>
+            <button class="btn-update"
+                    onclick="saveCategorySelections(this.dataset.id, this)"
+                    th:data-id="${ce.key.id}">
+                Update
+            </button>
+        </div>
+    </th:block>
+
+    <hr class="divider"/>
+
+    <!-- WORKFLOWS -->
+    <div class="section">
+        <div class="section-title">MAIN WORKFLOWS</div>
+        <div class="workflows-container" id="workflowsContainer">
+            <div id="workflowsList">
+                <th:block th:each="wf : ${workflows}">
+                    <div class="workflow-block" th:data-wf-id="${wf.id}" th:id="'wf-' + ${wf.id}">
+                        <div class="workflow-header">
+                            <span class="workflow-label">WORKFLOW NAME</span>
+
+                            <input class="workflow-title-input"
+                                   onblur="handleWorkflowBlur(this)"
+                                   placeholder="Workflow name"
+                                   th:data-id="${wf.id}"
+                                   th:id="'wfTitle-' + ${wf.id}"
+                                   th:value="${wf.title}"
+                                   type="text"/>
+
+                            <button class="workflow-delete-btn"
+                                    onclick="handleDeleteWorkflow(this)"
+                                    th:data-id="${wf.id}">
+                                ✕
+                            </button>
+                        </div>
+                        <!-- STEP DIAGRAM -->
+                        <div class="steps-diagram" th:id="'steps-' + ${wf.id}">
+
+                            <th:block th:each="step, stat : ${workflowSteps.get(wf.id)}">
+                                <span class="step-arrow" th:if="${!stat.first}">→</span>
+
+                                <div class="step-box" th:id="'step-' + ${step.id}">
+                                    <div class="step-box-inner">
+                                        <div class="step-box-label">
+                                            STEP <span th:text="${stat.index + 1}"></span>
+                                        </div>
+                                        <div class="step-box-text" th:text="${step.text}"></div>
+                                    </div>
+
+                                    <button class="step-box-delete"
+                                            onclick="handleDeleteStep(this)"
+                                            th:data-step-id="${step.id}"
+                                            th:data-wf-id="${wf.id}">
+                                        ✕
+                                    </button>
+                                </div>
+                            </th:block>
+
+                            <!-- arrow before (+) only if steps exist -->
+                            <span class="step-arrow"
+                                  th:if="${workflowSteps.get(wf.id) != null and !workflowSteps.get(wf.id).empty}">
+                                →
+                            </span>
+
+                            <button class="add-step-circle"
+                                    onclick="handleOpenAddStep(this)"
+                                    th:data-wf-id="${wf.id}">
+                                +
+                            </button>
+                        </div>
+                    </div>
+                </th:block>
+            </div>
+            <div class="add-workflow-row">
+                <button class="add-workflow-btn" onclick="openAddWorkflowModal()">+ ADD NEW WORKFLOW</button>
+            </div>
+        </div>
+    </div>
+
+    <hr class="divider"/>
+
+    <!-- MADE WITH -->
+    <div class="section">
+        <div class="section-title">MADE WITH</div>
+        <div class="made-with-row">
+            <th:block th:each="ce : ${categorySelections.entrySet()}"
+                      th:if="${ce.key.slug == 'made-with' or ce.key.slug == 'built-with'}">
+                <th:block th:each="entry : ${ce.value}">
+                    <span class="made-with-badge">
+                        <img alt="" class="made-with-icon" th:if="${entry.iconUrl != null}" th:src="${entry.iconUrl}"/>
+                        <span class="made-with-dot" th:if="${entry.iconUrl == null}"></span>
+                        <span th:text="${entry.name}">Tool</span>
+                    </span>
+                </th:block>
+            </th:block>
+            <button class="add-circle-btn">+</button>
+        </div>
+    </div>
+
+</div>
+
+<!-- ADD WORKFLOW MODAL -->
+<div class="modal-overlay" id="addWorkflowModal">
+    <div class="modal">
+        <div class="modal-title">Add New Workflow</div>
+        <div class="modal-field">
+            <label>Workflow Name</label>
+            <input autocomplete="off" id="newWorkflowTitle" placeholder="e.g. User Onboarding" type="text"/>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-modal-cancel" onclick="closeModal('addWorkflowModal')">Cancel</button>
+            <button class="btn-modal-submit" onclick="createWorkflow()">Add Workflow</button>
+        </div>
+    </div>
+</div>
+
+<!-- ADD STEP MODAL -->
+<div class="modal-overlay" id="addStepModal">
+    <div class="modal">
+        <div class="modal-title">Add Step</div>
+        <div class="modal-field">
+            <label>Step Description</label>
+            <input autocomplete="off" id="newStepText" placeholder="e.g. User signs up with email" type="text"/>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-modal-cancel" onclick="closeModal('addStepModal')">Cancel</button>
+            <button class="btn-modal-submit" onclick="createStep()">Add Step</button>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    const APP_ID = /*[[${app.id}]]*/ '';
+
+    // ─── TOAST ──────────────────────────────────────────────────────────────
+    function showToast(msg, err = false) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = 'toast' + (err ? ' error' : '');
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    // ─── MODAL ──────────────────────────────────────────────────────────────
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+    document.querySelectorAll('.modal-overlay').forEach(o =>
+        o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); }));
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            if (document.getElementById('addStepModal').classList.contains('open')) createStep();
+            else if (document.getElementById('addWorkflowModal').classList.contains('open')) createWorkflow();
+        }
+    });
+
+    // ─── ICON UPLOAD ────────────────────────────────────────────────────────
+    document.getElementById('iconFileInput').addEventListener('change', async function () {
+        const file = this.files[0]; if (!file) return;
+        const fd = new FormData(); fd.append('file', file);
+        try {
+            const r = await fetch(`/media/upload/icon/${APP_ID}`, { method: 'POST', body: fd });
+            const d = await r.json();
+            if (!r.ok) throw new Error(d.error || 'Upload failed');
+            let img = document.getElementById('iconImg');
+            if (!img) {
+                img = document.createElement('img'); img.id = 'iconImg'; img.alt = 'icon';
+                document.getElementById('iconPlaceholder')?.remove();
+                document.getElementById('iconWrap').prepend(img);
+            }
+            img.src = d.url; showToast('Icon updated');
+        } catch (e) { showToast(e.message, true); }
+        this.value = '';
+    });
+
+    // ─── MEDIA UPLOAD ───────────────────────────────────────────────────────
+    let _mediaSlot = 'shot1';
+    function triggerMediaUpload(slot) { _mediaSlot = slot; document.getElementById('mediaFileInput').click(); }
+    document.getElementById('mediaFileInput').addEventListener('change', async function () {
+        const file = this.files[0]; if (!file) return;
+        const fd = new FormData(); fd.append('file', file); fd.append('position', _mediaSlot === 'shot2' ? 1 : 0);
+        try {
+            const r = await fetch(`/media/upload/screenshot/${APP_ID}`, { method: 'POST', body: fd });
+            const d = await r.json();
+            if (!r.ok) throw new Error(d.error || 'Upload failed');
+            const imgId = _mediaSlot === 'video' ? 'videoImg' : _mediaSlot === 'shot2' ? 'shot2Img' : 'shot1Img';
+            let img = document.getElementById(imgId);
+            if (!img) {
+                const cell = document.querySelector(`[onclick="triggerMediaUpload('${_mediaSlot}')"]`);
+                cell.querySelector('.media-placeholder, .play-btn')?.remove();
+                img = document.createElement('img'); img.id = imgId; img.alt = ''; cell.prepend(img);
+            }
+            img.src = d.url; showToast('Media uploaded');
+        } catch (e) { showToast(e.message, true); }
+        this.value = '';
+    });
+
+    // ─── APP INFO ───────────────────────────────────────────────────────────
+    async function saveAppInfo() {
+        const name = document.getElementById('editableName').innerText.trim();
+        const desc = document.getElementById('editableDescription').innerText.trim();
+        if (!name) return showToast('Name cannot be empty', true);
+        const fd = new FormData(); fd.append('name', name); fd.append('description', desc);
+        try {
+            const r = await fetch(`/apps/${APP_ID}/manage/info`, { method: 'POST', body: fd });
+            if (!r.ok) throw new Error('Save failed');
+            const b = document.getElementById('saveBadge');
+            b.classList.add('show'); setTimeout(() => b.classList.remove('show'), 2000);
+            showToast('Saved');
+        } catch (e) { showToast(e.message, true); }
+    }
+
+    // ─── CATEGORY PILLS ─────────────────────────────────────────────────────
+    function togglePill(pill) {
+        const cid = pill.dataset.categoryId;
+        const max = pill.dataset.max ? parseInt(pill.dataset.max) : null;
+        const container = document.getElementById('pills-' + cid);
+        const sel = pill.classList.contains('pill-selected');
+        if (sel) {
+            pill.classList.replace('pill-selected', 'pill-unselected');
+        } else {
+            if (max === 1) container.querySelectorAll('.pill-selected').forEach(p => p.classList.replace('pill-selected', 'pill-unselected'));
+            else if (max && container.querySelectorAll('.pill-selected').length >= max) return;
+            pill.classList.replace('pill-unselected', 'pill-selected');
+        }
+    }
+
+    async function saveCategorySelections(categoryId, btn) {
+        const ids = [...document.getElementById('pills-' + categoryId).querySelectorAll('.pill-selected')]
+            .map(p => p.dataset.entryId);
+        btn.textContent = 'Saving…'; btn.classList.add('saving');
+        const fd = new FormData(); ids.forEach(id => fd.append('entryIds', id));
+        try {
+            const r = await fetch(`/apps/${APP_ID}/manage/categories/${categoryId}`, { method: 'POST', body: fd });
+            if (!r.ok) throw new Error('Save failed');
+            btn.textContent = 'Update'; btn.classList.remove('saving'); btn.classList.add('saved');
+            setTimeout(() => btn.classList.remove('saved'), 1500);
+            showToast('Updated');
+        } catch (e) { btn.textContent = 'Update'; btn.classList.remove('saving'); showToast(e.message, true); }
+    }
+
+    // ─── WORKFLOWS ──────────────────────────────────────────────────────────
+    function openAddWorkflowModal() {
+        document.getElementById('newWorkflowTitle').value = '';
+        document.getElementById('addWorkflowModal').classList.add('open');
+        setTimeout(() => document.getElementById('newWorkflowTitle').focus(), 80);
+    }
+
+    async function createWorkflow() {
+        const title = document.getElementById('newWorkflowTitle').value.trim();
+        if (!title) return;
+        const fd = new FormData(); fd.append('title', title);
+        try {
+            const r = await fetch(`/apps/${APP_ID}/manage/workflows`, { method: 'POST', body: fd });
+            if (!r.ok) throw new Error('Failed');
+            closeModal('addWorkflowModal');
+            const data = await r.json();
+            appendWorkflowBlock(data.id, title);
+            showToast('Workflow added');
+        } catch (e) { showToast(e.message, true); }
+    }
+
+    async function deleteWorkflow(wfId) {
+        if (!confirm('Delete this workflow?')) return;
+        const fd = new FormData();
+        try {
+            await fetch(`/apps/${APP_ID}/manage/workflows/${wfId}/delete`, { method: 'POST', body: fd });
+            document.getElementById('wf-' + wfId)?.remove();
+            showToast('Deleted');
+        } catch (e) { showToast(e.message, true); }
+    }
+
+    async function saveWorkflowTitle(wfId, value) {
+        const title = value.trim(); if (!title) return;
+        const fd = new FormData(); fd.append('title', title);
+        try {
+            await fetch(`/apps/${APP_ID}/manage/workflows/${wfId}/update`, { method: 'POST', body: fd });
+            showToast('Saved');
+        } catch (e) { showToast(e.message, true); }
+    }
+
+    // ─── STEPS ──────────────────────────────────────────────────────────────
+    let _activeWfId = null;
+    function openAddStepModal(wfId) {
+        _activeWfId = wfId;
+        document.getElementById('newStepText').value = '';
+        document.getElementById('addStepModal').classList.add('open');
+        setTimeout(() => document.getElementById('newStepText').focus(), 80);
+    }
+
+    async function createStep() {
+        const text = document.getElementById('newStepText').value.trim();
+        if (!text || !_activeWfId) return;
+        const fd = new FormData(); fd.append('text', text);
+        try {
+            const r = await fetch(`/apps/${APP_ID}/manage/workflows/${_activeWfId}/steps`, { method: 'POST', body: fd });
+            if (!r.ok) throw new Error('Failed');
+            const data = await r.json();
+            closeModal('addStepModal');
+            appendStepBox(_activeWfId, data.id, data.text, data.position);
+            showToast('Step added');
+        } catch (e) { showToast(e.message, true); }
+    }
+
+    async function deleteStep(wfId, stepId) {
+        const fd = new FormData();
+        try {
+            await fetch(`/apps/${APP_ID}/manage/workflows/${wfId}/steps/${stepId}/delete`, { method: 'POST', body: fd });
+            removeStepBox(wfId, stepId);
+            showToast('Step removed');
+        } catch (e) { showToast(e.message, true); }
+    }
+
+    // ─── DOM HELPERS ────────────────────────────────────────────────────────
+    function appendWorkflowBlock(wfId, title) {
+        const list = document.getElementById('workflowsList');
+        const div = document.createElement('div');
+        div.className = 'workflow-block'; div.id = 'wf-' + wfId; div.dataset.wfId = wfId;
+        div.innerHTML = `
+          <div class="workflow-header">
+            <span class="workflow-label">WORKFLOW NAME</span>
+            <input type="text" class="workflow-title-input" id="wfTitle-${wfId}" value="${escHtml(title)}"
+                   placeholder="Workflow name" onblur="saveWorkflowTitle('${wfId}', this.value)"/>
+            <button class="workflow-delete-btn" onclick="deleteWorkflow('${wfId}')">✕</button>
+          </div>
+          <div class="steps-diagram" id="steps-${wfId}">
+            <button class="add-step-circle" onclick="openAddStepModal('${wfId}')">+</button>
+          </div>`;
+        list.appendChild(div);
+    }
+
+    function appendStepBox(wfId, stepId, text, position) {
+        const diagram = document.getElementById('steps-' + wfId);
+        const addBtn = diagram.querySelector('.add-step-circle');
+        const existingSteps = diagram.querySelectorAll('.step-box').length;
+
+        // Arrow before new step (and before add button)
+        if (existingSteps > 0) {
+            const arrow = document.createElement('span');
+            arrow.className = 'step-arrow'; arrow.textContent = '→';
+            diagram.insertBefore(arrow, addBtn);
+        }
+
+        const box = document.createElement('div');
+        box.className = 'step-box'; box.id = 'step-' + stepId;
+        box.innerHTML = `
+          <div class="step-box-inner">
+            <div class="step-box-label">STEP ${existingSteps + 1}</div>
+            <div class="step-box-text">${escHtml(text)}</div>
+          </div>
+          <button class="step-box-delete" onclick="deleteStep('${wfId}','${stepId}')">✕</button>`;
+        diagram.insertBefore(box, addBtn);
+
+        // Ensure arrow between last step and (+) button
+        const arrows = diagram.querySelectorAll('.step-arrow');
+        const lastArrow = arrows[arrows.length - 1];
+        if (!lastArrow || lastArrow.nextElementSibling !== addBtn) {
+            const a = document.createElement('span');
+            a.className = 'step-arrow'; a.textContent = '→';
+            diagram.insertBefore(a, addBtn);
+        }
+    }
+
+    function removeStepBox(wfId, stepId) {
+        const box = document.getElementById('step-' + stepId);
+        if (!box) return;
+        // Also remove the preceding or following arrow
+        const prev = box.previousElementSibling;
+        const next = box.nextElementSibling;
+        if (prev?.classList.contains('step-arrow')) prev.remove();
+        else if (next?.classList.contains('step-arrow')) next.remove();
+        box.remove();
+        // Renumber remaining steps
+        const diagram = document.getElementById('steps-' + wfId);
+        diagram.querySelectorAll('.step-box-label').forEach((lbl, i) => {
+            lbl.textContent = 'STEP ' + (i + 1);
+        });
+    }
+
+    function escHtml(s) {
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+</script>
+
+</body>
+</html>

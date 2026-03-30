@@ -44,13 +44,20 @@ public class AppService {
     @Transactional
     public App update(UUID id, App updated) {
         App existing = findById(id);
-        if (updated.getName() != null)       existing.setName(updated.getName());
-        if (updated.getDescription() != null) existing.setDescription(updated.getDescription());
-        if (updated.getUrl() != null)         existing.setUrl(updated.getUrl());
-        if (updated.getStatus() != null)      existing.setStatus(updated.getStatus());
-        if (updated.getVisibility() != null)  existing.setVisibility(updated.getVisibility());
-        if (updated.getVersion() != null)     existing.setVersion(updated.getVersion());
+        if (updated.getName() != null)        existing.setName(updated.getName());
+        if (updated.getDescription() != null)  existing.setDescription(updated.getDescription());
+        if (updated.getUrl() != null)          existing.setUrl(updated.getUrl());
+        if (updated.getStatus() != null)       existing.setStatus(updated.getStatus());
+        if (updated.getVisibility() != null)   existing.setVisibility(updated.getVisibility());
+        if (updated.getVersion() != null)      existing.setVersion(updated.getVersion());
         return appRepository.save(existing);
+    }
+
+    @Transactional
+    public App updateIconUrl(UUID id, String iconUrl) {
+        App app = findById(id);
+        app.setIconUrl(iconUrl);
+        return appRepository.save(app);
     }
 
     @Transactional

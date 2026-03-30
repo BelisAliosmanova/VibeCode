@@ -21,32 +21,35 @@
         .btn-outline { background: transparent; border: 1.5px solid #fff; color: #fff; font-size: 0.85rem; padding: 0.4rem 1rem; border-radius: var(--radius-pill); text-decoration: none; }
 
         /* Progress */
-        .progress-bar {
-            height: 3px; background: #eee;
-        }
-        .progress-fill {
-            height: 100%; background: var(--black);
-            transition: width 0.3s;
-        }
+        .progress-bar { height: 3px; background: #eee; }
+        .progress-fill { height: 100%; background: var(--black); transition: width 0.3s; }
 
         .page { max-width: 560px; margin: 2.5rem auto; padding: 0 1.5rem; }
 
-        /* Step indicator */
-        .step-indicator {
-            font-size: 0.72rem; color: #aaa; margin-bottom: 0.5rem;
+        /* App identity strip */
+        .app-strip {
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 0.85rem 1rem; border: 1.5px solid var(--border);
+            border-radius: 14px; margin-bottom: 1.75rem; background: #fafafa;
         }
+        .app-icon {
+            width: 44px; height: 44px; border-radius: 10px;
+            border: 1px solid var(--border); overflow: hidden;
+            background: var(--white); display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; font-size: 1.2rem; color: #ccc;
+        }
+        .app-icon img { width: 100%; height: 100%; object-fit: cover; }
+        .app-info .app-name { font-size: 0.92rem; font-weight: 700; }
+        .app-info .app-url { font-size: 0.75rem; color: #aaa; }
+
+        /* Step indicator */
+        .step-indicator { font-size: 0.72rem; color: #aaa; margin-bottom: 0.5rem; }
 
         /* Section header */
-        .section-header {
-            display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;
-        }
+        .section-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+        .section-title { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
 
-        .section-title {
-            font-size: 0.72rem; font-weight: 700;
-            letter-spacing: 0.12em; text-transform: uppercase;
-        }
-
-        /* Search (only shown when allowCustom or entries > 8) */
+        /* Search */
         .search-wrap {
             display: flex; align-items: center;
             border: 1.5px solid var(--border); border-radius: var(--radius-pill);
@@ -57,12 +60,8 @@
         .divider { color: #ccc; }
 
         .selected-pills { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.6rem; min-height: 32px; }
-
         .info-text { font-size: 0.78rem; color: #888; margin-bottom: 1rem; }
-
-        /* Description hint */
         .description { font-size: 0.82rem; color: #666; margin-bottom: 1.25rem; line-height: 1.5; }
-
         .options-pills { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 2rem; }
 
         .pill {
@@ -77,14 +76,12 @@
 
         /* Actions */
         .actions { display: flex; align-items: center; gap: 1rem; }
-
         .btn-black {
             background: var(--black); color: #fff; border: none;
             padding: 0.7rem 2.5rem; border-radius: var(--radius-pill);
             font-size: 0.9rem; font-weight: 600; cursor: pointer;
         }
         .btn-black:hover { background: #333; }
-
         .btn-skip {
             background: transparent; border: none;
             color: #aaa; font-size: 0.85rem; cursor: pointer;
@@ -123,13 +120,23 @@
 
     <div class="page">
 
+        <!-- App identity strip -->
+        <div class="app-strip">
+            <div class="app-icon">
+                <img th:if="${app.iconUrl != null}" th:src="${app.iconUrl}" alt="icon"/>
+                <span th:if="${app.iconUrl == null}">🖼</span>
+            </div>
+            <div class="app-info">
+                <div class="app-name" th:text="${app.name}">App Name</div>
+                <div class="app-url" th:text="${app.url}">https://...</div>
+            </div>
+        </div>
+
         <div class="step-indicator"
              th:text="'Step ' + ${stepNumber} + ' of ' + ${totalSteps}">Step 2 of 5</div>
 
         <div class="section-header">
             <div class="section-title" th:text="${category.name}">Category Name</div>
-
-            <!-- Search box: shown when entries > 8 or allowCustom is true -->
             <div class="search-wrap"
                  th:if="${#lists.size(entries) > 8 or category.allowCustom}">
                 <input type="text" id="searchInput" placeholder="Search..."/>
@@ -140,18 +147,13 @@
             </div>
         </div>
 
-        <!-- Optional description -->
         <p class="description"
            th:if="${category.description != null and !category.description.isEmpty()}"
            th:text="${category.description}"></p>
 
-        <!-- Selected pills -->
         <div class="selected-pills" id="selectedPills"></div>
-
-        <!-- Info text -->
         <div class="info-text" id="infoText">Click below to add</div>
 
-        <!-- All options -->
         <div class="options-pills" id="optionPills">
             <span th:each="entry : ${entries}"
                   class="pill"
@@ -164,16 +166,13 @@
         <div class="actions">
             <button type="submit" class="btn-black"
                     th:text="${isLastStep} ? 'Submit App' : 'Update'">Update</button>
-
-            <!-- Skip button — submits with no selections -->
             <button type="button" class="btn-skip" onclick="skipStep()">Skip</button>
         </div>
-
     </div>
 </form>
 
 <script th:inline="javascript">
-    const MAX = /*[[${category.maxSelected}]]*/ null; // null = unlimited
+    const MAX = /*[[${category.maxSelected}]]*/ null;
     const IS_SINGLE = MAX === 1;
 
     let selected = new Map(
@@ -185,7 +184,6 @@
         pill.addEventListener('click', () => toggle(pill));
     });
 
-    // Search filter
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
         searchInput.addEventListener('input', function () {
@@ -196,7 +194,6 @@
         });
     }
 
-    // Custom entry (Enter key)
     const customInput = document.getElementById('customInput');
     if (customInput) {
         customInput.addEventListener('keydown', function (e) {
@@ -205,10 +202,8 @@
             const name = this.value.trim();
             if (!name) return;
             if (MAX && selected.size >= MAX) return;
-
             const id = 'custom-' + Date.now();
             selected.set(id, name);
-
             const pill = document.createElement('span');
             pill.className = 'pill selected';
             pill.dataset.id = id;
@@ -216,7 +211,6 @@
             pill.textContent = name;
             pill.addEventListener('click', () => toggle(pill));
             document.getElementById('optionPills').appendChild(pill);
-
             this.value = '';
             render();
         });
@@ -229,7 +223,6 @@
             pill.classList.remove('selected');
         } else {
             if (IS_SINGLE) {
-                // Deselect all others
                 selected.clear();
                 document.querySelectorAll('#optionPills .pill.selected')
                     .forEach(p => p.classList.remove('selected'));
@@ -242,7 +235,6 @@
     }
 
     function render() {
-        // Selected pills row
         const sp = document.getElementById('selectedPills');
         sp.innerHTML = '';
         selected.forEach((name, id) => {
@@ -258,7 +250,6 @@
             sp.appendChild(pill);
         });
 
-        // Info text
         const info = document.getElementById('infoText');
         if (MAX) {
             const left = MAX - selected.size;
@@ -269,7 +260,6 @@
             info.textContent = `${selected.size} selected`;
         }
 
-        // Sync hidden inputs — real entries as UUIDs, custom entries as separate param
         const container = document.getElementById('entryInputs');
         container.innerHTML = '';
         selected.forEach((name, id) => {

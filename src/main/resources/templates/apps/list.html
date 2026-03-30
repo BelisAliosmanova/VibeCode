@@ -37,6 +37,16 @@
 
         .app-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
 
+        .app-left { display: flex; align-items: flex-start; gap: 0.85rem; flex: 1; min-width: 0; }
+
+        .app-icon {
+            width: 48px; height: 48px; border-radius: 10px; flex-shrink: 0;
+            border: 1.5px solid var(--border); overflow: hidden;
+            background: var(--light); display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem; color: #ccc;
+        }
+        .app-icon img { width: 100%; height: 100%; object-fit: cover; }
+
         .app-main { flex: 1; min-width: 0; }
 
         .app-name-row { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.3rem; flex-wrap: wrap; }
@@ -65,7 +75,7 @@
         .badge-public    { border-color: #ddd; color: #666; }
         .badge-private   { border-color: #ebebeb; color: #ccc; }
 
-        .app-actions { display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0; }
+        .app-actions { display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
 
         .btn {
             background: transparent; border: 1.5px solid var(--border);
@@ -75,6 +85,8 @@
             transition: border-color 0.12s, background 0.12s; white-space: nowrap;
         }
         .btn:hover { border-color: #aaa; }
+        .btn-manage { border-color: var(--black); color: var(--black); font-weight: 600; }
+        .btn-manage:hover { background: var(--black); color: #fff; }
         .btn-approve { border-color: #6ee7b7; color: var(--success); }
         .btn-approve:hover { background: #f0fdf4; }
         .btn-reject { border-color: #fca5a5; color: var(--danger); }
@@ -116,43 +128,47 @@
         <div th:each="app : ${apps}" class="app-card">
             <div class="app-card-top">
 
-                <div class="app-main">
-                    <div class="app-name-row">
-                        <span class="app-name" th:text="${app.name}">App Name</span>
-                        <span class="app-version" th:text="'v' + ${app.version}">v1</span>
-
-                        <span class="badge"
-                              th:classappend="${app.status.name() == 'DRAFT'} ? ' badge-draft' :
-                                             (${app.status.name() == 'SUBMITTED'} ? ' badge-submitted' :
-                                             (${app.status.name() == 'APPROVED'} ? ' badge-approved' : ' badge-rejected'))"
-                              th:text="${app.status}">DRAFT</span>
-
-                        <span class="badge"
-                              th:classappend="${app.visibility.name() == 'PUBLIC'} ? ' badge-public' : ' badge-private'"
-                              th:text="${app.visibility}">PRIVATE</span>
+                <div class="app-left">
+                    <!-- App icon -->
+                    <div class="app-icon">
+                        <img th:if="${app.iconUrl != null}" th:src="${app.iconUrl}" alt="icon"/>
+                        <span th:if="${app.iconUrl == null}">🖼</span>
                     </div>
 
-                    <a th:if="${app.url != null}" th:href="${app.url}" th:text="${app.url}"
-                       target="_blank" class="app-url"></a>
+                    <div class="app-main">
+                        <div class="app-name-row">
+                            <span class="app-name" th:text="${app.name}">App Name</span>
+                            <span class="app-version" th:text="'v' + ${app.version}">v1</span>
 
-                    <p th:if="${app.description != null}" class="app-description"
-                       th:text="${app.description}"></p>
+                            <span class="badge"
+                                  th:classappend="${app.status.name() == 'DRAFT'} ? ' badge-draft' :
+                                                 (${app.status.name() == 'SUBMITTED'} ? ' badge-submitted' :
+                                                 (${app.status.name() == 'APPROVED'} ? ' badge-approved' : ' badge-rejected'))"
+                                  th:text="${app.status}">DRAFT</span>
 
-                    <div class="app-meta">
-                        <span class="meta-item" th:text="'👤 ' + ${app.owner.email}">owner</span>
-                        <span class="meta-sep">·</span>
-                        <span class="meta-item" th:text="'submitted ' + ${#temporals.format(app.createdAt, 'dd MMM yyyy')}">date</span>
-                        <span class="meta-sep">·</span>
-                        <span class="meta-item" th:text="'slug: /' + ${app.slug}">slug</span>
-                        <th:block th:if="${app.publishedAt != null}">
+                            <span class="badge"
+                                  th:classappend="${app.visibility.name() == 'PUBLIC'} ? ' badge-public' : ' badge-private'"
+                                  th:text="${app.visibility}">PRIVATE</span>
+                        </div>
+
+                        <a th:if="${app.url != null}" th:href="${app.url}" th:text="${app.url}"
+                           target="_blank" class="app-url"></a>
+
+                        <p th:if="${app.description != null}" class="app-description"
+                           th:text="${app.description}"></p>
+
+                        <div class="app-meta">
+                            <span class="meta-item" th:text="'👤 ' + ${app.owner.email}">owner</span>
                             <span class="meta-sep">·</span>
-                            <span class="meta-item" th:text="'published ' + ${#temporals.format(app.publishedAt, 'dd MMM yyyy')}">published</span>
-                        </th:block>
+                            <span class="meta-item" th:text="'submitted ' + ${#temporals.format(app.createdAt, 'dd MMM yyyy')}">date</span>
+                            <span class="meta-sep">·</span>
+                            <span class="meta-item" th:text="'slug: /' + ${app.slug}">slug</span>
+                        </div>
                     </div>
                 </div>
 
                 <div class="app-actions">
-                    <a th:href="@{/apps/{id}(id=${app.id})}" class="btn">View</a>
+                    <a th:href="@{/apps/{id}/manage(id=${app.id})}" class="btn btn-manage">Manage</a>
                     <a th:href="@{/apps/{id}/edit(id=${app.id})}" class="btn">Edit</a>
 
                     <form th:if="${app.status.name() == 'SUBMITTED'}"

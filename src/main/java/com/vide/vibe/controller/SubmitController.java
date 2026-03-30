@@ -18,6 +18,7 @@ public class SubmitController {
     private final AppService appService;
     private final UserService userService;
     private final CategoryService categoryService;
+    private final MediaService mediaService;
 
     @GetMapping
     public String landing() {
@@ -78,6 +79,17 @@ public class SubmitController {
             saved = appService.create(newApp, owner.getId());
         }
 
+        // Handle icon upload
+        if (icon != null && !icon.isEmpty()) {
+            try {
+                String iconUrl = mediaService.upload(icon, "icons");
+                appService.updateIconUrl(saved.getId(), iconUrl);
+            } catch (Exception e) {
+                // Log but continue — icon upload failure shouldn't block the flow
+                System.err.println("Icon upload failed: " + e.getMessage());
+            }
+        }
+
         List<Category> categories = categoryService.findAllVisible();
         if (categories.isEmpty()) {
             appService.submit(saved.getId());
@@ -123,21 +135,20 @@ public class SubmitController {
                            @RequestParam(required = false) UUID nextCategoryId) {
         App app = appService.findById(appId);
 
-        // Create real CategoryEntry records for any custom entries, collect their IDs
         List<UUID> allEntryIds = new java.util.ArrayList<>(entryIds != null ? entryIds : List.of());
         if (customEntries != null) {
             for (String name : customEntries) {
                 if (name == null || name.isBlank()) continue;
                 String slug = name.toLowerCase().trim().replaceAll("[^a-z0-9]+", "-") + "-" + System.currentTimeMillis();
-                com.vide.vibe.model.CategoryEntry custom = com.vide.vibe.model.CategoryEntry.builder()
+                CategoryEntry custom = CategoryEntry.builder()
                         .name(name.trim())
                         .slug(slug)
                         .visibility(true)
                         .interest(0)
                         .position(999)
                         .build();
-                com.vide.vibe.model.CategoryEntry saved = categoryService.createEntry(categoryId, custom);
-                allEntryIds.add(saved.getId());
+                CategoryEntry savedEntry = categoryService.createEntry(categoryId, custom);
+                allEntryIds.add(savedEntry.getId());
             }
         }
 

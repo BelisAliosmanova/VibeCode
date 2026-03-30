@@ -35,7 +35,11 @@
         .success h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.75rem; }
         .success p { color: #666; font-size: 0.95rem; margin-bottom: 2rem; }
 
+        .btn-row { display: flex; align-items: center; justify-content: center; gap: 0.75rem; flex-wrap: wrap; }
+
         .btn-black { background: #111; color: #fff; border: none; padding: 0.7rem 2rem; border-radius: 50px; font-size: 0.9rem; font-weight: 600; cursor: pointer; text-decoration: none; }
+        .btn-outline-dark { background: transparent; border: 1.5px solid #ddd; color: #111; padding: 0.7rem 2rem; border-radius: 50px; font-size: 0.9rem; font-weight: 500; text-decoration: none; }
+        .btn-outline-dark:hover { border-color: #aaa; }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 </head>
@@ -56,7 +60,10 @@
     <div class="checkmark">✓</div>
     <h1 th:text="'🎉 ' + ${app.name} + ' submitted!'">App submitted!</h1>
     <p>Your app is under review. We'll notify you once it's approved.</p>
-    <a th:href="@{/apps}" class="btn-black">Explore apps</a>
+    <div class="btn-row">
+        <a th:href="@{/apps/{id}/manage(id=${app.id})}" class="btn-black">Manage your listing</a>
+        <a th:href="@{/apps}" class="btn-outline-dark">Explore apps</a>
+    </div>
 </div>
 </body>
 </html>

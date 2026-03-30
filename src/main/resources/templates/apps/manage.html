@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="${app.name} + ' — Manage Listing'">Manage Listing — Vibe</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --dark: #5a5a5a; --black: #111; --white: #fff; --light: #f8f8f8;
+            --border: #e0e0e0; --border-dark: #ccc; --danger: #e05c5c;
+            --accent: #3b82f6; --success: #2d9e6b;
+            --radius-pill: 50px; --radius-card: 16px;
+            --font: 'Inter', system-ui, sans-serif;
+        }
+        body { font-family: var(--font); background: #f5f5f5; color: var(--black); }
+
+        /* NAV */
+        nav { display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 2rem; background: var(--dark); }
+        .nav-left { display: flex; align-items: center; gap: 1.5rem; }
+        .nav-logo { width: 32px; height: 32px; background: #222; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 0.9rem; }
+        .nav-link { color: #fff; text-decoration: none; font-size: 0.9rem; opacity: 0.9; }
+        .nav-right { display: flex; align-items: center; gap: 1rem; }
+        .btn-outline-nav { background: transparent; border: 1.5px solid #fff; color: #fff; font-size: 0.85rem; padding: 0.4rem 1rem; border-radius: var(--radius-pill); text-decoration: none; }
+
+        /* Header band */
+        .header-band {
+            background: var(--dark); color: white;
+            text-align: center; padding: 1.5rem 2rem 2.5rem;
+        }
+        .header-band h1 { font-size: 1.4rem; font-weight: 600; }
+
+        /* Layout */
+        .page { max-width: 820px; margin: -1rem auto 3rem; padding: 0 1.5rem; position: relative; }
+
+        /* App header card */
+        .app-header-card {
+            background: var(--white);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-card);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .app-header-row { display: flex; align-items: flex-start; gap: 1rem; }
+        .app-icon {
+            width: 56px; height: 56px; border-radius: 14px;
+            border: 1.5px solid var(--border);
+            background: var(--light);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; overflow: hidden; font-size: 1.5rem;
+            color: #ccc; cursor: pointer; position: relative;
+        }
+        .app-icon img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; }
+        .app-icon input[type="file"] {
+            position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+        }
+        .app-icon-overlay {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.45);
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.15s; font-size: 0.7rem; color: white;
+        }
+        .app-icon:hover .app-icon-overlay { opacity: 1; }
+
+        .app-info { flex: 1; min-width: 0; }
+        .app-name-input {
+            font-size: 1rem; font-weight: 700; border: none; outline: none;
+            width: 100%; background: transparent; font-family: var(--font);
+            padding: 0 0 0.15rem 0; border-bottom: 1.5px solid transparent;
+            transition: border-color 0.15s;
+        }
+        .app-name-input:focus { border-bottom-color: var(--black); }
+        .app-desc-input {
+            font-size: 0.82rem; color: #555; border: none; outline: none;
+            width: 100%; background: transparent; font-family: var(--font);
+            resize: none; margin-top: 0.3rem; line-height: 1.5;
+            border-bottom: 1.5px solid transparent; transition: border-color 0.15s;
+        }
+        .app-desc-input:focus { border-bottom-color: var(--black); }
+
+        .app-meta-row { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap; }
+        .badge {
+            display: inline-flex; align-items: center;
+            padding: 0.18rem 0.65rem; border-radius: var(--radius-pill);
+            font-size: 0.7rem; font-weight: 700; border: 1.5px solid;
+        }
+        .badge-draft     { border-color: #ddd; color: #aaa; }
+        .badge-submitted { border-color: #93c5fd; color: #2563eb; background: #eff6ff; }
+        .badge-approved  { border-color: #6ee7b7; color: var(--success); background: #f0fdf4; }
+        .badge-rejected  { border-color: #fca5a5; color: var(--danger); background: #fef2f2; }
+        .badge-public    { border-color: #ddd; color: #666; }
+        .badge-private   { border-color: #ebebeb; color: #ccc; }
+
+        .url-input {
+            font-size: 0.78rem; color: #555; border: none; outline: none;
+            background: transparent; font-family: var(--font);
+            border-bottom: 1.5px solid transparent; transition: border-color 0.15s;
+            width: 100%; margin-top: 0.4rem;
+        }
+        .url-input:focus { border-bottom-color: var(--black); }
+        .url-input::placeholder { color: #bbb; }
+
+        /* Metrics row */
+        .metrics-row {
+            display: flex; align-items: center; gap: 1.5rem;
+            margin-top: 1rem; padding-top: 1rem;
+            border-top: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+        .metric-item { font-size: 0.78rem; color: #888; display: flex; align-items: center; gap: 0.35rem; }
+        .metric-stars { color: #ddd; letter-spacing: -1px; }
+        .metric-count { font-weight: 600; color: var(--black); }
+        .metric-link {
+            font-size: 0.75rem; color: var(--accent); text-decoration: none;
+            border: 1.5px solid #93c5fd; padding: 0.2rem 0.6rem;
+            border-radius: var(--radius-pill); background: #eff6ff;
+        }
+        .metric-link:hover { background: #dbeafe; }
+        .metric-score { font-weight: 700; font-size: 0.82rem; color: var(--black); }
+
+        /* Section card */
+        .section-card {
+            background: var(--white);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-card);
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        .section-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 1rem 1.5rem;
+            cursor: pointer; user-select: none;
+        }
+        .section-header:hover { background: var(--light); }
+
+        .section-label {
+            font-size: 0.72rem; font-weight: 800; letter-spacing: 0.1em;
+            text-transform: uppercase; color: #888;
+        }
+        .section-toggle { font-size: 0.8rem; color: #bbb; transition: transform 0.2s; }
+        .section-toggle.open { transform: rotate(180deg); }
+
+        .section-body { padding: 0 1.5rem 1.5rem; }
+        .section-body.hidden { display: none; }
+
+        /* Media gallery */
+        .media-grid { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: flex-start; }
+        .media-thumb {
+            width: 120px; height: 80px; border-radius: 10px;
+            border: 1.5px solid var(--border); background: var(--light);
+            overflow: hidden; position: relative; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .media-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .media-thumb .video-icon { font-size: 1.8rem; color: #ccc; }
+        .media-thumb .delete-media-btn {
+            position: absolute; top: 4px; right: 4px;
+            background: rgba(0,0,0,0.6); border: none; color: white;
+            width: 20px; height: 20px; border-radius: 50%;
+            cursor: pointer; font-size: 0.6rem; display: none;
+            align-items: center; justify-content: center;
+        }
+        .media-thumb:hover .delete-media-btn { display: flex; }
+        .media-upload-btn {
+            width: 80px; height: 80px; border-radius: 10px;
+            border: 1.5px dashed var(--border-dark);
+            background: var(--light); cursor: pointer;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 0.2rem; color: #bbb; font-size: 0.7rem; position: relative;
+            transition: border-color 0.15s, color 0.15s;
+        }
+        .media-upload-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .media-upload-btn input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+        .media-upload-icon { font-size: 1.4rem; }
+
+        /* Category chip row */
+        .chip-row { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin-bottom: 0.75rem; }
+        .chip {
+            display: inline-flex; align-items: center; gap: 0.3rem;
+            padding: 0.25rem 0.75rem; border-radius: var(--radius-pill);
+            font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.05em; border: 1.5px solid var(--border);
+            background: var(--black); color: white; border-color: var(--black);
+        }
+        .chip-add-btn {
+            width: 26px; height: 26px; border-radius: 50%;
+            border: 1.5px solid var(--border); background: var(--white);
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 0.9rem; color: #888; transition: all 0.12s; font-family: var(--font);
+        }
+        .chip-add-btn:hover { border-color: var(--black); color: var(--black); }
+
+        /* Category entry pills (the picker) */
+        .entry-picker { margin-top: 0.75rem; }
+        .entry-picker-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #aaa; margin-bottom: 0.5rem; }
+        .entry-pills-row { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+        .entry-pill {
+            display: inline-flex; align-items: center;
+            padding: 0.25rem 0.75rem; border-radius: var(--radius-pill);
+            font-size: 0.75rem; font-weight: 500; cursor: pointer; user-select: none;
+            border: 1.5px solid #ccc; background: var(--white); color: var(--black);
+            transition: all 0.12s;
+        }
+        .entry-pill:hover { border-color: var(--black); }
+        .entry-pill.selected { background: var(--black); color: white; border-color: var(--black); }
+
+        /* Workflow visualization */
+        .workflow-block { margin-bottom: 1.5rem; }
+        .workflow-block:last-of-type { margin-bottom: 0; }
+        .workflow-name-row {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 0.6rem;
+        }
+        .workflow-title { font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; }
+        .workflow-delete-btn {
+            background: transparent; border: none; color: #ccc; cursor: pointer;
+            font-size: 0.78rem; font-family: var(--font);
+            transition: color 0.12s;
+        }
+        .workflow-delete-btn:hover { color: var(--danger); }
+
+        .steps-row {
+            display: flex; align-items: center; gap: 0; flex-wrap: nowrap;
+            overflow-x: auto; padding-bottom: 4px;
+        }
+        .step-pill {
+            display: inline-flex; align-items: center;
+            padding: 0.4rem 0.9rem;
+            border: 1.5px solid var(--black);
+            border-radius: var(--radius-pill);
+            font-size: 0.75rem; font-weight: 500;
+            background: white; white-space: normal;
+            text-align: center; min-width: 60px; max-width: 140px;
+            line-height: 1.3; position: relative; flex-shrink: 0;
+            word-break: break-word;
+        }
+        .step-pill .step-delete {
+            position: absolute; top: -6px; right: -6px;
+            width: 16px; height: 16px; border-radius: 50%;
+            background: #e05c5c; border: none; color: white; cursor: pointer;
+            font-size: 0.55rem; display: none; align-items: center; justify-content: center;
+            line-height: 1; padding: 0;
+        }
+        .step-pill:hover .step-delete { display: flex; }
+        .step-connector { color: #999; font-size: 0.9rem; padding: 0 4px; flex-shrink: 0; }
+
+        /* Add step inline */
+        .add-step-btn {
+            width: 30px; height: 30px; border-radius: 50%;
+            border: 1.5px solid var(--black); background: white;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 1rem; font-weight: 700; flex-shrink: 0;
+            font-family: var(--font); transition: background 0.12s;
+        }
+        .add-step-btn:hover { background: var(--black); color: white; }
+
+        .step-input-row {
+            display: flex; align-items: center; gap: 0.5rem; margin-top: 0.6rem;
+        }
+        .step-input {
+            flex: 1; padding: 0.4rem 0.9rem;
+            border: 1.5px solid var(--border); border-radius: var(--radius-pill);
+            font-size: 0.82rem; font-family: var(--font); outline: none;
+            transition: border-color 0.15s;
+        }
+        .step-input:focus { border-color: var(--black); }
+        .step-input::placeholder { color: #bbb; }
+        .step-input-submit {
+            padding: 0.4rem 1rem;
+            background: var(--black); color: white; border: none;
+            border-radius: var(--radius-pill); font-size: 0.8rem; font-weight: 600;
+            cursor: pointer; font-family: var(--font);
+        }
+
+        /* Add workflow link */
+        .add-workflow-row { margin-top: 1rem; }
+        .add-workflow-toggle {
+            background: transparent; border: none;
+            color: var(--accent); font-size: 0.8rem; font-weight: 700;
+            letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer;
+            display: inline-flex; align-items: center; gap: 0.3rem;
+            font-family: var(--font);
+        }
+        .add-workflow-toggle:hover { text-decoration: underline; }
+        .new-workflow-form {
+            display: none; margin-top: 0.6rem;
+            gap: 0.5rem; align-items: center;
+        }
+        .new-workflow-form.visible { display: flex; }
+        .workflow-name-input {
+            flex: 1; padding: 0.4rem 0.9rem;
+            border: 1.5px solid var(--border); border-radius: var(--radius-pill);
+            font-size: 0.82rem; font-family: var(--font); outline: none;
+        }
+        .workflow-name-input:focus { border-color: var(--black); }
+
+        /* Made With */
+        .made-with-grid { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-bottom: 1rem; }
+        .mw-pill {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            padding: 0.35rem 0.85rem 0.35rem 0.55rem;
+            border: 1.5px solid #ccc; border-radius: var(--radius-pill);
+            cursor: pointer; user-select: none; font-size: 0.8rem; font-weight: 500;
+            transition: all 0.12s; background: var(--white);
+        }
+        .mw-pill:hover { border-color: #888; }
+        .mw-pill.selected { background: var(--black); border-color: var(--black); color: white; }
+        .mw-logo {
+            width: 20px; height: 20px; border-radius: 5px;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .mw-logo svg { width: 14px; height: 14px; }
+
+        /* Placeholder section */
+        .placeholder-content {
+            background: var(--light); border-radius: 10px;
+            padding: 2rem; text-align: center; color: #ccc; font-size: 0.85rem;
+        }
+
+        /* Section action buttons */
+        .section-save-btn {
+            margin-top: 1rem;
+            background: var(--black); color: white; border: none;
+            padding: 0.5rem 1.5rem; border-radius: var(--radius-pill);
+            font-size: 0.82rem; font-weight: 600; cursor: pointer;
+            font-family: var(--font);
+        }
+        .section-save-btn:hover { background: #333; }
+
+        /* Dividers between workflows */
+        .workflow-divider { border: none; border-top: 1px solid var(--border); margin: 1.25rem 0; }
+
+        /* Empty state */
+        .empty-workflows { color: #ccc; font-size: 0.85rem; margin-bottom: 0.5rem; }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+<nav>
+    <div class="nav-left">
+        <div class="nav-logo">V</div>
+        <a th:href="@{/submit}" class="nav-link">Submit</a>
+        <a th:href="@{/explore}" class="nav-link">Explore</a>
+    </div>
+    <div class="nav-right">
+        <a th:href="@{/login}" class="nav-link" style="color:#fff; text-decoration:none; font-size:0.9rem;">Sign in</a>
+        <a th:href="@{/register}" class="btn-outline-nav">Sign up</a>
+    </div>
+</nav>
+
+<div class="header-band">
+    <h1>Manage your listing</h1>
+</div>
+
+<div class="page">
+
+    <!-- ── App Header Card ───────────────────────────────────────────────── -->
+    <div class="app-header-card">
+        <form th:action="@{/apps/{id}/manage/info(id=${app.id})}" method="post"
+              enctype="multipart/form-data">
+
+            <div class="app-header-row">
+                <!-- Icon with upload -->
+                <label class="app-icon">
+                    <img th:if="${app.iconUrl != null}"
+                         th:src="${app.iconUrl}" alt="icon" id="iconPreviewImg"/>
+                    <span th:if="${app.iconUrl == null}" style="font-size:1.4rem;">🖼️</span>
+                    <div class="app-icon-overlay">Change</div>
+                    <input type="file" name="icon" accept="image/*" id="iconFileInput"/>
+                </label>
+
+                <div class="app-info">
+                    <input class="app-name-input" type="text" name="name"
+                           th:value="${app.name}" placeholder="App name" required/>
+                    <textarea class="app-desc-input" name="description" rows="2"
+                              th:text="${app.description}"
+                              placeholder="A short description of your app..."></textarea>
+                    <input class="url-input" type="url" name="url"
+                           th:value="${app.url}" placeholder="https://your-app-url.com"/>
+
+                    <div class="app-meta-row">
+                        <span class="badge"
+                              th:classappend="${app.status.name() == 'DRAFT'} ? ' badge-draft' :
+                                             (${app.status.name() == 'SUBMITTED'} ? ' badge-submitted' :
+                                             (${app.status.name() == 'APPROVED'} ? ' badge-approved' : ' badge-rejected'))"
+                              th:text="${app.status}">DRAFT</span>
+                        <span class="badge"
+                              th:classappend="${app.visibility.name() == 'PUBLIC'} ? ' badge-public' : ' badge-private'"
+                              th:text="${app.visibility}">PRIVATE</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metrics row (placeholders for rating / visibility score) -->
+            <div class="metrics-row">
+                <div class="metric-item">
+                    <span>RATING</span>
+                    <span class="metric-stars">★★★★★</span>
+                    <span style="color:#ddd;">0</span>
+                </div>
+                <span style="color:#e0e0e0;">|</span>
+                <a href="#" class="metric-link">Get community reviews</a>
+                <a href="#" class="metric-link">Get a PRO review</a>
+                <div class="metric-item" style="margin-left:auto;">
+                    VISIBILITY SCORE
+                    <span class="metric-score">26.3</span>/100
+                </div>
+            </div>
+
+            <button type="submit" class="section-save-btn" style="margin-top:1rem;">Save Info</button>
+        </form>
+    </div>
+
+    <!-- ── Media Gallery ─────────────────────────────────────────────────── -->
+    <div class="section-card">
+        <div class="section-header" onclick="toggleSection(this)">
+            <span class="section-label">Media</span>
+            <span class="section-toggle">▼</span>
+        </div>
+        <div class="section-body hidden">
+            <div class="media-grid">
+                <!-- Existing media items -->
+                <div th:each="m : ${media}" class="media-thumb">
+                    <span th:if="${m.type.name() == 'VIDEO'}" class="video-icon">▶</span>
+                    <img th:if="${m.type.name() != 'VIDEO'}"
+                         th:src="${m.url}" th:alt="${m.type}" loading="lazy"/>
+                    <form th:action="@{/apps/{id}/manage/media/{mid}/delete(id=${app.id},mid=${m.id})}"
+                          method="post" style="margin:0;">
+                        <button type="submit" class="delete-media-btn">✕</button>
+                    </form>
+                </div>
+
+                <!-- Upload new screenshot -->
+                <form th:action="@{/apps/{id}/manage/media/screenshot(id=${app.id})}"
+                      method="post" enctype="multipart/form-data" id="screenshotUploadForm">
+                    <label class="media-upload-btn">
+                        <span class="media-upload-icon">+</span>
+                        <span>Screenshot</span>
+                        <input type="file" name="file" accept="image/*"
+                               onchange="this.closest('form').submit()"/>
+                    </label>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Listing Categories ────────────────────────────────────────────── -->
+    <div th:each="category : ${categories}" class="section-card">
+        <div class="section-header" onclick="toggleSection(this)">
+            <span class="section-label" th:text="${category.name}">Category</span>
+            <span class="section-toggle">▼</span>
+        </div>
+        <div class="section-body hidden">
+
+            <!-- Current selections as chips -->
+            <div class="chip-row" th:with="selIds=${selectedByCategory[category.id]}">
+                <th:block th:each="entry : ${entriesByCategory[category.id]}">
+                    <span class="chip" th:if="${#lists.contains(selIds, entry.id)}"
+                          th:text="${entry.name}">Entry</span>
+                </th:block>
+            </div>
+
+            <!-- Entry picker form -->
+            <form th:action="@{/apps/{id}/manage/categories/{cid}(id=${app.id},cid=${category.id})}"
+                  method="post" th:id="'cat-form-' + ${category.id}">
+
+                <!-- Hidden for selected entries (managed by JS below) -->
+                <div th:id="'entry-inputs-' + ${category.id}">
+                    <!-- Pre-populate selected -->
+                    <input th:each="sid : ${selectedByCategory[category.id]}"
+                           type="hidden" name="entryIds" th:value="${sid}"/>
+                </div>
+
+                <div class="entry-picker">
+                    <div class="entry-picker-label"
+                         th:text="${category.maxSelected != null and category.maxSelected == 1}
+                                   ? 'Select one' : 'Click below to add or remove'">
+                        Click below to add or remove
+                    </div>
+                    <div class="entry-pills-row">
+                        <span th:each="entry : ${entriesByCategory[category.id]}"
+                              class="entry-pill"
+                              th:data-entry-id="${entry.id}"
+                              th:data-category-id="${category.id}"
+                              th:data-single="${category.maxSelected == 1}"
+                              th:classappend="${#lists.contains(selectedByCategory[category.id], entry.id)} ? ' selected' : ''"
+                              th:text="${entry.name}"
+                              onclick="toggleEntry(this)">
+                            Entry
+                        </span>
+                    </div>
+                </div>
+
+                <button type="submit" class="section-save-btn">Update</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ── Main Workflows ────────────────────────────────────────────────── -->
+    <div class="section-card">
+        <div class="section-header" onclick="toggleSection(this)">
+            <span class="section-label">Main Workflows</span>
+            <span class="section-toggle">▼</span>
+        </div>
+        <div class="section-body hidden">
+
+            <p th:if="${#lists.isEmpty(workflows)}" class="empty-workflows">
+                No workflows yet — add one below.
+            </p>
+
+            <div th:each="workflow, wfStat : ${workflows}" class="workflow-block">
+                <hr th:if="${!wfStat.first}" class="workflow-divider"/>
+
+                <div class="workflow-name-row">
+                    <span class="workflow-title" th:text="${workflow.title}">Workflow Name</span>
+                    <form th:action="@{/apps/{id}/manage/workflows/{wid}/delete(id=${app.id},wid=${workflow.id})}"
+                          method="post" style="margin:0;">
+                        <button type="submit" class="workflow-delete-btn"
+                                onclick="return confirm('Delete this workflow?')">
+                            Delete
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Step visualization row -->
+                <div class="steps-row">
+                    <th:block th:each="step, stepStat : ${stepsByWorkflow[workflow.id]}">
+                        <div class="step-pill">
+                            <span th:text="${step.text}">Step</span>
+                            <form th:action="@{/apps/{id}/manage/workflows/{wid}/steps/{sid}/delete(id=${app.id},wid=${workflow.id},sid=${step.id})}"
+                                  method="post" style="margin:0; display:contents;">
+                                <button type="submit" class="step-delete"
+                                        onclick="return confirm('Remove this step?')">✕</button>
+                            </form>
+                        </div>
+                        <span th:if="${!stepStat.last}" class="step-connector">→</span>
+                    </th:block>
+
+                    <!-- Add step button -->
+                    <span th:if="${!#lists.isEmpty(stepsByWorkflow[workflow.id])}" class="step-connector">→</span>
+                    <button type="button" class="add-step-btn"
+                            th:data-workflow-id="${workflow.id}"
+                            onclick="showStepInput(this)">+</button>
+                </div>
+
+                <!-- Hidden step input form (shown on + click) -->
+                <form th:action="@{/apps/{id}/manage/workflows/{wid}/steps(id=${app.id},wid=${workflow.id})}"
+                      method="post"
+                      th:id="'step-form-' + ${workflow.id}"
+                      class="step-input-row"
+                      style="display:none;">
+                    <input type="text" name="text" class="step-input"
+                           placeholder="Describe this step..." required/>
+                    <button type="submit" class="step-input-submit">Add</button>
+                    <button type="button" class="workflow-delete-btn"
+                            th:onclick="'document.getElementById(\'step-form-\' + \'' + ${workflow.id} + '\').style.display=\'none\''">
+                        Cancel
+                    </button>
+                </form>
+            </div>
+
+            <!-- Add new workflow -->
+            <div class="add-workflow-row">
+                <button type="button" class="add-workflow-toggle"
+                        onclick="document.getElementById('newWorkflowForm').classList.toggle('visible')">
+                    + Add New Workflow
+                </button>
+                <form th:action="@{/apps/{id}/manage/workflows(id=${app.id})}"
+                      method="post" id="newWorkflowForm" class="new-workflow-form">
+                    <input type="text" name="title" class="workflow-name-input"
+                           placeholder="Workflow name..." required/>
+                    <button type="submit" class="step-input-submit">Create</button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ── Made With ─────────────────────────────────────────────────────── -->
+    <div class="section-card">
+        <div class="section-header" onclick="toggleSection(this)">
+            <span class="section-label">Made With</span>
+            <span class="section-toggle">▼</span>
+        </div>
+        <div class="section-body hidden">
+            <form th:action="@{/apps/{id}/manage/made-with(id=${app.id})}" method="post" id="madeWithForm">
+                <div id="madeWithInputs">
+                    <input th:each="p : ${app.madeWith}"
+                           type="hidden" name="platforms" th:value="${p}"/>
+                </div>
+
+                <div class="made-with-grid" id="madeWithGrid">
+
+                    <label class="mw-pill" data-key="lovable"
+                           th:classappend="${#lists.contains(app.madeWith, 'lovable')} ? ' selected' : ''">
+                        <span class="mw-logo" style="background:#ff4d8d;">
+                            <svg viewBox="0 0 24 24" fill="white"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                        </span>
+                        Lovable
+                    </label>
+
+                    <label class="mw-pill" data-key="replit"
+                           th:classappend="${#lists.contains(app.madeWith, 'replit')} ? ' selected' : ''">
+                        <span class="mw-logo" style="background:#f26207;">
+                            <svg viewBox="0 0 24 24" fill="white"><path d="M3 3h8v6H3zM13 3h8v6h-8zM13 9h8v6h-8zM3 15h8v6H3zM13 15h8v6h-8z"/></svg>
+                        </span>
+                        Replit
+                    </label>
+
+                    <label class="mw-pill" data-key="claude"
+                           th:classappend="${#lists.contains(app.madeWith, 'claude')} ? ' selected' : ''">
+                        <span class="mw-logo" style="background:#d4a27f;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round">
+                                <circle cx="12" cy="12" r="1.5" fill="white" stroke="none"/>
+                                <line x1="12" y1="2" x2="12" y2="7"/><line x1="12" y1="17" x2="12" y2="22"/>
+                                <line x1="2" y1="12" x2="7" y2="12"/><line x1="17" y1="12" x2="22" y2="12"/>
+                                <line x1="4.93" y1="4.93" x2="8.46" y2="8.46"/><line x1="15.54" y1="15.54" x2="19.07" y2="19.07"/>
+                                <line x1="19.07" y1="4.93" x2="15.54" y2="8.46"/><line x1="8.46" y1="15.54" x2="4.93" y2="19.07"/>
+                            </svg>
+                        </span>
+                        Claude
+                    </label>
+
+                    <label class="mw-pill" data-key="base44"
+                           th:classappend="${#lists.contains(app.madeWith, 'base44')} ? ' selected' : ''">
+                        <span class="mw-logo" style="background:#1a1a2e;">
+                            <svg viewBox="0 0 24 24" fill="white"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                        </span>
+                        Base44
+                    </label>
+
+                    <label class="mw-pill" data-key="bolt"
+                           th:classappend="${#lists.contains(app.madeWith, 'bolt')} ? ' selected' : ''">
+                        <span class="mw-logo" style="background:#111;">
+                            <svg viewBox="0 0 24 24" fill="white"><path d="M13 2L4.5 13.5H11L10 22L19.5 10.5H13L13 2Z"/></svg>
+                        </span>
+                        <span><b>bolt</b><span style="color:#999;font-weight:400;">.new</span></span>
+                    </label>
+
+                    <label class="mw-pill" data-key="hybrid"
+                           th:classappend="${#lists.contains(app.madeWith, 'hybrid')} ? ' selected' : ''">
+                        Hybrid (Human + AI)
+                    </label>
+
+                    <label class="mw-pill" data-key="human"
+                           th:classappend="${#lists.contains(app.madeWith, 'human')} ? ' selected' : ''">
+                        Human only
+                    </label>
+
+                </div>
+
+                <button type="submit" class="section-save-btn">Update</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ── Reviews & Comments (placeholder) ─────────────────────────────── -->
+    <div class="section-card">
+        <div class="section-header" onclick="toggleSection(this)">
+            <span class="section-label">Reviews &amp; Comments</span>
+            <span class="section-toggle">▼</span>
+        </div>
+        <div class="section-body hidden">
+            <div class="placeholder-content">
+                Reviews will appear here once your app is live.
+            </div>
+        </div>
+    </div>
+
+</div><!-- /page -->
+
+<script>
+    // ── Section accordion ──────────────────────────────────────────────────────
+    function toggleSection(header) {
+        const body = header.nextElementSibling;
+        const toggle = header.querySelector('.section-toggle');
+        body.classList.toggle('hidden');
+        toggle.classList.toggle('open');
+    }
+
+    // ── Icon preview ───────────────────────────────────────────────────────────
+    const iconInput = document.getElementById('iconFileInput');
+    if (iconInput) {
+        iconInput.addEventListener('change', e => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = ev => {
+                let img = document.getElementById('iconPreviewImg');
+                if (!img) {
+                    img = document.createElement('img');
+                    img.id = 'iconPreviewImg';
+                    iconInput.closest('.app-icon').prepend(img);
+                    // hide placeholder emoji
+                    const span = iconInput.closest('.app-icon').querySelector('span[style]');
+                    if (span) span.style.display = 'none';
+                }
+                img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // ── Category entry toggle ──────────────────────────────────────────────────
+    function toggleEntry(pill) {
+        const catId = pill.dataset.categoryId;
+        const entryId = pill.dataset.entryId;
+        const isSingle = pill.dataset.single === 'true';
+        const container = document.getElementById('entry-inputs-' + catId);
+
+        if (isSingle) {
+            // Deselect all in same category
+            document.querySelectorAll(`.entry-pill[data-category-id="${catId}"]`)
+                .forEach(p => p.classList.remove('selected'));
+            container.innerHTML = '';
+            if (!pill.classList.contains('selected')) {
+                // Was not selected → select it
+                pill.classList.add('selected');
+                addHiddenInput(container, 'entryIds', entryId);
+            }
+            // else: was selected → just cleared
+        } else {
+            if (pill.classList.contains('selected')) {
+                pill.classList.remove('selected');
+                removeHiddenInput(container, entryId);
+            } else {
+                pill.classList.add('selected');
+                addHiddenInput(container, 'entryIds', entryId);
+            }
+        }
+    }
+
+    function addHiddenInput(container, name, value) {
+        const inp = document.createElement('input');
+        inp.type = 'hidden'; inp.name = name; inp.value = value;
+        inp.setAttribute('data-val', value);
+        container.appendChild(inp);
+    }
+
+    function removeHiddenInput(container, value) {
+        const existing = container.querySelector(`input[data-val="${value}"]`);
+        if (existing) existing.remove();
+    }
+
+    // ── Workflow step input show/hide ──────────────────────────────────────────
+    function showStepInput(btn) {
+        const wfId = btn.dataset.workflowId;
+        const form = document.getElementById('step-form-' + wfId);
+        if (form) {
+            form.style.display = 'flex';
+            form.querySelector('.step-input').focus();
+        }
+    }
+
+    // ── Made With toggle ───────────────────────────────────────────────────────
+    document.querySelectorAll('.mw-pill[data-key]').forEach(pill => {
+        pill.addEventListener('click', e => {
+            e.preventDefault();
+            const key = pill.dataset.key;
+            const container = document.getElementById('madeWithInputs');
+            if (pill.classList.contains('selected')) {
+                pill.classList.remove('selected');
+                const inp = container.querySelector(`input[value="${key}"]`);
+                if (inp) inp.remove();
+            } else {
+                pill.classList.add('selected');
+                const inp = document.createElement('input');
+                inp.type = 'hidden'; inp.name = 'platforms'; inp.value = key;
+                container.appendChild(inp);
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

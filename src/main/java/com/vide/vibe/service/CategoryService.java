@@ -5,7 +5,9 @@ import com.vide.vibe.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
@@ -16,6 +18,7 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
     private final CategoryEntryRepository categoryEntryRepository;
     private final AppCategoryEntryRepository appCategoryEntryRepository;
+    private final MediaService mediaService;
 
     // ── Categories ────────────────────────────────────────────────────────────
 
@@ -86,6 +89,26 @@ public class CategoryService {
         return categoryEntryRepository.save(entry);
     }
 
+    /**
+     * Create entry with optional icon upload.
+     */
+    @Transactional
+    public CategoryEntry createEntry(UUID categoryId, CategoryEntry entry, MultipartFile icon) {
+        Category category = findById(categoryId);
+        entry.setCategory(category);
+
+        if (icon != null && !icon.isEmpty()) {
+            try {
+                String iconUrl = mediaService.upload(icon, "entry-icons");
+                entry.setIconUrl(iconUrl);
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to upload entry icon: " + e.getMessage(), e);
+            }
+        }
+
+        return categoryEntryRepository.save(entry);
+    }
+
     @Transactional
     public CategoryEntry updateEntry(UUID id, CategoryEntry updated) {
         CategoryEntry existing = findEntryById(id);
@@ -94,6 +117,24 @@ public class CategoryService {
         existing.setInterest(updated.getInterest());
         existing.setPosition(updated.getPosition());
         existing.setVisibility(updated.getVisibility());
+        return categoryEntryRepository.save(existing);
+    }
+
+    /**
+     * Update entry icon — uploads new file, deletes old one.
+     */
+    @Transactional
+    public CategoryEntry updateEntryIcon(UUID id, MultipartFile icon) {
+        CategoryEntry existing = findEntryById(id);
+        if (existing.getIconUrl() != null) {
+            mediaService.delete(existing.getIconUrl());
+        }
+        try {
+            String iconUrl = mediaService.upload(icon, "entry-icons");
+            existing.setIconUrl(iconUrl);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to upload entry icon: " + e.getMessage(), e);
+        }
         return categoryEntryRepository.save(existing);
     }
 
@@ -106,22 +147,15 @@ public class CategoryService {
 
     // ── App Category Selections ───────────────────────────────────────────────
 
-    /**
-     * Save the user's selections for one category step.
-     * Replaces any previous selections for that category.
-     */
     @Transactional
     public void saveAppSelections(App app, UUID categoryId, List<UUID> entryIds) {
-        // Clear previous selections for this category
         appCategoryEntryRepository.deleteByAppIdAndCategoryId(app.getId(), categoryId);
 
-        // Validate against max_selected
         Category category = findById(categoryId);
         if (category.getMaxSelected() != null && entryIds.size() > category.getMaxSelected()) {
             throw new RuntimeException("Too many selections for category: " + category.getName());
         }
 
-        // Save new selections
         entryIds.forEach(entryId -> {
             CategoryEntry entry = findEntryById(entryId);
             AppCategoryEntry selection = AppCategoryEntry.builder()
@@ -132,9 +166,6 @@ public class CategoryService {
         });
     }
 
-    /**
-     * Get all selected entry IDs for an app within a specific category.
-     */
     public List<UUID> findSelectedEntryIds(UUID appId, UUID categoryId) {
         return appCategoryEntryRepository
                 .findByAppIdAndCategoryId(appId, categoryId)
@@ -143,9 +174,6 @@ public class CategoryService {
                 .toList();
     }
 
-    /**
-     * Get all selections for an app across all categories.
-     */
     public List<AppCategoryEntry> findAllSelectionsForApp(UUID appId) {
         return appCategoryEntryRepository.findAllByAppId(appId);
     }

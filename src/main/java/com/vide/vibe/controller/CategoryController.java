@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
@@ -17,7 +18,7 @@ public class CategoryController {
 
     private final CategoryService categoryService;
 
-    // ── Category CRUD ─────────────────────────────────────────────────────────
+    // ── Category CRUD ──────────────────────────────────────────────────────────
 
     @GetMapping
     public String list(Model model) {
@@ -55,7 +56,7 @@ public class CategoryController {
         return "redirect:/categories";
     }
 
-    // ── Entries CRUD ──────────────────────────────────────────────────────────
+    // ── Entries CRUD ───────────────────────────────────────────────────────────
 
     @GetMapping("/{id}/entries")
     public String entries(@PathVariable UUID id, Model model) {
@@ -66,12 +67,15 @@ public class CategoryController {
     }
 
     @PostMapping("/{id}/entries")
-    public String createEntry(@PathVariable UUID id,
-                              @RequestParam String name,
-                              @RequestParam String slug,
-                              @RequestParam(defaultValue = "0") Integer interest,
-                              @RequestParam(defaultValue = "0") Integer position,
-                              @RequestParam(defaultValue = "false") Boolean visibility) {
+    public String createEntry(
+            @PathVariable UUID id,
+            @RequestParam String name,
+            @RequestParam String slug,
+            @RequestParam(defaultValue = "0") Integer interest,
+            @RequestParam(defaultValue = "0") Integer position,
+            @RequestParam(defaultValue = "false") Boolean visibility,
+            @RequestParam(required = false) MultipartFile icon) {
+
         CategoryEntry entry = CategoryEntry.builder()
                 .name(name)
                 .slug(slug)
@@ -79,8 +83,18 @@ public class CategoryController {
                 .position(position)
                 .visibility(visibility)
                 .build();
-        categoryService.createEntry(id, entry);
+
+        categoryService.createEntry(id, entry, icon);
         return "redirect:/categories/" + id + "/entries";
+    }
+
+    @PostMapping("/{categoryId}/entries/{entryId}/icon")
+    public String updateEntryIcon(
+            @PathVariable UUID categoryId,
+            @PathVariable UUID entryId,
+            @RequestParam MultipartFile icon) {
+        categoryService.updateEntryIcon(entryId, icon);
+        return "redirect:/categories/" + categoryId + "/entries";
     }
 
     @PostMapping("/{categoryId}/entries/{entryId}/delete")
