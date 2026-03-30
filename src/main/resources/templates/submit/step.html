@@ -65,7 +65,7 @@
         .options-pills { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 2rem; }
 
         .pill {
-            display: inline-flex; align-items: center; gap: 0.3rem;
+            display: inline-flex; align-items: center; gap: 0.35rem;
             padding: 0.3rem 0.85rem; border-radius: var(--radius-pill);
             font-size: 0.78rem; font-weight: 500; cursor: pointer;
             border: 1.5px solid #ccc; background: var(--white); color: var(--black);
@@ -73,6 +73,12 @@
         }
         .pill:hover { border-color: var(--black); }
         .pill.selected { background: var(--black); color: var(--white); border-color: var(--black); }
+        .pill.selected img { filter: brightness(0) invert(1); }
+
+        .pill-icon {
+            width: 16px; height: 16px; object-fit: contain;
+            border-radius: 3px; flex-shrink: 0;
+        }
 
         /* Actions */
         .actions { display: flex; align-items: center; gap: 1rem; }
@@ -159,8 +165,13 @@
                   class="pill"
                   th:data-id="${entry.id}"
                   th:data-name="${entry.name}"
-                  th:classappend="${#lists.contains(selectedIds, entry.id)} ? ' selected' : ''"
-                  th:text="${entry.name}">Entry</span>
+                  th:classappend="${#lists.contains(selectedIds, entry.id)} ? ' selected' : ''">
+                <img th:if="${entry.iconUrl != null}"
+                     th:src="${entry.iconUrl}"
+                     th:alt="${entry.name}"
+                     class="pill-icon"/>
+                <span th:text="${entry.name}">Entry</span>
+            </span>
         </div>
 
         <div class="actions">
@@ -208,7 +219,9 @@
             pill.className = 'pill selected';
             pill.dataset.id = id;
             pill.dataset.name = name;
-            pill.textContent = name;
+            const label = document.createElement('span');
+            label.textContent = name;
+            pill.appendChild(label);
             pill.addEventListener('click', () => toggle(pill));
             document.getElementById('optionPills').appendChild(pill);
             this.value = '';

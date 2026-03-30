@@ -24,7 +24,7 @@
         .header-band { background: var(--dark); color: white; text-align: center; padding: 1.5rem; }
         .header-band h1 { font-size: 1.4rem; font-weight: 600; }
 
-        .page { max-width: 700px; margin: 0 auto; padding: 1.75rem 1.5rem 4rem; }
+        .page { max-width: 800px; margin: 0 auto; padding: 1.75rem 1.5rem 4rem; }
 
         /* APP HEADER */
         .app-header-card { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem; }
@@ -69,137 +69,121 @@
         /* SECTIONS */
         .section { margin-bottom: 1.75rem; }
         .section-title { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #333; margin-bottom: 0.75rem; }
+        .hint-text { font-size: 0.72rem; color: #aaa; margin-bottom: 0.6rem; }
 
-        /* PILLS */
-        .pills-wrap { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.6rem; align-items: center; }
-        .pill { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.3rem 0.85rem; border-radius: var(--radius-pill); font-size: 0.75rem; font-weight: 500; border: 1.5px solid; cursor: pointer; user-select: none; transition: all 0.12s; font-family: var(--font); }
-        .pill-selected { background: var(--black); color: #fff; border-color: var(--black); }
-        .pill-unselected { background: var(--white); color: var(--black); border-color: #ccc; }
-        .pill-unselected:hover { border-color: var(--black); }
-        .pill-icon { width: 14px; height: 14px; object-fit: contain; border-radius: 2px; }
-        .hint-text { font-size: 0.72rem; color: #aaa; margin-bottom: 0.75rem; }
-        .btn-update { background: var(--black); color: #fff; border: none; padding: 0.45rem 1.5rem; border-radius: var(--radius-pill); font-size: 0.8rem; font-weight: 600; cursor: pointer; font-family: var(--font); margin-top: 0.5rem; transition: background 0.12s; }
+        /* ── CATEGORY PILLS ─────────────────────────────────────────────── */
+        .selected-row {
+            display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Selected pill — black with hover ✕ */
+        .sel-pill {
+            display: inline-flex; align-items: center; gap: 0.3rem;
+            padding: 0.28rem 0.5rem 0.28rem 0.75rem;
+            background: var(--black); color: #fff;
+            border: 1.5px solid var(--black);
+            border-radius: var(--radius-pill);
+            font-size: 0.73rem; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.04em;
+            user-select: none;
+        }
+        .sel-pill img {
+            width: 13px; height: 13px; object-fit: contain;
+            border-radius: 2px; filter: brightness(0) invert(1);
+        }
+        .sel-pill-remove {
+            width: 16px; height: 16px; border-radius: 50%;
+            background: rgba(255,255,255,0.15); border: none;
+            color: white; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.55rem; padding: 0; flex-shrink: 0;
+            opacity: 0; transition: opacity 0.12s, background 0.12s;
+            font-family: var(--font);
+        }
+        .sel-pill:hover .sel-pill-remove { opacity: 1; }
+        .sel-pill-remove:hover { background: rgba(255,255,255,0.3); }
+
+        /* (+) add button */
+        .pill-add-btn {
+            width: 26px; height: 26px; border-radius: 50%;
+            border: 1.5px solid #ccc; background: var(--white);
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 1rem; color: #888; line-height: 1;
+            transition: border-color 0.12s, color 0.12s; flex-shrink: 0;
+            font-family: var(--font);
+        }
+        .pill-add-btn:hover { border-color: var(--black); color: var(--black); }
+
+        /* Expandable picker */
+        .pill-picker {
+            display: none;
+            background: var(--white);
+            border: 1.5px solid var(--border);
+            border-radius: 14px;
+            padding: 0.85rem 1rem;
+            margin-top: 0.5rem;
+        }
+        .pill-picker.open { display: block; }
+
+        .picker-hint { font-size: 0.7rem; color: #aaa; margin-bottom: 0.6rem; }
+
+        .picker-pills { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.85rem; }
+
+        .opt-pill {
+            display: inline-flex; align-items: center; gap: 0.3rem;
+            padding: 0.28rem 0.75rem;
+            border: 1.5px solid #ccc; border-radius: var(--radius-pill);
+            font-size: 0.73rem; font-weight: 500;
+            cursor: pointer; user-select: none;
+            background: var(--white); color: var(--black);
+            transition: border-color 0.12s, background 0.12s;
+        }
+        .opt-pill:hover { border-color: var(--black); }
+        .opt-pill.selected { background: var(--black); color: #fff; border-color: var(--black); }
+        .opt-pill.selected img { filter: brightness(0) invert(1); }
+        .opt-pill img { width: 13px; height: 13px; object-fit: contain; border-radius: 2px; }
+
+        .picker-actions { display: flex; align-items: center; gap: 0.6rem; }
+        .btn-update { background: var(--black); color: #fff; border: none; padding: 0.4rem 1.35rem; border-radius: var(--radius-pill); font-size: 0.78rem; font-weight: 600; cursor: pointer; font-family: var(--font); transition: background 0.12s; }
         .btn-update:hover { background: #333; }
         .btn-update.saving { opacity: 0.6; }
         .btn-update.saved { background: #2d9e6b; }
+        .btn-picker-cancel { background: transparent; border: none; color: #aaa; font-size: 0.78rem; cursor: pointer; font-family: var(--font); }
+        .btn-picker-cancel:hover { color: var(--black); }
 
         /* ── WORKFLOWS ─────────────────────────────────────────────────────── */
-        .workflows-container {
-            border: 1.5px solid var(--border);
-            border-radius: 14px;
-            padding: 1.25rem 1.25rem 1rem;
-        }
-
-        /* One workflow block */
+        .workflows-container { border: 1.5px solid var(--border); border-radius: 14px; padding: 1.25rem 1.25rem 1rem; }
         .workflow-block { margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
         .workflow-block:last-of-type { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
-
-        /* Header row: label + editable title + delete */
-        .workflow-header {
-            display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.8rem;
-        }
-        .workflow-label {
-            font-size: 0.6rem; font-weight: 800; text-transform: uppercase;
-            letter-spacing: 0.12em; color: #aaa; white-space: nowrap;
-        }
-        .workflow-title-input {
-            border: none; border-bottom: 1.5px solid transparent;
-            font-size: 0.85rem; font-weight: 700; color: var(--black);
-            font-family: var(--font); outline: none; flex: 1;
-            padding: 1px 2px; background: transparent; min-width: 0;
-            transition: border-color 0.15s;
-        }
+        .workflow-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.8rem; }
+        .workflow-label { font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: #aaa; white-space: nowrap; }
+        .workflow-title-input { border: none; border-bottom: 1.5px solid transparent; font-size: 0.85rem; font-weight: 700; color: var(--black); font-family: var(--font); outline: none; flex: 1; padding: 1px 2px; background: transparent; min-width: 0; transition: border-color 0.15s; }
         .workflow-title-input:hover { border-bottom-color: var(--border); }
         .workflow-title-input:focus { border-bottom-color: var(--black); }
-        .workflow-delete-btn {
-            background: none; border: none; color: #ccc; cursor: pointer;
-            font-size: 0.75rem; padding: 2px 4px; transition: color 0.12s; flex-shrink: 0;
-        }
+        .workflow-delete-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 0.75rem; padding: 2px 4px; transition: color 0.12s; flex-shrink: 0; }
         .workflow-delete-btn:hover { color: var(--danger); }
-
-        /* ── Step diagram — matches design image exactly ─────────────────── */
-        /*
-          Layout:  [step-box] → [step-box] → [step-box] → (+)
-          Each step-box is a rounded-rectangle (border-radius 50px for short text
-          naturally makes it pill-shaped; longer text stays rounded-rect).
-        */
-        .steps-diagram {
-            display: flex; align-items: center;
-            flex-wrap: nowrap; overflow-x: auto;
-            padding-bottom: 4px; gap: 0;
-        }
+        .steps-diagram { display: flex; align-items: center; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; gap: 0; }
         .steps-diagram::-webkit-scrollbar { height: 3px; }
         .steps-diagram::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
-
-        /* Arrow between steps */
-        .step-arrow {
-            color: #aaa; font-size: 0.82rem; flex-shrink: 0;
-            padding: 0 5px; line-height: 1; user-select: none;
-        }
-
-        /* Step box — rounded-rectangle, matches the image */
-        .step-box {
-            flex-shrink: 0;
-            border: 1.5px solid #888;
-            border-radius: 999px;          /* pill for short; auto-stretches for long */
-            padding: 0.4rem 0.85rem;
-            background: var(--white);
-            min-width: 52px;
-            max-width: 160px;
-            display: flex; align-items: flex-start; gap: 0.3rem;
-            position: relative;
-        }
-        /* When text is multi-line, reduce radius so it looks like rounded-rect */
+        .step-arrow { color: #aaa; font-size: 0.82rem; flex-shrink: 0; padding: 0 5px; line-height: 1; user-select: none; }
+        .step-box { flex-shrink: 0; border: 1.5px solid #888; border-radius: 999px; padding: 0.4rem 0.85rem; background: var(--white); min-width: 52px; max-width: 160px; display: flex; align-items: flex-start; gap: 0.3rem; position: relative; }
         .step-box.multiline { border-radius: 14px; }
-
         .step-box-inner { min-width: 0; flex: 1; }
-        .step-box-label {
-            font-size: 0.55rem; font-weight: 800; text-transform: uppercase;
-            letter-spacing: 0.08em; color: #aaa; margin-bottom: 2px; white-space: nowrap;
-        }
-        .step-box-text {
-            font-size: 0.72rem; color: var(--black); line-height: 1.35;
-            word-break: break-word;
-        }
-        /* ✕ delete button — appears on hover */
-        .step-box-delete {
-            position: absolute; top: -7px; right: -7px;
-            width: 16px; height: 16px; border-radius: 50%;
-            background: #ccc; border: none; color: white;
-            cursor: pointer; font-size: 0.55rem;
-            display: none; align-items: center; justify-content: center;
-            line-height: 1; padding: 0; transition: background 0.12s;
-        }
+        .step-box-label { font-size: 0.55rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #aaa; margin-bottom: 2px; white-space: nowrap; }
+        .step-box-text { font-size: 0.72rem; color: var(--black); line-height: 1.35; word-break: break-word; }
+        .step-box-delete { position: absolute; top: -7px; right: -7px; width: 16px; height: 16px; border-radius: 50%; background: #ccc; border: none; color: white; cursor: pointer; font-size: 0.55rem; display: none; align-items: center; justify-content: center; line-height: 1; padding: 0; transition: background 0.12s; }
         .step-box:hover .step-box-delete { display: flex; }
         .step-box-delete:hover { background: var(--danger); }
-
-        /* (+) circle at end of step row */
-        .add-step-circle {
-            flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%;
-            border: 1.5px solid #aaa; background: var(--white);
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; font-size: 1.1rem; color: #888;
-            transition: border-color 0.15s, color 0.15s; font-family: var(--font);
-        }
+        .add-step-circle { flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid #aaa; background: var(--white); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.1rem; color: #888; transition: border-color 0.15s, color 0.15s; font-family: var(--font); }
         .add-step-circle:hover { border-color: var(--black); color: var(--black); }
-
-        /* Add workflow row */
-        .add-workflow-row {
-            padding-top: 0.85rem; border-top: 1px solid var(--border); margin-top: 0.5rem;
-        }
-        .add-workflow-btn {
-            background: none; border: none; font-family: var(--font);
-            font-size: 0.75rem; font-weight: 700; color: #3b82f6;
-            cursor: pointer; padding: 0; display: flex; align-items: center;
-            gap: 0.25rem; transition: color 0.12s; letter-spacing: 0.06em;
-            text-transform: uppercase;
-        }
+        .add-workflow-row { padding-top: 0.85rem; border-top: 1px solid var(--border); margin-top: 0.5rem; }
+        .add-workflow-btn { background: none; border: none; font-family: var(--font); font-size: 0.75rem; font-weight: 700; color: #3b82f6; cursor: pointer; padding: 0; display: flex; align-items: center; gap: 0.25rem; transition: color 0.12s; letter-spacing: 0.06em; text-transform: uppercase; }
         .add-workflow-btn:hover { color: #2563eb; }
 
         /* MADE WITH */
         .made-with-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
         .made-with-badge { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.28rem 0.85rem 0.28rem 0.5rem; border-radius: var(--radius-pill); border: 1.5px solid #e8d5b0; background: #fffbf0; font-size: 0.75rem; font-weight: 600; color: #a07830; }
-        .made-with-icon { width: 16px; height: 16px; object-fit: contain; border-radius: 3px; }
         .made-with-dot { width: 8px; height: 8px; border-radius: 50%; background: #f5a623; flex-shrink: 0; }
         .add-circle-btn { width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--white); cursor: pointer; font-size: 1rem; color: #888; display: flex; align-items: center; justify-content: center; }
 
@@ -272,14 +256,12 @@
     <!-- RATING -->
     <div class="meta-row">
         <span class="meta-label">RATING</span>
-        <div class="stars"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span
-                class="star">★</span><span class="star">★</span></div>
+        <div class="stars"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span></div>
         <span class="score-label">0/5</span>
         <button class="btn-sm" style="margin-left:auto;">Get community reviews</button>
         <button class="btn-sm">Get a PRO review</button>
         <button class="btn-sm btn-sm-disabled">Get certified status</button>
     </div>
-    <!-- VISIBILITY -->
     <div class="meta-row">
         <span class="meta-label">VISIBILITY SCORE</span>
         <span class="score-val">26.5</span><span class="score-label">/100</span>
@@ -323,25 +305,64 @@
         <div class="section" th:id="'section-' + ${ce.key.id}">
             <div class="section-title" th:text="${ce.key.name}">CATEGORY</div>
             <div class="hint-text"
-                 th:if="${ce.key.description != null and !ce.key.description.isEmpty()}" th:text="${ce.key.description}"></div>
-            <div class="pills-wrap" th:id="'pills-' + ${ce.key.id}">
+                 th:if="${ce.key.description != null and !ce.key.description.isEmpty()}"
+                 th:text="${ce.key.description}"></div>
+
+            <!-- Selected pills row -->
+            <div class="selected-row" th:id="'sel-row-' + ${ce.key.id}">
                 <th:block th:each="entry : ${allEntries.get(ce.key.id)}">
-                    <span class="pill"
-                          onclick="togglePill(this)"
-                          th:classappend="${ce.value.contains(entry)} ? ' pill-selected' : ' pill-unselected'"
-                          th:data-category-id="${ce.key.id}"
+                    <span th:if="${ce.value.contains(entry)}"
+                          class="sel-pill"
                           th:data-entry-id="${entry.id}"
-                          th:data-max="${ce.key.maxSelected}">
-                        <img alt="" class="pill-icon" th:if="${entry.iconUrl != null}" th:src="${entry.iconUrl}"/>
+                          th:data-category-id="${ce.key.id}">
+                        <img th:if="${entry.iconUrl != null}"
+                             th:src="${entry.iconUrl}" th:alt="${entry.name}"/>
                         <span th:text="${entry.name}">Entry</span>
+                        <button class="sel-pill-remove"
+                                onclick="removePill(this.closest('.sel-pill'))"
+                                type="button">✕</button>
                     </span>
                 </th:block>
+                <button class="pill-add-btn" type="button"
+                        th:data-category-id="${ce.key.id}"
+                        onclick="togglePicker(this)">+</button>
             </div>
-            <button class="btn-update"
-                    onclick="saveCategorySelections(this.dataset.id, this)"
-                    th:data-id="${ce.key.id}">
-                Update
-            </button>
+
+            <!-- Expandable picker -->
+            <div class="pill-picker" th:id="'picker-' + ${ce.key.id}">
+                <div class="picker-hint"
+                     th:text="${ce.key.maxSelected != null} ? 'Select up to ' + ${ce.key.maxSelected} + ' (' + ${#lists.size(ce.value)} + '/' + ${ce.key.maxSelected} + ' left)' : 'Click below to add or remove'">
+                </div>
+                <div class="picker-pills" th:id="'picker-pills-' + ${ce.key.id}">
+                    <th:block th:each="entry : ${allEntries.get(ce.key.id)}">
+                        <span class="opt-pill"
+                              th:classappend="${ce.value.contains(entry)} ? ' selected' : ''"
+                              th:data-entry-id="${entry.id}"
+                              th:data-entry-name="${entry.name}"
+                              th:data-entry-icon="${entry.iconUrl}"
+                              th:data-category-id="${ce.key.id}"
+                              th:data-max="${ce.key.maxSelected}"
+                              onclick="toggleOptPill(this)">
+                            <img th:if="${entry.iconUrl != null}"
+                                 th:src="${entry.iconUrl}" th:alt="${entry.name}"/>
+                            <span th:text="${entry.name}">Entry</span>
+                        </span>
+                    </th:block>
+                </div>
+                <div class="picker-actions">
+                    <button class="btn-update"
+                            type="button"
+                            th:data-category-id="${ce.key.id}"
+                            onclick="saveCategorySelections(this.dataset.categoryId, this)">
+                        Update
+                    </button>
+                    <button class="btn-picker-cancel" type="button"
+                            th:data-category-id="${ce.key.id}"
+                            onclick="closePicker(this.dataset.categoryId)">
+                        Cancel
+                    </button>
+                </div>
+            </div>
         </div>
     </th:block>
 
@@ -365,11 +386,8 @@
                                    type="text"/>
                             <button class="workflow-delete-btn"
                                     onclick="deleteWorkflow(this.dataset.id)"
-                                    th:data-id="${wf.id}">
-                                ✕
-                            </button>
+                                    th:data-id="${wf.id}">✕</button>
                         </div>
-                        <!-- STEP DIAGRAM -->
                         <div class="steps-diagram" th:id="'steps-' + ${wf.id}">
                             <th:block th:each="step, stat : ${workflowSteps.get(wf.id)}">
                                 <span class="step-arrow" th:if="${!stat.first}">→</span>
@@ -384,7 +402,6 @@
                                             th:data-wf-id="${wf.id}">✕</button>
                                 </div>
                             </th:block>
-                            <!-- arrow before (+) only if steps exist -->
                             <span class="step-arrow"
                                   th:if="${workflowSteps.get(wf.id) != null and !workflowSteps.get(wf.id).empty}">→</span>
                             <button class="add-step-circle"
@@ -397,26 +414,6 @@
             <div class="add-workflow-row">
                 <button class="add-workflow-btn" onclick="openAddWorkflowModal()">+ ADD NEW WORKFLOW</button>
             </div>
-        </div>
-    </div>
-
-    <hr class="divider"/>
-
-    <!-- MADE WITH -->
-    <div class="section">
-        <div class="section-title">MADE WITH</div>
-        <div class="made-with-row">
-            <th:block th:each="ce : ${categorySelections.entrySet()}"
-                      th:if="${ce.key.slug == 'made-with' or ce.key.slug == 'built-with'}">
-                <th:block th:each="entry : ${ce.value}">
-                    <span class="made-with-badge">
-                        <img alt="" class="made-with-icon" th:if="${entry.iconUrl != null}" th:src="${entry.iconUrl}"/>
-                        <span class="made-with-dot" th:if="${entry.iconUrl == null}"></span>
-                        <span th:text="${entry.name}">Tool</span>
-                    </span>
-                </th:block>
-            </th:block>
-            <button class="add-circle-btn">+</button>
         </div>
     </div>
 
@@ -453,7 +450,7 @@
 </div>
 
 <script th:inline="javascript">
-    const APP_ID = /*[[${app.id}]]*/ '';
+    const APP_ID = /*[[${app.id.toString()}]]*/ '';
 
     // ─── TOAST ──────────────────────────────────────────────────────────────
     function showToast(msg, err = false) {
@@ -556,31 +553,99 @@
     }
 
     // ─── CATEGORY PILLS ─────────────────────────────────────────────────────
-    function togglePill(pill) {
-        const cid = pill.dataset.categoryId;
+
+    function togglePicker(btn) {
+        const catId = btn.dataset.categoryId;
+        const picker = document.getElementById('picker-' + catId);
+        picker.classList.toggle('open');
+    }
+
+    function closePicker(catId) {
+        document.getElementById('picker-' + catId).classList.remove('open');
+    }
+
+    function toggleOptPill(pill) {
+        const catId = pill.dataset.categoryId;
         const max = pill.dataset.max ? parseInt(pill.dataset.max) : null;
-        const container = document.getElementById('pills-' + cid);
-        const sel = pill.classList.contains('pill-selected');
-        if (sel) {
-            pill.classList.replace('pill-selected', 'pill-unselected');
+        const pickerPills = document.getElementById('picker-pills-' + catId);
+
+        if (pill.classList.contains('selected')) {
+            pill.classList.remove('selected');
         } else {
-            if (max === 1) container.querySelectorAll('.pill-selected').forEach(p => p.classList.replace('pill-selected', 'pill-unselected'));
-            else if (max && container.querySelectorAll('.pill-selected').length >= max) return;
-            pill.classList.replace('pill-unselected', 'pill-selected');
+            if (max === 1) {
+                pickerPills.querySelectorAll('.opt-pill.selected')
+                    .forEach(p => p.classList.remove('selected'));
+            } else if (max) {
+                const currentCount = pickerPills.querySelectorAll('.opt-pill.selected').length;
+                if (currentCount >= max) return;
+            }
+            pill.classList.add('selected');
         }
     }
 
+    function removePill(pill) {
+        const entryId = pill.dataset.entryId;
+        const catId = pill.dataset.categoryId;
+        const optPill = document.querySelector(`#picker-pills-${catId} .opt-pill[data-entry-id="${entryId}"]`);
+        if (optPill) optPill.classList.remove('selected');
+        pill.remove();
+    }
+
     async function saveCategorySelections(categoryId, btn) {
-        const ids = [...document.getElementById('pills-' + categoryId).querySelectorAll('.pill-selected')]
-            .map(p => p.dataset.entryId);
+        const pickerPills = document.getElementById('picker-pills-' + categoryId);
+        const selectedOptPills = [...pickerPills.querySelectorAll('.opt-pill.selected')];
+        const ids = selectedOptPills.map(p => p.dataset.entryId);
+
+        // Rebuild selected row
+        const selRow = document.getElementById('sel-row-' + categoryId);
+        const addBtn = selRow.querySelector('.pill-add-btn');
+        selRow.querySelectorAll('.sel-pill').forEach(p => p.remove());
+        selectedOptPills.forEach(optPill => {
+            const pill = buildSelPill(
+                optPill.dataset.entryId,
+                categoryId,
+                optPill.dataset.entryName,
+                optPill.dataset.entryIcon
+            );
+            selRow.insertBefore(pill, addBtn);
+        });
+
         btn.textContent = 'Saving…'; btn.classList.add('saving');
         const fd = new FormData(); ids.forEach(id => fd.append('entryIds', id));
         try {
             await apiFetch(`/apps/${APP_ID}/manage/categories/${categoryId}`, fd);
             btn.textContent = 'Update'; btn.classList.remove('saving'); btn.classList.add('saved');
             setTimeout(() => btn.classList.remove('saved'), 1500);
+            closePicker(categoryId);
             showToast('Updated');
-        } catch (e) { btn.textContent = 'Update'; btn.classList.remove('saving'); showToast(e.message, true); }
+        } catch (e) {
+            btn.textContent = 'Update'; btn.classList.remove('saving');
+            showToast(e.message, true);
+        }
+    }
+
+    function buildSelPill(entryId, catId, name, iconUrl) {
+        const span = document.createElement('span');
+        span.className = 'sel-pill';
+        span.dataset.entryId = entryId;
+        span.dataset.categoryId = catId;
+        if (iconUrl && iconUrl !== 'null') {
+            const img = document.createElement('img');
+            img.src = iconUrl; img.alt = name;
+            span.appendChild(img);
+        }
+        const label = document.createElement('span');
+        label.textContent = name;
+        span.appendChild(label);
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'sel-pill-remove'; removeBtn.type = 'button'; removeBtn.textContent = '✕';
+        removeBtn.onclick = () => {
+            const optPill = document.querySelector(`#picker-pills-${catId} .opt-pill[data-entry-id="${entryId}"]`);
+            if (optPill) optPill.classList.remove('selected');
+            span.remove();
+        };
+        span.appendChild(removeBtn);
+        return span;
     }
 
     // ─── WORKFLOWS ──────────────────────────────────────────────────────────
@@ -650,7 +715,57 @@
         } catch (e) { showToast(e.message, true); }
     }
 
-    // ─── DOM HELPERS ────────────────────────────────────────────────────────
+    // ─── DIAGRAM HELPERS ────────────────────────────────────────────────────
+    function redrawDiagram(wfId) {
+        const diagram = document.getElementById('steps-' + wfId);
+        if (!diagram) return;
+        const addBtn = diagram.querySelector('.add-step-circle');
+        diagram.querySelectorAll('.step-arrow').forEach(a => a.remove());
+        const steps = diagram.querySelectorAll('.step-box');
+        steps.forEach((step, i) => {
+            if (i < steps.length - 1) {
+                const arrow = document.createElement('span');
+                arrow.className = 'step-arrow'; arrow.textContent = '→';
+                step.after(arrow);
+            }
+        });
+        if (steps.length > 0) {
+            const arrow = document.createElement('span');
+            arrow.className = 'step-arrow'; arrow.textContent = '→';
+            addBtn.before(arrow);
+        }
+    }
+
+    function appendStepBox(wfId, stepId, text, position) {
+        const diagram = document.getElementById('steps-' + wfId);
+        const addBtn = diagram.querySelector('.add-step-circle');
+        const existingSteps = diagram.querySelectorAll('.step-box').length;
+        const box = document.createElement('div');
+        box.className = 'step-box'; box.id = 'step-' + stepId;
+        box.innerHTML = `
+          <div class="step-box-inner">
+            <div class="step-box-label">STEP ${existingSteps + 1}</div>
+            <div class="step-box-text">${escHtml(text)}</div>
+          </div>
+          <button class="step-box-delete"
+                  data-wf-id="${wfId}" data-step-id="${stepId}"
+                  onclick="deleteStep(this.dataset.wfId, this.dataset.stepId)">✕</button>`;
+        diagram.insertBefore(box, addBtn);
+        applyMultilineClass(box);
+        redrawDiagram(wfId);
+    }
+
+    function removeStepBox(wfId, stepId) {
+        const box = document.getElementById('step-' + stepId);
+        if (!box) return;
+        box.remove();
+        const diagram = document.getElementById('steps-' + wfId);
+        diagram.querySelectorAll('.step-box-label').forEach((lbl, i) => {
+            lbl.textContent = 'STEP ' + (i + 1);
+        });
+        redrawDiagram(wfId);
+    }
+
     function appendWorkflowBlock(wfId, title) {
         const list = document.getElementById('workflowsList');
         const div = document.createElement('div');
@@ -671,72 +786,23 @@
         list.appendChild(div);
     }
 
-    function appendStepBox(wfId, stepId, text, position) {
-        const diagram = document.getElementById('steps-' + wfId);
-        const addBtn = diagram.querySelector('.add-step-circle');
-        const existingSteps = diagram.querySelectorAll('.step-box').length;
-
-        // Insert → arrow before new step if there are already steps
-        if (existingSteps > 0) {
-            const arrow = document.createElement('span');
-            arrow.className = 'step-arrow'; arrow.textContent = '→';
-            diagram.insertBefore(arrow, addBtn);
-        }
-
-        const box = document.createElement('div');
-        box.className = 'step-box'; box.id = 'step-' + stepId;
-        box.innerHTML = `
-          <div class="step-box-inner">
-            <div class="step-box-label">STEP ${existingSteps + 1}</div>
-            <div class="step-box-text">${escHtml(text)}</div>
-          </div>
-          <button class="step-box-delete"
-                  data-wf-id="${wfId}" data-step-id="${stepId}"
-                  onclick="deleteStep(this.dataset.wfId, this.dataset.stepId)">✕</button>`;
-        diagram.insertBefore(box, addBtn);
-
-        // Ensure arrow between last step and (+)
-        const prevOfAdd = addBtn.previousElementSibling;
-        if (!prevOfAdd || !prevOfAdd.classList.contains('step-arrow')) {
-            const a = document.createElement('span');
-            a.className = 'step-arrow'; a.textContent = '→';
-            diagram.insertBefore(a, addBtn);
-        }
-
-        applyMultilineClass(box);
-    }
-
-    function removeStepBox(wfId, stepId) {
-        const box = document.getElementById('step-' + stepId);
-        if (!box) return;
-        const prev = box.previousElementSibling;
-        const next = box.nextElementSibling;
-        if (prev?.classList.contains('step-arrow')) prev.remove();
-        else if (next?.classList.contains('step-arrow')) next.remove();
-        box.remove();
-        // Renumber
-        const diagram = document.getElementById('steps-' + wfId);
-        diagram.querySelectorAll('.step-box-label').forEach((lbl, i) => {
-            lbl.textContent = 'STEP ' + (i + 1);
-        });
-    }
-
-    // Apply rounded-rect class if text is long enough to wrap
     function applyMultilineClass(box) {
         const textEl = box.querySelector('.step-box-text');
-        if (textEl && textEl.textContent.length > 18) {
-            box.classList.add('multiline');
-        }
+        if (textEl && textEl.textContent.length > 18) box.classList.add('multiline');
     }
-
-    // Apply on page load to server-rendered steps
-    document.querySelectorAll('.step-box').forEach(applyMultilineClass);
 
     function escHtml(s) {
         return String(s)
             .replace(/&/g, '&amp;').replace(/</g, '&lt;')
             .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
+
+    // ─── INIT ────────────────────────────────────────────────────────────────
+    document.querySelectorAll('.step-box').forEach(applyMultilineClass);
+    document.querySelectorAll('.steps-diagram').forEach(diagram => {
+        const wfId = diagram.id.replace('steps-', '');
+        redrawDiagram(wfId);
+    });
 </script>
 
 </body>
