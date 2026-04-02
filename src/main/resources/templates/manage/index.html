@@ -76,8 +76,6 @@
             display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center;
             margin-bottom: 0.5rem;
         }
-
-        /* Selected pill — black with hover ✕ */
         .sel-pill {
             display: inline-flex; align-items: center; gap: 0.3rem;
             padding: 0.28rem 0.5rem 0.28rem 0.75rem;
@@ -88,10 +86,7 @@
             text-transform: uppercase; letter-spacing: 0.04em;
             user-select: none;
         }
-        .sel-pill img {
-            width: 13px; height: 13px; object-fit: contain;
-            border-radius: 2px;
-        }
+        .sel-pill img { width: 13px; height: 13px; object-fit: contain; border-radius: 2px; }
         .sel-pill-remove {
             width: 16px; height: 16px; border-radius: 50%;
             background: rgba(255,255,255,0.15); border: none;
@@ -104,7 +99,6 @@
         .sel-pill:hover .sel-pill-remove { opacity: 1; }
         .sel-pill-remove:hover { background: rgba(255,255,255,0.3); }
 
-        /* (+) add button */
         .pill-add-btn {
             width: 26px; height: 26px; border-radius: 50%;
             border: 1.5px solid #ccc; background: var(--white);
@@ -115,7 +109,6 @@
         }
         .pill-add-btn:hover { border-color: var(--black); color: var(--black); }
 
-        /* Expandable picker */
         .pill-picker {
             display: none;
             background: var(--white);
@@ -125,11 +118,8 @@
             margin-top: 0.5rem;
         }
         .pill-picker.open { display: block; }
-
         .picker-hint { font-size: 0.7rem; color: #aaa; margin-bottom: 0.6rem; }
-
         .picker-pills { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.85rem; }
-
         .opt-pill {
             display: inline-flex; align-items: center; gap: 0.3rem;
             padding: 0.28rem 0.75rem;
@@ -143,7 +133,6 @@
         .opt-pill.selected { background: var(--black); color: #fff; border-color: var(--black); }
         .opt-pill.selected img { filter: brightness(0) invert(1); }
         .opt-pill img { width: 13px; height: 13px; object-fit: contain; border-radius: 2px; }
-
         .picker-actions { display: flex; align-items: center; gap: 0.6rem; }
         .btn-update { background: var(--black); color: #fff; border: none; padding: 0.4rem 1.35rem; border-radius: var(--radius-pill); font-size: 0.78rem; font-weight: 600; cursor: pointer; font-family: var(--font); transition: background 0.12s; }
         .btn-update:hover { background: #333; }
@@ -163,29 +152,63 @@
         .workflow-title-input:focus { border-bottom-color: var(--black); }
         .workflow-delete-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 0.75rem; padding: 2px 4px; transition: color 0.12s; flex-shrink: 0; }
         .workflow-delete-btn:hover { color: var(--danger); }
+
+        /* Steps diagram */
         .steps-diagram { display: flex; align-items: center; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; gap: 0; }
         .steps-diagram::-webkit-scrollbar { height: 3px; }
         .steps-diagram::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
-        .step-arrow { color: #aaa; font-size: 0.82rem; flex-shrink: 0; padding: 0 5px; line-height: 1; user-select: none; }
-        .step-box { flex-shrink: 0; border: 1.5px solid #888; border-radius: 999px; padding: 0.4rem 0.85rem; background: var(--white); min-width: 52px; max-width: 160px; display: flex; align-items: flex-start; gap: 0.3rem; position: relative; }
+        .step-arrow { color: #aaa; font-size: 0.82rem; flex-shrink: 0; line-height: 1; user-select: none; }
+
+        /* Step box — editable */
+        .step-box {
+            flex-shrink: 0; border: 1.5px solid #888; border-radius: 999px;
+            padding: 0.4rem 0.85rem; background: var(--white);
+            min-width: 52px; max-width: 160px;
+            display: flex; align-items: flex-start; gap: 0.3rem; position: relative;
+            transition: border-color 0.15s;
+        }
         .step-box.multiline { border-radius: 14px; }
+        .step-box:hover { border-color: var(--black); }
+        .step-box.editing { border-color: var(--black); border-style: solid; }
+
         .step-box-inner { min-width: 0; flex: 1; }
         .step-box-label { font-size: 0.55rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #aaa; margin-bottom: 2px; white-space: nowrap; }
-        .step-box-text { font-size: 0.72rem; color: var(--black); line-height: 1.35; word-break: break-word; }
-        .step-box-delete { position: absolute; top: -7px; right: -7px; width: 16px; height: 16px; border-radius: 50%; background: #ccc; border: none; color: white; cursor: pointer; font-size: 0.55rem; display: none; align-items: center; justify-content: center; line-height: 1; padding: 0; transition: background 0.12s; }
+
+        /* The editable text */
+        .step-box-text {
+            font-size: 0.72rem; color: var(--black); line-height: 1.35;
+            word-break: break-word; outline: none; cursor: text;
+            border-radius: 3px; transition: background 0.12s;
+            min-width: 20px;
+        }
+        .step-box-text:focus { background: #f5f5f5; }
+
+        /* Char counter — shown while editing */
+        .step-char-counter {
+            position: absolute; bottom: -16px; right: 4px;
+            font-size: 0.58rem; color: #bbb;
+            display: none; white-space: nowrap;
+            pointer-events: none;
+        }
+        .step-char-counter.over { color: var(--danger); }
+        .step-box.editing .step-char-counter { display: block; }
+
+        .step-box-delete {
+            position: absolute; top: -7px; right: -7px;
+            width: 16px; height: 16px; border-radius: 50%;
+            background: #ccc; border: none; color: white; cursor: pointer;
+            font-size: 0.55rem; display: none; align-items: center; justify-content: center;
+            line-height: 1; padding: 0; transition: background 0.12s;
+        }
         .step-box:hover .step-box-delete { display: flex; }
         .step-box-delete:hover { background: var(--danger); }
+
         .add-step-circle { flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid #aaa; background: var(--white); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.1rem; color: #888; transition: border-color 0.15s, color 0.15s; font-family: var(--font); }
         .add-step-circle:hover { border-color: var(--black); color: var(--black); }
+
         .add-workflow-row { padding-top: 0.85rem; border-top: 1px solid var(--border); margin-top: 0.5rem; }
         .add-workflow-btn { background: none; border: none; font-family: var(--font); font-size: 0.75rem; font-weight: 700; color: #3b82f6; cursor: pointer; padding: 0; display: flex; align-items: center; gap: 0.25rem; transition: color 0.12s; letter-spacing: 0.06em; text-transform: uppercase; }
         .add-workflow-btn:hover { color: #2563eb; }
-
-        /* MADE WITH */
-        .made-with-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
-        .made-with-badge { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.28rem 0.85rem 0.28rem 0.5rem; border-radius: var(--radius-pill); border: 1.5px solid #e8d5b0; background: #fffbf0; font-size: 0.75rem; font-weight: 600; color: #a07830; }
-        .made-with-dot { width: 8px; height: 8px; border-radius: 50%; background: #f5a623; flex-shrink: 0; }
-        .add-circle-btn { width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--white); cursor: pointer; font-size: 1rem; color: #888; display: flex; align-items: center; justify-content: center; }
 
         .divider { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
 
@@ -203,10 +226,13 @@
         .modal-field label { display: block; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #aaa; margin-bottom: 0.3rem; }
         .modal-field input { width: 100%; padding: 0.6rem 1rem; border: 1.5px solid var(--border); border-radius: 10px; font-size: 0.88rem; font-family: var(--font); outline: none; transition: border-color 0.15s; color: var(--black); }
         .modal-field input:focus { border-color: var(--black); }
+        .modal-char-hint { font-size: 0.72rem; color: #aaa; margin-top: 0.3rem; text-align: right; }
+        .modal-char-hint.over { color: var(--danger); }
         .modal-actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.25rem; }
         .btn-modal-cancel { background: transparent; border: 1.5px solid var(--border); color: #888; padding: 0.5rem 1.25rem; border-radius: var(--radius-pill); font-size: 0.82rem; cursor: pointer; font-family: var(--font); }
         .btn-modal-submit { background: var(--black); color: #fff; border: none; padding: 0.5rem 1.5rem; border-radius: var(--radius-pill); font-size: 0.82rem; font-weight: 600; cursor: pointer; font-family: var(--font); }
         .btn-modal-submit:hover { background: #333; }
+        .btn-modal-submit:disabled { opacity: 0.4; cursor: not-allowed; }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 </head>
@@ -308,7 +334,6 @@
                  th:if="${ce.key.description != null and !ce.key.description.isEmpty()}"
                  th:text="${ce.key.description}"></div>
 
-            <!-- Selected pills row -->
             <div class="selected-row" th:id="'sel-row-' + ${ce.key.id}">
                 <th:block th:each="entry : ${allEntries.get(ce.key.id)}">
                     <span th:if="${ce.value.contains(entry)}"
@@ -328,7 +353,6 @@
                         onclick="togglePicker(this)">+</button>
             </div>
 
-            <!-- Expandable picker -->
             <div class="pill-picker" th:id="'picker-' + ${ce.key.id}">
                 <div class="picker-hint"
                      th:text="${ce.key.maxSelected != null} ? 'Select up to ' + ${ce.key.maxSelected} + ' (' + ${#lists.size(ce.value)} + '/' + ${ce.key.maxSelected} + ' left)' : 'Click below to add or remove'">
@@ -394,8 +418,18 @@
                                 <div class="step-box" th:id="'step-' + ${step.id}">
                                     <div class="step-box-inner">
                                         <div class="step-box-label">STEP <span th:text="${stat.index + 1}"></span></div>
-                                        <div class="step-box-text" th:text="${step.text}"></div>
+                                        <div class="step-box-text"
+                                             contenteditable="true"
+                                             th:data-step-id="${step.id}"
+                                             th:data-wf-id="${wf.id}"
+                                             th:data-original="${step.text}"
+                                             th:text="${step.text}"
+                                             onkeydown="handleStepKeydown(event, this)"
+                                             oninput="handleStepInput(this)"
+                                             onfocus="handleStepFocus(this)"
+                                             onblur="handleStepBlur(this)"></div>
                                     </div>
+                                    <span class="step-char-counter">0/70</span>
                                     <button class="step-box-delete"
                                             onclick="deleteStep(this.dataset.wfId, this.dataset.stepId)"
                                             th:data-step-id="${step.id}"
@@ -440,17 +474,20 @@
         <div class="modal-title">Add Step</div>
         <div class="modal-field">
             <label>Step Description</label>
-            <input autocomplete="off" id="newStepText" placeholder="e.g. User signs up with email" type="text"/>
+            <input autocomplete="off" id="newStepText" placeholder="e.g. User signs up with email"
+                   type="text" maxlength="70" oninput="updateStepCharHint(this)"/>
+            <div class="modal-char-hint" id="stepCharHint">0 / 70</div>
         </div>
         <div class="modal-actions">
             <button class="btn-modal-cancel" onclick="closeModal('addStepModal')">Cancel</button>
-            <button class="btn-modal-submit" onclick="createStep()">Add Step</button>
+            <button class="btn-modal-submit" id="addStepSubmitBtn" onclick="createStep()">Add Step</button>
         </div>
     </div>
 </div>
 
 <script th:inline="javascript">
     const APP_ID = /*[[${app.id.toString()}]]*/ '';
+    const STEP_MAX = 70;
 
     // ─── TOAST ──────────────────────────────────────────────────────────────
     function showToast(msg, err = false) {
@@ -553,7 +590,6 @@
     }
 
     // ─── CATEGORY PILLS ─────────────────────────────────────────────────────
-
     function togglePicker(btn) {
         const catId = btn.dataset.categoryId;
         const picker = document.getElementById('picker-' + catId);
@@ -589,10 +625,8 @@
             const selRow = document.getElementById('sel-row-' + catId);
             const addBtn = selRow.querySelector('.pill-add-btn');
             const newPill = buildSelPill(
-                pill.dataset.entryId,
-                catId,
-                pill.dataset.entryName,
-                pill.dataset.entryIcon
+                pill.dataset.entryId, catId,
+                pill.dataset.entryName, pill.dataset.entryIcon
             );
             selRow.insertBefore(newPill, addBtn);
         }
@@ -611,17 +645,11 @@
         const selectedOptPills = [...pickerPills.querySelectorAll('.opt-pill.selected')];
         const ids = selectedOptPills.map(p => p.dataset.entryId);
 
-        // Rebuild selected row
         const selRow = document.getElementById('sel-row-' + categoryId);
         const addBtn = selRow.querySelector('.pill-add-btn');
         selRow.querySelectorAll('.sel-pill').forEach(p => p.remove());
         selectedOptPills.forEach(optPill => {
-            const pill = buildSelPill(
-                optPill.dataset.entryId,
-                categoryId,
-                optPill.dataset.entryName,
-                optPill.dataset.entryIcon
-            );
+            const pill = buildSelPill(optPill.dataset.entryId, categoryId, optPill.dataset.entryName, optPill.dataset.entryIcon);
             selRow.insertBefore(pill, addBtn);
         });
 
@@ -645,12 +673,10 @@
         span.dataset.entryId = entryId;
         span.dataset.categoryId = catId;
         if (iconUrl && iconUrl !== 'null') {
-            const img = document.createElement('img');
-            img.src = iconUrl; img.alt = name;
+            const img = document.createElement('img'); img.src = iconUrl; img.alt = name;
             span.appendChild(img);
         }
-        const label = document.createElement('span');
-        label.textContent = name;
+        const label = document.createElement('span'); label.textContent = name;
         span.appendChild(label);
         const removeBtn = document.createElement('button');
         removeBtn.className = 'sel-pill-remove'; removeBtn.type = 'button'; removeBtn.textContent = '✕';
@@ -663,7 +689,6 @@
         return span;
     }
 
-    // ─── WORKFLOWS ──────────────────────────────────────────────────────────
     function openAddWorkflowModal() {
         document.getElementById('newWorkflowTitle').value = '';
         openModal('addWorkflowModal');
@@ -700,19 +725,109 @@
         } catch (e) { showToast(e.message, true); }
     }
 
-    // ─── STEPS ──────────────────────────────────────────────────────────────
+    function handleStepFocus(el) {
+        const box = el.closest('.step-box');
+        box.classList.add('editing');
+        el.dataset.original = el.textContent.trim();
+        updateStepCounter(el);
+    }
+
+    function handleStepInput(el) {
+        const text = el.textContent;
+        updateStepCounter(el);
+        if (text.length > STEP_MAX) {
+            el.textContent = text.substring(0, STEP_MAX);
+            placeCursorAtEnd(el);
+        }
+        applyMultilineClass(el.closest('.step-box'));
+    }
+
+    function handleStepKeydown(event, el) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            el.blur();
+        }
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            el.textContent = el.dataset.original || '';
+            el.blur();
+        }
+    }
+
+    async function handleStepBlur(el) {
+        const box = el.closest('.step-box');
+        box.classList.remove('editing');
+
+        const newText = el.textContent.trim();
+        const original = el.dataset.original || '';
+
+        if (newText === original) return;
+
+        if (!newText) {
+            el.textContent = original;
+            showToast('Step cannot be empty', true);
+            return;
+        }
+
+        const stepId = el.dataset.stepId;
+        const wfId = el.dataset.wfId;
+
+        const fd = new FormData(); fd.append('text', newText);
+        try {
+            await apiFetch(`/apps/${APP_ID}/manage/workflows/${wfId}/steps/${stepId}/update`, fd);
+            el.dataset.original = newText;
+            applyMultilineClass(box);
+            showToast('Step saved');
+        } catch (e) {
+            el.textContent = original;
+            applyMultilineClass(box);
+            showToast(e.message, true);
+        }
+    }
+
+    function updateStepCounter(el) {
+        const box = el.closest('.step-box');
+        const counter = box.querySelector('.step-char-counter');
+        if (!counter) return;
+        const len = el.textContent.length;
+        counter.textContent = `${len}/${STEP_MAX}`;
+        counter.classList.toggle('over', len > STEP_MAX);
+    }
+
+    function placeCursorAtEnd(el) {
+        const range = document.createRange();
+        const sel = window.getSelection();
+        range.selectNodeContents(el);
+        range.collapse(false);
+        sel.removeAllRanges();
+        sel.addRange(range);
+    }
+
     let _activeWfId = null;
+
+    function updateStepCharHint(input) {
+        const len = input.value.length;
+        const hint = document.getElementById('stepCharHint');
+        const btn = document.getElementById('addStepSubmitBtn');
+        hint.textContent = `${len} / ${STEP_MAX}`;
+        const over = len > STEP_MAX;
+        hint.classList.toggle('over', over);
+        btn.disabled = over;
+    }
 
     function openAddStepModal(wfId) {
         _activeWfId = wfId;
-        document.getElementById('newStepText').value = '';
+        const input = document.getElementById('newStepText');
+        input.value = '';
+        updateStepCharHint(input);
         openModal('addStepModal');
-        setTimeout(() => document.getElementById('newStepText').focus(), 80);
+        setTimeout(() => input.focus(), 80);
     }
 
     async function createStep() {
         const text = document.getElementById('newStepText').value.trim();
         if (!text || !_activeWfId) return;
+        if (text.length > STEP_MAX) return showToast(`Max ${STEP_MAX} characters`, true);
         const fd = new FormData(); fd.append('text', text);
         try {
             const data = await apiFetch(`/apps/${APP_ID}/manage/workflows/${_activeWfId}/steps`, fd);
@@ -760,8 +875,17 @@
         box.innerHTML = `
           <div class="step-box-inner">
             <div class="step-box-label">STEP ${existingSteps + 1}</div>
-            <div class="step-box-text">${escHtml(text)}</div>
+            <div class="step-box-text"
+                 contenteditable="true"
+                 data-step-id="${stepId}"
+                 data-wf-id="${wfId}"
+                 data-original="${escHtml(text)}"
+                 onkeydown="handleStepKeydown(event, this)"
+                 oninput="handleStepInput(this)"
+                 onfocus="handleStepFocus(this)"
+                 onblur="handleStepBlur(this)">${escHtml(text)}</div>
           </div>
+          <span class="step-char-counter">0/70</span>
           <button class="step-box-delete"
                   data-wf-id="${wfId}" data-step-id="${stepId}"
                   onclick="deleteStep(this.dataset.wfId, this.dataset.stepId)">✕</button>`;
@@ -804,6 +928,7 @@
     function applyMultilineClass(box) {
         const textEl = box.querySelector('.step-box-text');
         if (textEl && textEl.textContent.length > 18) box.classList.add('multiline');
+        else box.classList.remove('multiline');
     }
 
     function escHtml(s) {
@@ -817,6 +942,10 @@
     document.querySelectorAll('.steps-diagram').forEach(diagram => {
         const wfId = diagram.id.replace('steps-', '');
         redrawDiagram(wfId);
+    });
+    // Init char counters for existing steps
+    document.querySelectorAll('.step-box-text').forEach(el => {
+        updateStepCounter(el);
     });
 </script>
 

@@ -24,8 +24,6 @@ public class ManageController {
     private final WorkflowService workflowService;
     private final AppMediaRepository appMediaRepository;
 
-    // ── Page ─────────────────────────────────────────────────────────────────
-
     @GetMapping
     public String manage(@PathVariable UUID appId, Model model) {
         App app = appService.findById(appId);
@@ -60,8 +58,6 @@ public class ManageController {
         return "manage/index";
     }
 
-    // ── App info ──────────────────────────────────────────────────────────────
-
     @PostMapping("/info")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> updateInfo(
@@ -83,8 +79,6 @@ public class ManageController {
         }
     }
 
-    // ── Categories ────────────────────────────────────────────────────────────
-
     @PostMapping("/categories/{categoryId}")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> updateCategorySelections(
@@ -101,8 +95,6 @@ public class ManageController {
                     .body(Map.of("error", e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
         }
     }
-
-    // ── Workflows ─────────────────────────────────────────────────────────────
 
     @PostMapping("/workflows")
     @ResponseBody
@@ -158,8 +150,6 @@ public class ManageController {
         }
     }
 
-    // ── Steps ─────────────────────────────────────────────────────────────────
-
     @PostMapping("/workflows/{workflowId}/steps")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> addStep(
@@ -167,6 +157,8 @@ public class ManageController {
             @PathVariable UUID workflowId,
             @RequestParam String text) {
         try {
+            if (text.length() > 70)
+                return ResponseEntity.badRequest().body(Map.of("error", "Max 70 characters"));
             WorkflowStep step = new WorkflowStep();
             step.setText(text.trim());
             WorkflowStep saved = workflowService.createStep(workflowId, step);
@@ -175,6 +167,28 @@ public class ManageController {
                     "text", saved.getText(),
                     "position", saved.getPosition()
             ));
+        } catch (Exception e) {
+            return ResponseEntity.status(500)
+                    .body(Map.of("error", e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
+        }
+    }
+
+    @PostMapping("/workflows/{workflowId}/steps/{stepId}/update")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> updateStep(
+            @PathVariable UUID appId,
+            @PathVariable UUID workflowId,
+            @PathVariable UUID stepId,
+            @RequestParam String text) {
+        try {
+            if (text == null || text.isBlank())
+                return ResponseEntity.badRequest().body(Map.of("error", "Text cannot be empty"));
+            if (text.length() > 70)
+                return ResponseEntity.badRequest().body(Map.of("error", "Max 70 characters"));
+            WorkflowStep step = workflowService.findStepById(stepId);
+            step.setText(text.trim());
+            workflowService.saveStep(step);
+            return ResponseEntity.ok(Map.of("ok", true, "text", step.getText()));
         } catch (Exception e) {
             return ResponseEntity.status(500)
                     .body(Map.of("error", e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));

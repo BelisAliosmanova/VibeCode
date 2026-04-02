@@ -96,6 +96,11 @@ public class WorkflowService {
     }
 
     @Transactional
+    public WorkflowStep saveStep(WorkflowStep step) {
+        return workflowStepRepository.save(step);
+    }
+
+    @Transactional
     public WorkflowStep updateStep(UUID id, WorkflowStep updated) {
         WorkflowStep existing = findStepById(id);
         if (updated.getText() != null)     existing.setText(updated.getText());
