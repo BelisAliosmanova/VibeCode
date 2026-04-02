@@ -571,15 +571,30 @@
 
         if (pill.classList.contains('selected')) {
             pill.classList.remove('selected');
+            const selRow = document.getElementById('sel-row-' + catId);
+            selRow.querySelector(`.sel-pill[data-entry-id="${pill.dataset.entryId}"]`)?.remove();
         } else {
             if (max === 1) {
                 pickerPills.querySelectorAll('.opt-pill.selected')
-                    .forEach(p => p.classList.remove('selected'));
+                    .forEach(p => {
+                        p.classList.remove('selected');
+                        const selRow = document.getElementById('sel-row-' + catId);
+                        selRow.querySelector(`.sel-pill[data-entry-id="${p.dataset.entryId}"]`)?.remove();
+                    });
             } else if (max) {
                 const currentCount = pickerPills.querySelectorAll('.opt-pill.selected').length;
                 if (currentCount >= max) return;
             }
             pill.classList.add('selected');
+            const selRow = document.getElementById('sel-row-' + catId);
+            const addBtn = selRow.querySelector('.pill-add-btn');
+            const newPill = buildSelPill(
+                pill.dataset.entryId,
+                catId,
+                pill.dataset.entryName,
+                pill.dataset.entryIcon
+            );
+            selRow.insertBefore(newPill, addBtn);
         }
     }
 
