@@ -128,6 +128,8 @@
             top: var(--nav-h);
             height: calc(100vh - var(--nav-h));
             overflow-y: auto;
+            min-width: 300px;
+            background: #F1F1F1;
         }
         .sidebar::-webkit-scrollbar { width: 3px; }
         .sidebar::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
@@ -156,24 +158,21 @@
             display: flex; align-items: center; gap: 0.35rem;
             padding: 0.28rem 0.45rem; border-radius: 7px;
             cursor: pointer; user-select: none;
-            font-size: 0.76rem; color: #444;
+            font-size: 0.76rem;
+            color: #000000;
             transition: background 0.1s, color 0.1s;
             position: relative;
         }
         .filter-item:hover { background: var(--light); color: var(--black); }
-        .filter-item.active { background: #efefef; color: var(--black); font-weight: 600; }
-        .filter-item.active::before {
-            content: '';
-            position: absolute; left: 0; top: 20%; height: 60%; width: 3px;
-            background: var(--black); border-radius: 0 2px 2px 0;
-        }
+        .filter-item.active { background: #ffffff; color: var(--black); font-weight: 600; }
+
         .filter-item-icon {
             width: 14px; height: 14px; border-radius: 3px;
             object-fit: contain; flex-shrink: 0;
         }
 
         /* ── APP SECTIONS ────────────────────────────────────────────────── */
-        .content { padding: 1.25rem 1.5rem 3rem; }
+        .content { padding: 1.25rem 9.5rem 3rem; }
 
         .section { margin-bottom: 2rem; }
 
