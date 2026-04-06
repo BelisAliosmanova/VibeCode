@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title th:text="${app.name} + ' — Reviews'">Reviews</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --dark: #5a5a5a; --black: #111; --white: #fff;
+            --border: #ddd; --light: #f8f8f8; --danger: #e05c5c;
+            --accent: #2563eb; --gold: #f4a118; --green: #2d9e6b;
+            --radius-pill: 50px; --font: 'Inter', system-ui, sans-serif;
+        }
+        body { font-family: var(--font); background: #f5f5f5; color: var(--black); font-size: 14px; }
+
+        nav { display: flex; align-items: center; justify-content: space-between; padding: 0.7rem 1.5rem; background: var(--dark); }
+        .nav-left { display: flex; align-items: center; gap: 1.25rem; }
+        .nav-logo { width: 28px; height: 28px; background: #222; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 0.8rem; }
+        .nav-link { color: #fff; text-decoration: none; font-size: 0.85rem; opacity: 0.9; }
+        .nav-right { display: flex; align-items: center; gap: 0.75rem; }
+        .btn-ghost-nav { background: transparent; border: none; color: #fff; font-size: 0.82rem; cursor: pointer; text-decoration: none; }
+        .btn-outline-nav { background: transparent; border: 1.5px solid #fff; color: #fff; font-size: 0.78rem; padding: 0.32rem 0.85rem; border-radius: var(--radius-pill); text-decoration: none; }
+
+        .header-band { background: var(--dark); color: white; text-align: center; padding: 1.5rem; }
+        .header-band h1 { font-size: 1.4rem; font-weight: 600; }
+        .header-band p { font-size: 0.82rem; opacity: 0.7; margin-top: 0.25rem; }
+
+        .page { max-width: 680px; margin: 0 auto; padding: 1.75rem 1.5rem 4rem; }
+
+        /* APP STRIP */
+        .app-strip { display: flex; align-items: center; gap: 0.85rem; margin-bottom: 1.75rem; padding: 0.85rem 1rem; border: 1.5px solid var(--border); border-radius: 14px; background: var(--white); }
+        .app-icon { width: 44px; height: 44px; border-radius: 10px; border: 1.5px solid var(--border); overflow: hidden; flex-shrink: 0; background: var(--light); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; color: #ccc; }
+        .app-icon img { width: 100%; height: 100%; object-fit: cover; }
+        .app-name { font-size: 0.95rem; font-weight: 700; }
+        .app-url { font-size: 0.75rem; color: #aaa; }
+
+        /* REVIEW CATEGORY CARD */
+        .review-card {
+            background: var(--white);
+            border: 1.5px solid var(--border);
+            border-radius: 16px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+        .review-card-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 1rem 1.25rem 1rem;
+            gap: 1rem;
+        }
+        .review-cat-left { display: flex; align-items: center; gap: 0.85rem; flex: 1; min-width: 0; }
+        .category-label { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #aaa; white-space: nowrap; }
+        .category-name-input {
+            border: none; border-bottom: 1.5px solid transparent;
+            font-size: 0.92rem; font-weight: 700; color: var(--black);
+            font-family: var(--font); outline: none; background: transparent;
+            flex: 1; padding: 1px 2px; margin-left: -2px;
+            transition: border-color 0.15s;
+        }
+        .star-display { display: flex; gap: 2px; align-items: center; }
+        .star-display .s { font-size: 1rem; color: #ddd; transition: color 0.1s; }
+        .star-display .s.lit { color: var(--gold); }
+        .score-text { font-size: 0.78rem; font-weight: 700; color: var(--black); margin-left: 4px; }
+        .score-empty { font-size: 0.78rem; color: #ccc; margin-left: 4px; }
+
+        /* Visibility toggle */
+        .visibility-wrap { display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0; }
+        .visibility-label { font-size: 0.72rem; color: #888; }
+        .toggle-switch { position: relative; width: 36px; height: 20px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider {
+            position: absolute; inset: 0; background: #ddd;
+            border-radius: 20px; cursor: pointer; transition: background 0.2s;
+        }
+        .toggle-slider::before {
+            content: ''; position: absolute; width: 14px; height: 14px;
+            left: 3px; bottom: 3px; background: white; border-radius: 50%;
+            transition: transform 0.2s;
+        }
+        .toggle-switch input:checked + .toggle-slider { background: var(--black); }
+        .toggle-switch input:checked + .toggle-slider::before { transform: translateX(16px); }
+
+        /* Save button for card */
+        .card-save-btn {
+            background: var(--black); color: #fff; border: none;
+            padding: 0.35rem 1rem; border-radius: var(--radius-pill);
+            font-size: 0.75rem; font-weight: 600; cursor: pointer;
+            font-family: var(--font); flex-shrink: 0;
+            transition: background 0.12s;
+        }
+        .card-save-btn:hover { background: #333; }
+        .card-save-btn.saving { opacity: 0.5; }
+        .card-save-btn.saved { background: var(--green); }
+
+        /* Sub-category rows */
+        .sub-reviews { padding: 0 1.25rem 1.25rem; border-top: 1px solid var(--border); }
+        .sub-row { padding: 0.85rem 0; border-bottom: 1px solid #f0f0f0; }
+        .sub-row:last-child { border-bottom: none; }
+
+        .sub-row-top { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+        .sub-name { font-size: 0.82rem; font-weight: 600; }
+
+        /* Interactive star rating */
+        .star-picker { display: flex; gap: 3px; cursor: pointer; }
+        .star-picker .sp {
+            font-size: 1.1rem; color: #ddd;
+            transition: color 0.1s; user-select: none; cursor: pointer;
+        }
+        .star-picker .sp.lit { color: var(--gold); }
+        .star-picker .sp:hover { color: var(--gold); }
+
+        .sub-desc-box {
+            margin-top: 0.65rem;
+            width: 100%; padding: 0.55rem 0.85rem;
+            border: 1.5px solid var(--border); border-radius: 10px;
+            font-size: 0.82rem; font-family: var(--font); outline: none;
+            resize: vertical; min-height: 60px; color: var(--black);
+            transition: border-color 0.15s;
+        }
+        .sub-desc-box:focus { border-color: var(--black); }
+        .sub-desc-box::placeholder { color: #bbb; }
+
+        /* No categories state */
+        .empty-state { text-align: center; padding: 4rem 0; color: #bbb; font-size: 0.9rem; }
+        .empty-state a { color: var(--accent); font-weight: 600; text-decoration: none; }
+
+        /* Toast */
+        .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--black); color: #fff; padding: 0.55rem 1.25rem; border-radius: var(--radius-pill); font-size: 0.82rem; font-weight: 500; opacity: 0; transition: opacity 0.2s, transform 0.2s; pointer-events: none; z-index: 999; }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .toast.error { background: var(--danger); }
+
+        /* Back link */
+        .back-link { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.82rem; color: #888; text-decoration: none; margin-bottom: 1.25rem; }
+        .back-link:hover { color: var(--black); }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+<nav>
+    <div class="nav-left">
+        <div class="nav-logo">V</div>
+        <a class="nav-link" th:href="@{/apps}">Apps</a>
+        <a class="nav-link" th:href="@{/review-categories}" style="font-weight:600;">Reviews</a>
+    </div>
+    <div class="nav-right">
+        <a class="btn-ghost-nav" th:href="@{/login}">Sign in</a>
+        <a class="btn-outline-nav" th:href="@{/register}">Sign up</a>
+    </div>
+</nav>
+
+<div class="header-band">
+    <h1>Certified Review</h1>
+    <p th:text="${app.name}">App Name</p>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="page">
+
+    <a class="back-link" th:href="@{/apps/{id}/manage(id=${app.id})}">← Back to manage listing</a>
+
+    <!-- App strip -->
+    <div class="app-strip">
+        <div class="app-icon">
+            <img th:if="${app.iconUrl != null}" th:src="${app.iconUrl}" alt="icon"/>
+            <span th:if="${app.iconUrl == null}">🖼</span>
+        </div>
+        <div>
+            <div class="app-name" th:text="${app.name}">App Name</div>
+            <div class="app-url" th:text="${app.url}">https://...</div>
+        </div>
+    </div>
+
+    <!-- Empty state -->
+    <div th:if="${#lists.isEmpty(allCategories)}" class="empty-state">
+        No review categories defined yet.<br/>
+        <a th:href="@{/review-categories}">Create review categories first →</a>
+    </div>
+
+    <!-- One card per review category -->
+    <div th:each="cat : ${allCategories}" class="review-card"
+         th:id="'card-' + ${cat.id}"
+         th:data-cat-id="${cat.id}">
+
+        <div class="review-card-header">
+            <div class="review-cat-left">
+                <span class="category-label">CATEGORY:</span>
+                <span class="category-name-input" th:text="${cat.name}"></span>
+            </div>
+
+            <!-- Current score stars (read-only display, updated by JS after save) -->
+            <th:block th:with="rev=${existingReviews.get(cat)}">
+                <div class="star-display" th:id="'score-stars-' + ${cat.id}">
+                    <th:block th:each="i : ${#numbers.sequence(1,5)}">
+                        <span class="s"
+                              th:classappend="${rev != null and rev.score != null and rev.score >= i} ? ' lit' : ''">★</span>
+                    </th:block>
+                    <span class="score-text" th:if="${rev != null and rev.score != null}"
+                          th:id="'score-val-' + ${cat.id}"
+                          th:text="${#numbers.formatDecimal(rev.score,1,1)}">0.0</span>
+                    <span class="score-empty" th:if="${rev == null or rev.score == null}"
+                          th:id="'score-val-' + ${cat.id}">—</span>
+                </div>
+
+                <!-- Visibility toggle -->
+                <div class="visibility-wrap">
+                    <span class="visibility-label">HIDDEN</span>
+                    <label class="toggle-switch" th:id="'toggle-wrap-' + ${cat.id}">
+                        <input type="checkbox"
+                               th:id="'visible-' + ${cat.id}"
+                               th:checked="${rev == null or rev.visible}"
+                               th:data-cat-id="${cat.id}"/>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </th:block>
+
+            <button class="card-save-btn"
+                    th:data-cat-id="${cat.id}"
+                    onclick="saveReview(this.dataset.catId, this)">
+                Save
+            </button>
+        </div>
+
+        <!-- Sub-category rows -->
+        <div class="sub-reviews">
+            <div th:each="sub : ${subCatMap.get(cat.id)}"
+                 class="sub-row"
+                 th:id="'sub-' + ${sub.id}">
+
+                <div class="sub-row-top">
+                    <span class="sub-name" th:text="${sub.name}">Sub-criterion</span>
+                    <!-- Interactive star picker -->
+                    <div class="star-picker"
+                         th:id="'picker-' + ${sub.id}"
+                         th:data-sub-id="${sub.id}"
+                         th:data-score="${subReviewMap.containsKey(cat.id) ?
+                             subReviewMap.get(cat.id).stream().filter(sr -> sr.reviewSubCategory.id == sub.id).map(sr -> sr.score).findFirst().orElse(0) : 0}">
+
+                        <th:block th:with="existingSubs=${subReviewMap.get(cat.id)},
+                                          currentScore=${existingSubs != null ?
+                                              existingSubs.stream()
+                                                  .filter(sr -> sr.reviewSubCategory.id.equals(sub.id))
+                                                  .mapToInt(sr -> sr.score)
+                                                  .findFirst().orElse(0) : 0}">
+                            <span th:each="i : ${#numbers.sequence(1,5)}"
+                                  class="sp"
+                                  th:classappend="${currentScore >= i} ? ' lit' : ''"
+                                  th:data-val="${i}"
+                                  onclick="setStar(this)">★</span>
+                        </th:block>
+                    </div>
+                </div>
+
+                <!-- Optional description box -->
+                <th:block th:if="${sub.hasDescriptionBox}"
+                          th:with="existingSubs=${subReviewMap.get(cat.id)},
+                                   existingDesc=${existingSubs != null ?
+                                       existingSubs.stream()
+                                           .filter(sr -> sr.reviewSubCategory.id.equals(sub.id))
+                                           .map(sr -> sr.description)
+                                           .findFirst().orElse('') : ''}">
+                    <textarea class="sub-desc-box"
+                              th:id="'desc-' + ${sub.id}"
+                              th:placeholder="'Explain the ' + ${sub.name} + ' rating...'"
+                              th:text="${existingDesc}"></textarea>
+                </th:block>
+            </div>
+
+            <div th:if="${#lists.isEmpty(subCatMap.get(cat.id))}"
+                 style="padding: 1rem 0; color: #ccc; font-size: 0.8rem;">
+                No sub-criteria defined for this category.
+                <a th:href="@{/review-categories/{id}/sub-categories(id=${cat.id})}"
+                   style="color: var(--accent);">Add some →</a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script th:inline="javascript">
+    const APP_ID = /*[[${app.id.toString()}]]*/ '';
+
+    // ── Toast ────────────────────────────────────────────────────────────────
+    function showToast(msg, err = false) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = 'toast' + (err ? ' error' : '');
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    // ── Star picker ───────────────────────────────────────────────────────────
+    function setStar(starEl) {
+        const picker = starEl.closest('.star-picker');
+        const val = parseInt(starEl.dataset.val);
+        picker.dataset.score = val;
+        picker.querySelectorAll('.sp').forEach(s => {
+            s.classList.toggle('lit', parseInt(s.dataset.val) <= val);
+        });
+        // Hover preview
+        picker.querySelectorAll('.sp').forEach(s => {
+            s.onmouseenter = () => {
+                const hv = parseInt(s.dataset.val);
+                picker.querySelectorAll('.sp').forEach(x => {
+                    x.classList.toggle('lit', parseInt(x.dataset.val) <= hv);
+                });
+            };
+            s.onmouseleave = () => {
+                const current = parseInt(picker.dataset.score || 0);
+                picker.querySelectorAll('.sp').forEach(x => {
+                    x.classList.toggle('lit', parseInt(x.dataset.val) <= current);
+                });
+            };
+        });
+    }
+
+    // Attach hover effects on load
+    document.querySelectorAll('.star-picker').forEach(picker => {
+        picker.querySelectorAll('.sp').forEach(s => {
+            s.onmouseenter = () => {
+                const hv = parseInt(s.dataset.val);
+                picker.querySelectorAll('.sp').forEach(x => {
+                    x.classList.toggle('lit', parseInt(x.dataset.val) <= hv);
+                });
+            };
+            s.onmouseleave = () => {
+                const current = parseInt(picker.dataset.score || 0);
+                picker.querySelectorAll('.sp').forEach(x => {
+                    x.classList.toggle('lit', parseInt(x.dataset.val) <= current);
+                });
+            };
+        });
+    });
+
+    // ── Save review (AJAX) ────────────────────────────────────────────────────
+    async function saveReview(catId, btn) {
+        const card = document.getElementById('card-' + catId);
+        const visible = document.getElementById('visible-' + catId)?.checked ?? true;
+
+        const fd = new FormData();
+        fd.append('visible', visible);
+
+        // Collect scores and descriptions for all sub-pickers in this card
+        card.querySelectorAll('.star-picker[data-sub-id]').forEach(picker => {
+            const subId = picker.dataset.subId;
+            const score = picker.dataset.score || '0';
+            fd.append('score_' + subId, score);
+
+            const descBox = document.getElementById('desc-' + subId);
+            if (descBox) {
+                fd.append('desc_' + subId, descBox.value.trim());
+            }
+        });
+
+        btn.textContent = 'Saving…';
+        btn.classList.add('saving');
+
+        try {
+            const r = await fetch(`/apps/${APP_ID}/reviews/${catId}`, {
+                method: 'POST',
+                body: fd
+            });
+            const data = await r.json();
+            if (!r.ok) throw new Error(data.error || `HTTP ${r.status}`);
+
+            // Update display stars
+            const score = parseFloat(data.score) || 0;
+            const starsEl = document.getElementById('score-stars-' + catId);
+            if (starsEl) {
+                starsEl.querySelectorAll('.s').forEach((s, i) => {
+                    s.classList.toggle('lit', score >= i + 1);
+                });
+            }
+            const valEl = document.getElementById('score-val-' + catId);
+            if (valEl) {
+                valEl.textContent = score > 0 ? score.toFixed(1) : '—';
+                valEl.className = score > 0 ? 'score-text' : 'score-empty';
+            }
+
+            btn.textContent = 'Save';
+            btn.classList.remove('saving');
+            btn.classList.add('saved');
+            setTimeout(() => btn.classList.remove('saved'), 1500);
+            showToast('Review saved');
+        } catch (e) {
+            btn.textContent = 'Save';
+            btn.classList.remove('saving');
+            showToast(e.message, true);
+        }
+    }
+</script>
+
+</body>
+</html>

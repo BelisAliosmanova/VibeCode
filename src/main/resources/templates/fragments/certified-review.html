@@ -1,0 +1,111 @@
+<!--
+  Fragment: certified-review.html
+  Usage in your app public page:
+    <div th:replace="~{fragments/certified-review :: certifiedReview(app=${app}, visibleReviews=${visibleReviews}, subReviewMap=${subReviewMap})}"></div>
+
+  The controller must supply:
+    visibleReviews  – List<AppReview>  (visible=true only)
+    subReviewMap    – Map<UUID, List<AppSubReview>>  (keyed by AppReview.id)
+-->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<body>
+<section th:fragment="certifiedReview(app, visibleReviews, subReviewMap)"
+         th:if="${!#lists.isEmpty(visibleReviews)}"
+         style="margin-top: 2rem;">
+
+    <style>
+        .cr-section { font-family: 'Inter', system-ui, sans-serif; }
+
+        .cr-title { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #555; margin-bottom: 0.85rem; }
+
+        /* Overall score row */
+        .cr-overall { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; }
+        .cr-overall-score { font-size: 1.15rem; font-weight: 800; }
+        .cr-stars { display: flex; gap: 2px; }
+        .cr-star { font-size: 0.9rem; color: #ddd; }
+        .cr-star.lit { color: #f4a118; }
+        .cr-view-link { font-size: 0.75rem; color: #2563eb; text-decoration: none; border: 1.5px solid #93c5fd; padding: 0.18rem 0.65rem; border-radius: 50px; background: #eff6ff; }
+        .cr-view-link:hover { background: #dbeafe; }
+
+        /* Category pills row */
+        .cr-cats-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+        .cr-cat-pill {
+            display: flex; flex-direction: column; align-items: center;
+            padding: 0.45rem 0.75rem; border: 1.5px solid #ddd; border-radius: 10px;
+            font-size: 0.7rem; color: #666; min-width: 70px; text-align: center;
+            background: #fafafa;
+        }
+        .cr-cat-pill-name { font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.25rem; font-size: 0.6rem; color: #aaa; }
+        .cr-cat-pill-stars { display: flex; gap: 1px; }
+        .cr-cat-pill-star { font-size: 0.72rem; color: #ddd; }
+        .cr-cat-pill-star.lit { color: #f4a118; }
+
+        /* Expanded sub-reviews (hidden by default, shown on expand) */
+        .cr-detail { margin-top: 0.85rem; }
+        .cr-detail-row { display: flex; align-items: flex-start; justify-content: space-between; padding: 0.5rem 0; border-top: 1px solid #f0f0f0; gap: 1rem; }
+        .cr-sub-name { font-size: 0.78rem; font-weight: 600; }
+        .cr-sub-desc { font-size: 0.72rem; color: #666; margin-top: 0.2rem; line-height: 1.4; }
+        .cr-sub-stars { display: flex; gap: 2px; flex-shrink: 0; }
+        .cr-sub-star { font-size: 0.78rem; color: #ddd; }
+        .cr-sub-star.lit { color: #f4a118; }
+    </style>
+
+    <div class="cr-section">
+        <div class="cr-title">CERTIFIED REVIEW</div>
+
+        <!-- Overall score = average of all visible category scores -->
+        <th:block th:with="
+            visibleWithScore=${visibleReviews.stream().filter(r -> r.score != null).toList()},
+            overallAvg=${!visibleWithScore.isEmpty() ?
+                visibleWithScore.stream().mapToDouble(r -> r.score).average().orElse(0.0) : 0.0}">
+
+            <div class="cr-overall">
+                <div class="cr-stars">
+                    <span th:each="i : ${#numbers.sequence(1,5)}"
+                          class="cr-star"
+                          th:classappend="${overallAvg >= i} ? ' lit' : ''">★</span>
+                </div>
+                <span class="cr-overall-score"
+                      th:text="${#numbers.formatDecimal(overallAvg,1,1)} + '/5'">0.0/5</span>
+                <a href="#cr-detail" class="cr-view-link">View</a>
+            </div>
+        </th:block>
+
+        <!-- One pill per visible review category -->
+        <div class="cr-cats-row">
+            <div th:each="rev : ${visibleReviews}" class="cr-cat-pill">
+                <span class="cr-cat-pill-name" th:text="${rev.reviewCategory.name}">CAT</span>
+                <div class="cr-cat-pill-stars">
+                    <span th:each="i : ${#numbers.sequence(1,5)}"
+                          class="cr-cat-pill-star"
+                          th:classappend="${rev.score != null and rev.score >= i} ? ' lit' : ''">★</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sub-review detail (one block per visible category) -->
+        <div class="cr-detail" id="cr-detail">
+            <th:block th:each="rev : ${visibleReviews}">
+                <div style="margin-bottom: 1rem;">
+                    <div style="font-size:0.7rem; font-weight:800; text-transform:uppercase; letter-spacing:0.08em; color:#aaa; margin-bottom:0.4rem;"
+                         th:text="${rev.reviewCategory.name}">CATEGORY</div>
+                    <div th:each="sub : ${subReviewMap.get(rev.id)}" class="cr-detail-row">
+                        <div>
+                            <div class="cr-sub-name" th:text="${sub.reviewSubCategory.name}">Sub</div>
+                            <div th:if="${sub.description != null and !sub.description.isBlank()}"
+                                 class="cr-sub-desc" th:text="${sub.description}">Description</div>
+                        </div>
+                        <div class="cr-sub-stars">
+                            <span th:each="i : ${#numbers.sequence(1,5)}"
+                                  class="cr-sub-star"
+                                  th:classappend="${sub.score >= i} ? ' lit' : ''">★</span>
+                        </div>
+                    </div>
+                </div>
+            </th:block>
+        </div>
+    </div>
+</section>
+</body>
+</html>

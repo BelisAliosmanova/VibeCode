@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="${category.name} + ' — Sub-criteria'">Sub-criteria</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --dark: #5a5a5a; --black: #111; --white: #fff;
+            --border: #ddd; --danger: #e05c5c;
+            --radius-pill: 50px; --font: 'Inter', system-ui, sans-serif;
+        }
+        body { font-family: var(--font); background: var(--white); color: var(--black); }
+
+        nav { display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 2rem; background: var(--dark); }
+        .nav-left { display: flex; align-items: center; gap: 1.5rem; }
+        .nav-logo { width: 32px; height: 32px; background: #222; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 0.9rem; }
+        .nav-link { color: #fff; text-decoration: none; font-size: 0.9rem; opacity: 0.9; }
+        .nav-right { display: flex; align-items: center; gap: 1rem; }
+        .btn-outline-nav { background: transparent; border: 1.5px solid #fff; color: #fff; font-size: 0.85rem; padding: 0.4rem 1rem; border-radius: var(--radius-pill); text-decoration: none; }
+
+        .page { max-width: 860px; margin: 2.5rem auto; padding: 0 1.5rem; }
+        .breadcrumb { font-size: 0.8rem; color: #aaa; margin-bottom: 1.5rem; }
+        .breadcrumb a { color: var(--black); text-decoration: none; }
+        .page-header { display: flex; align-items: baseline; gap: 0.75rem; margin-bottom: 2rem; }
+        .page-title { font-size: 1.4rem; font-weight: 700; }
+        .page-subtitle { font-size: 0.9rem; color: #aaa; }
+
+        .layout { display: grid; grid-template-columns: 1fr 320px; gap: 2rem; align-items: start; }
+
+        /* Sub-category list */
+        .sub-list { display: flex; flex-direction: column; gap: 0.4rem; }
+
+        .sub-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0.7rem 1.1rem;
+            border: 1.5px solid var(--border); border-radius: 12px;
+            gap: 0.75rem;
+        }
+        .sub-row-left { display: flex; align-items: center; gap: 0.75rem; flex: 1; }
+        .pos-badge { width: 22px; height: 22px; border-radius: 50%; background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; color: #888; flex-shrink: 0; }
+        .sub-name { font-size: 0.88rem; font-weight: 600; }
+
+        .badge { display: inline-flex; align-items: center; padding: 0.15rem 0.55rem; border-radius: var(--radius-pill); font-size: 0.68rem; font-weight: 600; border: 1.5px solid; }
+        .badge-desc { border-color: #93c5fd; color: #2563eb; background: #eff6ff; }
+        .badge-no-desc { border-color: #eee; color: #ccc; }
+
+        .btn-del { background: transparent; border: 1.5px solid #eee; color: #ccc; font-size: 0.75rem; padding: 0.25rem 0.65rem; border-radius: var(--radius-pill); cursor: pointer; font-family: var(--font); transition: all 0.12s; }
+        .btn-del:hover { border-color: var(--danger); color: var(--danger); }
+
+        .empty { font-size: 0.88rem; color: #bbb; }
+
+        /* Add panel */
+        .add-panel { border: 1.5px solid var(--border); border-radius: 16px; padding: 1.25rem; position: sticky; top: 1.5rem; }
+        .add-panel-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #888; margin-bottom: 1.25rem; }
+
+        .field { margin-bottom: 0.85rem; }
+        .field label { display: block; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #aaa; margin-bottom: 0.3rem; }
+        .field input[type="text"], .field input[type="number"] {
+            width: 100%; padding: 0.6rem 1rem;
+            border: 1.5px solid var(--border); border-radius: var(--radius-pill);
+            font-size: 0.88rem; font-family: var(--font); outline: none;
+            transition: border-color 0.15s; color: var(--black); background: var(--white);
+        }
+        .field input:focus { border-color: var(--black); }
+        .field input::placeholder { color: #ccc; }
+
+        .check-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; cursor: pointer; }
+        .check-row input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--black); cursor: pointer; }
+        .check-row-text { font-size: 0.84rem; }
+        .check-row-hint { font-size: 0.72rem; color: #aaa; margin-top: 1px; }
+
+        .btn-black { background: var(--black); color: #fff; border: none; padding: 0.65rem 0; border-radius: var(--radius-pill); font-size: 0.88rem; font-weight: 600; cursor: pointer; width: 100%; }
+        .btn-black:hover { background: #333; }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+<nav>
+    <div class="nav-left">
+        <div class="nav-logo">V</div>
+        <a th:href="@{/apps}" class="nav-link">Apps</a>
+        <a th:href="@{/categories}" class="nav-link">Categories</a>
+        <a th:href="@{/review-categories}" class="nav-link" style="font-weight:600;">Reviews</a>
+        <a th:href="@{/users}" class="nav-link">Users</a>
+    </div>
+    <div class="nav-right">
+        <a th:href="@{/submit}" class="btn-outline-nav">Submit App</a>
+    </div>
+</nav>
+
+<div class="page">
+
+    <div class="breadcrumb">
+        <a th:href="@{/review-categories}">Review Categories</a> /
+        <span th:text="${category.name}">Category</span> /
+        Sub-criteria
+    </div>
+
+    <div class="page-header">
+        <h1 class="page-title" th:text="${category.name}">Category</h1>
+        <span class="page-subtitle" th:text="${#lists.size(subCategories)} + ' sub-criteria'">0</span>
+    </div>
+
+    <div class="layout">
+
+        <!-- LEFT: existing sub-categories -->
+        <div>
+            <div th:if="${#lists.isEmpty(subCategories)}" class="empty">
+                No sub-criteria yet — add one using the form.
+            </div>
+            <div class="sub-list">
+                <div th:each="sub : ${subCategories}" class="sub-row">
+                    <div class="sub-row-left">
+                        <div class="pos-badge" th:text="${sub.position}">0</div>
+                        <span class="sub-name" th:text="${sub.name}">Sub-category</span>
+                        <span class="badge"
+                              th:classappend="${sub.hasDescriptionBox} ? ' badge-desc' : ' badge-no-desc'"
+                              th:text="${sub.hasDescriptionBox} ? 'has text box' : 'stars only'">
+                            stars only
+                        </span>
+                    </div>
+                    <form th:action="@{/review-categories/{cId}/sub-categories/{sId}/delete(cId=${category.id},sId=${sub.id})}"
+                          method="post" style="display:inline;">
+                        <button type="submit" class="btn-del"
+                                th:data-name="${sub.name}"
+                                onclick="return confirm('Delete ' + this.dataset.name + '?')">✕</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: add form -->
+        <div class="add-panel">
+            <div class="add-panel-title">Add Sub-criterion</div>
+            <form th:action="@{/review-categories/{id}/sub-categories(id=${category.id})}" method="post">
+
+                <div class="field">
+                    <label for="subName">Name</label>
+                    <input id="subName" type="text" name="name"
+                           placeholder="e.g. Bugs, Visual Glitches" required/>
+                </div>
+
+                <div class="field">
+                    <label for="subPos">Position</label>
+                    <input id="subPos" type="number" name="position" min="0" placeholder="0"/>
+                </div>
+
+                <label class="check-row">
+                    <input type="checkbox" name="hasDescriptionBox" value="true"/>
+                    <div>
+                        <div class="check-row-text">Include text box</div>
+                        <div class="check-row-hint">Reviewer can write an explanation.</div>
+                    </div>
+                </label>
+
+                <button type="submit" class="btn-black">Add Sub-criterion</button>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>

@@ -411,7 +411,10 @@
             <button type="submit" class="section-save-btn" style="margin-top:1rem;">Save Info</button>
         </form>
     </div>
-
+    <div th:replace="~{fragments/certified-review :: certifiedReview(
+    app=${app},
+    visibleReviews=${visibleReviews},
+    subReviewMap=${subReviewMap})}"></div>
     <!-- ── Media Gallery ─────────────────────────────────────────────────── -->
     <div class="section-card">
         <div class="section-header" onclick="toggleSection(this)">
