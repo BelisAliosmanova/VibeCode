@@ -17,14 +17,16 @@ import java.util.List;
  *   - anything else in the future...
  *
  * The submit flow renders one step per visible category automatically.
+ * The explore page renders one filter group per filterVisible category.
  */
 @Entity
 @Table(
         name = "categories",
         indexes = {
-                @Index(name = "idx_categories_slug",       columnList = "slug", unique = true),
-                @Index(name = "idx_categories_visibility", columnList = "visibility"),
-                @Index(name = "idx_categories_position",   columnList = "position")
+                @Index(name = "idx_categories_slug",           columnList = "slug", unique = true),
+                @Index(name = "idx_categories_visibility",     columnList = "visibility"),
+                @Index(name = "idx_categories_filter_visible", columnList = "filter_visible"),
+                @Index(name = "idx_categories_position",       columnList = "position")
         }
 )
 @Getter
@@ -46,6 +48,14 @@ public class Category extends SoftDeletableEntity {
     @Column(name = "visibility", nullable = false)
     @Builder.Default
     private Boolean visibility = true;
+
+    /**
+     * Controls whether this category appears as a filter group
+     * in the public Explore page sidebar.
+     */
+    @Column(name = "filter_visible", nullable = false)
+    @Builder.Default
+    private Boolean filterVisible = false;
 
     /**
      * How many entries the user can select from this category.

@@ -41,10 +41,6 @@ public class AppService {
         return appRepository.save(app);
     }
 
-    /**
-     * Persist an already-loaded entity directly (used when caller
-     * has already mutated fields and just wants to flush).
-     */
     @Transactional
     public App save(App app) {
         return appRepository.save(app);
@@ -72,6 +68,16 @@ public class AppService {
     public App updateIconUrl(UUID id, String iconUrl) {
         App app = findById(id);
         app.setIconUrl(iconUrl);
+        return appRepository.save(app);
+    }
+
+    @Transactional
+    public App setVerifiedScore(UUID id, Double score) {
+        if (score != null && (score < 0.0 || score > 5.0)) {
+            throw new IllegalArgumentException("Verified score must be between 0 and 5");
+        }
+        App app = findById(id);
+        app.setVerifiedScore(score);
         return appRepository.save(app);
     }
 

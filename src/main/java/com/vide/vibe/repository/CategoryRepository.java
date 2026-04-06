@@ -11,11 +11,11 @@ import java.util.UUID;
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, UUID> {
 
-    // All non-deleted categories ordered by position — used for submit flow
     List<Category> findAllByDeletedAtIsNullOrderByPositionAsc();
 
-    // Only visible ones — shown to regular users
     List<Category> findAllByVisibilityTrueAndDeletedAtIsNullOrderByPositionAsc();
+
+    List<Category> findAllByFilterVisibleTrueAndDeletedAtIsNullOrderByPositionAsc();
 
     Optional<Category> findBySlugAndDeletedAtIsNull(String slug);
 }

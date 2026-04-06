@@ -13,12 +13,12 @@ import java.util.Set;
 @Table(
         name = "apps",
         indexes = {
-                @Index(name = "idx_apps_owner_id",   columnList = "owner_id"),
-                @Index(name = "idx_apps_status",     columnList = "status"),
-                @Index(name = "idx_apps_visibility", columnList = "visibility"),
-                @Index(name = "idx_apps_deleted_at", columnList = "deleted_at")
-                // Partial unique index on slug created via Flyway:
-                // CREATE UNIQUE INDEX idx_apps_slug ON apps(slug) WHERE deleted_at IS NULL;
+                @Index(name = "idx_apps_owner_id",        columnList = "owner_id"),
+                @Index(name = "idx_apps_status",          columnList = "status"),
+                @Index(name = "idx_apps_visibility",      columnList = "visibility"),
+                @Index(name = "idx_apps_deleted_at",      columnList = "deleted_at"),
+                @Index(name = "idx_apps_verified_score",  columnList = "verified_score"),
+                @Index(name = "idx_apps_user_rating_avg", columnList = "user_rating_avg")
         }
 )
 @Getter
@@ -36,14 +36,10 @@ public class App extends SoftDeletableEntity {
         PUBLIC, PRIVATE
     }
 
-    // ── Owner ─────────────────────────────────────────────────────────────────
-
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "owner_id", nullable = false,
             foreignKey = @ForeignKey(name = "fk_apps_owner"))
     private User owner;
-
-    // ── Collaborators ─────────────────────────────────────────────────────────
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -53,8 +49,6 @@ public class App extends SoftDeletableEntity {
     )
     @Builder.Default
     private Set<User> collaborators = new LinkedHashSet<>();
-
-    // ── Core fields ───────────────────────────────────────────────────────────
 
     @Column(name = "name", nullable = false, length = 255)
     private String name;
@@ -68,8 +62,6 @@ public class App extends SoftDeletableEntity {
     @Column(name = "url", length = 2048)
     private String url;
 
-    // ── Status / visibility ───────────────────────────────────────────────────
-
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 30)
     @Builder.Default
@@ -79,8 +71,6 @@ public class App extends SoftDeletableEntity {
     @Column(name = "visibility", nullable = false, length = 20)
     @Builder.Default
     private Visibility visibility = Visibility.PRIVATE;
-
-    // ── Timestamps ────────────────────────────────────────────────────────────
 
     @Column(name = "verified_at")
     private Instant verifiedAt;
@@ -95,7 +85,21 @@ public class App extends SoftDeletableEntity {
     @Builder.Default
     private String version = "1";
 
-    // ── Relationships ─────────────────────────────────────────────────────────
+    /**
+     * Admin-set quality score (0.0–5.0). Null means we haven't rated this app yet.
+     * Used for the "Verified" tab and "TOP VERIFIED APPS" sections on the Explore page.
+     */
+    @Column(name = "verified_score")
+    private Double verifiedScore;
+
+    @Column(name = "user_rating_count", nullable = false)
+    @Builder.Default
+    private Integer userRatingCount = 0;
+
+    @Column(name = "user_rating_avg", nullable = false)
+    @Builder.Default
+    private Double userRatingAvg = 0.0;
+
 
     @OneToMany(mappedBy = "app", cascade = CascadeType.ALL,
             orphanRemoval = true, fetch = FetchType.LAZY)
@@ -109,11 +113,6 @@ public class App extends SoftDeletableEntity {
     @Builder.Default
     private List<Workflow> workflows = new ArrayList<>();
 
-    /**
-     * All category entry selections for this app — covers main category,
-     * features, pricing, subscription plans, and any future category.
-     * Use AppCategoryEntryRepository to query by category when needed.
-     */
     @OneToMany(mappedBy = "app", cascade = CascadeType.ALL,
             orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default

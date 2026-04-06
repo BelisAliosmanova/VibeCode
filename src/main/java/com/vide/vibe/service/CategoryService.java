@@ -20,14 +20,16 @@ public class CategoryService {
     private final AppCategoryEntryRepository appCategoryEntryRepository;
     private final MediaService mediaService;
 
-    // ── Categories ────────────────────────────────────────────────────────────
-
     public List<Category> findAll() {
         return categoryRepository.findAllByDeletedAtIsNullOrderByPositionAsc();
     }
 
     public List<Category> findAllVisible() {
         return categoryRepository.findAllByVisibilityTrueAndDeletedAtIsNullOrderByPositionAsc();
+    }
+
+    public List<Category> findAllFilterVisible() {
+        return categoryRepository.findAllByFilterVisibleTrueAndDeletedAtIsNullOrderByPositionAsc();
     }
 
     public Category findById(UUID id) {
@@ -51,6 +53,7 @@ public class CategoryService {
         existing.setName(updated.getName());
         existing.setSlug(updated.getSlug());
         existing.setVisibility(updated.getVisibility());
+        existing.setFilterVisible(updated.getFilterVisible());
         existing.setMaxSelected(updated.getMaxSelected());
         existing.setPosition(updated.getPosition());
         existing.setDescription(updated.getDescription());
@@ -64,8 +67,6 @@ public class CategoryService {
         category.softDelete();
         categoryRepository.save(category);
     }
-
-    // ── Category Entries ──────────────────────────────────────────────────────
 
     public List<CategoryEntry> findEntriesByCategoryId(UUID categoryId) {
         return categoryEntryRepository
@@ -89,9 +90,6 @@ public class CategoryService {
         return categoryEntryRepository.save(entry);
     }
 
-    /**
-     * Create entry with optional icon upload.
-     */
     @Transactional
     public CategoryEntry createEntry(UUID categoryId, CategoryEntry entry, MultipartFile icon) {
         Category category = findById(categoryId);
@@ -120,9 +118,6 @@ public class CategoryService {
         return categoryEntryRepository.save(existing);
     }
 
-    /**
-     * Update entry icon — uploads new file, deletes old one.
-     */
     @Transactional
     public CategoryEntry updateEntryIcon(UUID id, MultipartFile icon) {
         CategoryEntry existing = findEntryById(id);
@@ -144,8 +139,6 @@ public class CategoryService {
         entry.softDelete();
         categoryEntryRepository.save(entry);
     }
-
-    // ── App Category Selections ───────────────────────────────────────────────
 
     @Transactional
     public void saveAppSelections(App app, UUID categoryId, List<UUID> entryIds) {

@@ -64,15 +64,30 @@ public class ManageController {
             @PathVariable UUID appId,
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String description,
-            @RequestParam(required = false) String url) {
+            @RequestParam(required = false) String url,
+            @RequestParam(required = false) String verifiedScore) {
         try {
             App app = appRepository.findById(appId)
                     .orElseThrow(() -> new RuntimeException("App not found: " + appId));
             if (name != null && !name.isBlank())  app.setName(name.trim());
             if (description != null)              app.setDescription(description.trim());
             if (url != null)                      app.setUrl(url.trim().isEmpty() ? null : url.trim());
+
+            // verifiedScore: "" → clear, valid number → set, null param → leave unchanged
+            if (verifiedScore != null) {
+                if (verifiedScore.isBlank()) {
+                    app.setVerifiedScore(null);
+                } else {
+                    double score = Double.parseDouble(verifiedScore.trim());
+                    if (score < 0 || score > 5) throw new IllegalArgumentException("Score must be 0–5");
+                    app.setVerifiedScore(score);
+                }
+            }
+
             appRepository.save(app);
             return ResponseEntity.ok(Map.of("ok", true));
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid score value"));
         } catch (Exception e) {
             return ResponseEntity.status(500)
                     .body(Map.of("error", e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
