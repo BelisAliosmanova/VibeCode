@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="${app.name} + ' — Vibe'">App — Vibe</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --dark: #5a5a5a; --black: #111; --white: #fff;
+            --light: #f8f8f8; --border: #e0e0e0;
+            --gold: #f4a118; --green: #2d9e6b; --accent: #2563eb;
+            --danger: #e05c5c;
+            --radius-pill: 50px; --font: 'Inter', system-ui, sans-serif;
+        }
+        body { font-family: var(--font); background: var(--white); color: var(--black); font-size: 13px; }
+
+        /* ── NAV ─────────────────────────────────────────────────── */
+        nav {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 1.75rem; height: 42px;
+            background: var(--dark); position: sticky; top: 0; z-index: 200;
+        }
+        .nav-left  { display: flex; align-items: center; gap: 1.25rem; }
+        .nav-logo  { width: 26px; height: 26px; background: #222; border-radius: 50%;
+                     display: flex; align-items: center; justify-content: center;
+                     color: white; font-weight: 800; font-size: 0.75rem; }
+        .nav-link  { color: #fff; text-decoration: none; font-size: 0.82rem; opacity: 0.85; }
+        .nav-link:hover { opacity: 1; }
+        .nav-right { display: flex; align-items: center; gap: 0.75rem; }
+        .btn-ghost-nav   { background: transparent; border: none; color: #fff;
+                           font-size: 0.8rem; cursor: pointer; text-decoration: none; }
+        .btn-outline-nav { background: transparent; border: 1.5px solid #fff; color: #fff;
+                           font-size: 0.75rem; padding: 0.28rem 0.8rem;
+                           border-radius: var(--radius-pill); text-decoration: none; }
+
+        /* ── HERO / VISUAL BAND ──────────────────────────────────── */
+        .hero-band {
+            background: #d0d0d0;
+            height: 180px;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; position: relative;
+        }
+        .hero-band img { width: 100%; height: 100%; object-fit: cover; }
+        .hero-band-placeholder { color: #aaa; font-size: 0.85rem; font-weight: 500; }
+
+        /* ── PAGE ────────────────────────────────────────────────── */
+        .page { max-width: 860px; margin: 0 auto; padding: 1.5rem 1.5rem 4rem; }
+
+        /* ── APP HEADER CARD ─────────────────────────────────────── */
+        .app-header {
+            display: flex; align-items: flex-start; gap: 1rem;
+            padding-bottom: 1.25rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1rem;
+        }
+        .app-icon {
+            width: 72px; height: 72px; border-radius: 16px;
+            border: 1.5px solid var(--border);
+            overflow: hidden; flex-shrink: 0;
+            background: var(--light);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.6rem; color: #ccc;
+        }
+        .app-icon img { width: 100%; height: 100%; object-fit: cover; }
+
+        .app-main { flex: 1; min-width: 0; }
+
+        .app-name-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.3rem; flex-wrap: wrap; }
+        .app-name  { font-size: 1.4rem; font-weight: 800; line-height: 1.1; }
+        .app-three-dots {
+            margin-left: auto; background: none; border: none; cursor: pointer;
+            font-size: 1.1rem; color: #aaa; padding: 0 4px;
+        }
+
+        .app-desc {
+            font-size: 0.78rem; color: #555; line-height: 1.55;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+            overflow: hidden; margin-bottom: 0.75rem; max-width: 520px;
+        }
+
+        .app-actions {
+            display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
+        }
+        .btn-price {
+            background: var(--black); color: #fff; border: none;
+            padding: 0.4rem 1rem; border-radius: var(--radius-pill);
+            font-size: 0.78rem; font-weight: 700; cursor: pointer;
+            font-family: var(--font);
+        }
+        .btn-trial {
+            background: var(--white); color: var(--black);
+            border: 1.5px solid var(--black);
+            padding: 0.38rem 1rem; border-radius: var(--radius-pill);
+            font-size: 0.78rem; font-weight: 700; cursor: pointer;
+            font-family: var(--font);
+        }
+        .btn-wishlist {
+            background: none; border: 1.5px solid var(--border);
+            width: 30px; height: 30px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 0.9rem; color: #888;
+        }
+        .btn-wishlist:hover { border-color: var(--danger); color: var(--danger); }
+
+        .app-right {
+            display: flex; flex-direction: column; align-items: flex-end;
+            gap: 0.4rem; flex-shrink: 0;
+        }
+        .developer-row {
+            display: flex; flex-direction: column; align-items: flex-end;
+            font-size: 0.65rem; color: #888; gap: 0.15rem;
+        }
+        .developer-label { font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; }
+        .developer-name  { font-weight: 600; color: var(--black); font-size: 0.72rem; }
+        .btn-claim {
+            background: var(--black); color: #fff; border: none;
+            padding: 0.35rem 0.9rem; border-radius: var(--radius-pill);
+            font-size: 0.72rem; font-weight: 700; cursor: pointer;
+            font-family: var(--font); margin-top: 0.2rem;
+        }
+
+        /* ── METADATA ROW ────────────────────────────────────────── */
+        .meta-row {
+            display: flex; align-items: center; gap: 1.5rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+        }
+        .meta-item { display: flex; flex-direction: column; gap: 0.15rem; align-items: flex-start; }
+        .meta-label { font-size: 0.6rem; font-weight: 800; text-transform: uppercase;
+                      letter-spacing: 0.1em; color: #bbb; }
+        .meta-val   { font-size: 0.72rem; font-weight: 600; color: var(--black); }
+        .meta-stars { display: flex; gap: 1px; }
+        .mstar { font-size: 0.72rem; color: #ddd; }
+        .mstar.lit { color: var(--gold); }
+        .meta-made-with { display: flex; align-items: center; gap: 0.3rem; }
+        .mw-logo-sm {
+            width: 16px; height: 16px; border-radius: 4px;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .mw-logo-sm img { width: 100%; height: 100%; object-fit: contain; }
+
+        .meta-sep { color: #e0e0e0; font-size: 0.9rem; }
+
+        /* ── SECTION TITLES ──────────────────────────────────────── */
+        .section { margin-bottom: 1.75rem; }
+        .section-title {
+            font-size: 0.65rem; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 0.12em; color: #555; margin-bottom: 0.85rem;
+        }
+
+        /* ── CERTIFIED REVIEW ────────────────────────────────────── */
+        .cr-overall-row {
+            display: flex; align-items: center; gap: 0.75rem;
+            margin-bottom: 0.9rem; flex-wrap: wrap;
+        }
+        .cr-stars { display: flex; gap: 2px; }
+        .cr-star  { font-size: 0.9rem; color: #ddd; }
+        .cr-star.lit { color: var(--gold); }
+        .cr-score { font-size: 1rem; font-weight: 800; }
+        .cr-view-link {
+            font-size: 0.72rem; color: var(--accent);
+            border: 1.5px solid #93c5fd; padding: 0.18rem 0.65rem;
+            border-radius: var(--radius-pill); background: #eff6ff;
+            text-decoration: none; cursor: pointer;
+        }
+        .cr-view-link:hover { background: #dbeafe; }
+
+        .cr-cats-row {
+            display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;
+        }
+        .cr-cat-pill {
+            display: flex; flex-direction: column; align-items: center;
+            padding: 0.5rem 0.85rem; border: 1.5px solid var(--border);
+            border-radius: 10px; min-width: 75px; text-align: center;
+            background: #fafafa; gap: 0.25rem;
+        }
+        .cr-cat-name {
+            font-size: 0.58rem; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 0.07em; color: #888;
+        }
+        .cr-cat-stars { display: flex; gap: 1px; }
+        .cr-cat-star  { font-size: 0.7rem; color: #ddd; }
+        .cr-cat-star.lit { color: var(--gold); }
+
+        /* Detail block (shown on "View" click) */
+        .cr-detail-block { display: none; }
+        .cr-detail-block.open { display: block; }
+        .cr-detail-cat  { margin-bottom: 1rem; }
+        .cr-detail-cat-title {
+            font-size: 0.62rem; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 0.08em; color: #bbb; margin-bottom: 0.4rem;
+        }
+        .cr-sub-row {
+            display: flex; align-items: flex-start; justify-content: space-between;
+            padding: 0.5rem 0; border-top: 1px solid #f0f0f0; gap: 1rem;
+        }
+        .cr-sub-name { font-size: 0.78rem; font-weight: 600; }
+        .cr-sub-desc { font-size: 0.72rem; color: #666; margin-top: 0.2rem; line-height: 1.4; }
+        .cr-sub-stars-row { display: flex; gap: 2px; flex-shrink: 0; }
+        .cr-sub-star  { font-size: 0.78rem; color: #ddd; }
+        .cr-sub-star.lit { color: var(--gold); }
+
+        /* ── MEDIA GRID ──────────────────────────────────────────── */
+        .media-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;
+        }
+        .media-thumb {
+            aspect-ratio: 4/3; border-radius: 10px; overflow: hidden;
+            border: 1.5px solid var(--border); background: var(--light);
+            display: flex; align-items: center; justify-content: center;
+            position: relative;
+        }
+        .media-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .media-play {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: rgba(0,0,0,0.45);
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 1rem;
+        }
+        .media-placeholder { font-size: 1.5rem; color: #ccc; }
+        .media-stars {
+            position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 2px;
+        }
+        .media-star { font-size: 0.55rem; color: rgba(255,255,255,0.6); }
+        .media-star.lit { color: #fff; }
+
+        /* ── CATEGORY PILLS ──────────────────────────────────────── */
+        .pills-row { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+        .feat-pill {
+            display: inline-flex; align-items: center; gap: 0.35rem;
+            padding: 0.28rem 0.85rem; border-radius: var(--radius-pill);
+            font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.04em;
+            background: var(--black); color: #fff; border: 1.5px solid var(--black);
+        }
+        .feat-pill img {
+            width: 13px; height: 13px; border-radius: 2px; object-fit: contain;
+            filter: brightness(0) invert(1);
+        }
+
+        /* ── WORKFLOWS ───────────────────────────────────────────── */
+        .workflow-block { margin-bottom: 1.5rem; }
+        .workflow-block:last-child { margin-bottom: 0; }
+        .workflow-name { font-size: 0.8rem; font-weight: 700; margin-bottom: 0.6rem; }
+        .steps-row {
+            display: flex; align-items: center; flex-wrap: nowrap;
+            overflow-x: auto; gap: 0; padding-bottom: 4px;
+        }
+        .steps-row::-webkit-scrollbar { height: 2px; }
+        .steps-row::-webkit-scrollbar-thumb { background: #ddd; }
+        .step-pill {
+            display: inline-flex; align-items: center;
+            padding: 0.38rem 0.9rem;
+            border: 1.5px solid var(--black); border-radius: var(--radius-pill);
+            font-size: 0.72rem; font-weight: 500; white-space: normal;
+            max-width: 130px; min-width: 52px; text-align: center;
+            line-height: 1.3; flex-shrink: 0;
+        }
+        .step-arrow { color: #aaa; font-size: 0.85rem; padding: 0 4px; flex-shrink: 0; }
+
+        /* ── EMPTY SECTION ───────────────────────────────────────── */
+        .empty-section { color: #ccc; font-size: 0.78rem; }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+    <div class="nav-left">
+        <div class="nav-logo">V</div>
+        <a class="nav-link" th:href="@{/submit}">Submit</a>
+        <a class="nav-link" th:href="@{/explore}">Explore</a>
+    </div>
+    <div class="nav-right">
+        <a class="btn-ghost-nav" th:href="@{/login}">Sign in</a>
+        <a class="btn-outline-nav" th:href="@{/register}">Sign up</a>
+    </div>
+</nav>
+
+<!-- HERO VISUAL -->
+<div class="hero-band">
+    <th:block th:with="screenshots=${media.?[type.name()=='SCREENSHOT']}">
+        <img th:if="${!screenshots.empty}" th:src="${screenshots[0].url}" alt=""/>
+    </th:block>
+    <span class="hero-band-placeholder"
+          th:if="${#lists.isEmpty(media.?[type.name()=='SCREENSHOT'])}">
+        <!-- intentionally empty — grey band is the visual -->
+    </span>
+</div>
+
+<div class="page">
+
+    <!-- ── APP HEADER ──────────────────────────────────────────────── -->
+    <div class="app-header">
+
+        <div class="app-icon">
+            <img th:if="${app.iconUrl != null}" th:src="${app.iconUrl}" alt="icon"/>
+            <span th:if="${app.iconUrl == null}">🖼</span>
+        </div>
+
+        <div class="app-main">
+            <div class="app-name-row">
+                <span class="app-name" th:text="${app.name}">App Name</span>
+                <button class="app-three-dots">···</button>
+            </div>
+            <p class="app-desc"
+               th:text="${app.description != null ? app.description : 'No description provided.'}">
+            </p>
+            <div class="app-actions">
+                <!-- Price button — placeholder since pricing isn't yet wired -->
+                <button class="btn-price">FREE</button>
+                <button class="btn-trial">FREE TRIAL</button>
+                <button class="btn-wishlist" title="Add to wishlist">♡</button>
+            </div>
+        </div>
+
+        <div class="app-right">
+            <div class="developer-row">
+                <span class="developer-label">Developer</span>
+                <span class="developer-name" th:text="${app.owner.email}">developer</span>
+            </div>
+            <button class="btn-claim"
+                    th:onclick="'window.location=\'/apps/' + ${app.id} + '/manage\''">
+                Manage listing
+            </button>
+        </div>
+    </div>
+
+    <!-- ── METADATA ROW ─────────────────────────────────────────────── -->
+    <div class="meta-row">
+
+        <!-- User Rating -->
+        <div class="meta-item">
+            <span class="meta-label">User Rating</span>
+            <div style="display:flex;align-items:center;gap:4px;">
+                <div class="meta-stars">
+                    <span th:each="i : ${#numbers.sequence(1,5)}" class="mstar"
+                          th:classappend="${app.userRatingAvg >= i} ? ' lit' : ''">★</span>
+                </div>
+                <span class="meta-val"
+                      th:text="${#numbers.formatDecimal(app.userRatingAvg,1,1)} + '/5'">0/5</span>
+            </div>
+        </div>
+
+        <span class="meta-sep">·</span>
+
+        <!-- Category -->
+        <th:block th:with="catEntries=${selectionsByCategory.entrySet()}">
+            <div class="meta-item" th:if="${!#maps.isEmpty(selectionsByCategory)}">
+                <span class="meta-label">Category</span>
+                <th:block th:each="entry, esStat : ${selectionsByCategory.entrySet()}"
+                          th:if="${esStat.first}">
+                    <span class="meta-val"
+                          th:text="${entry.value[0].name + (entry.value.size() > 1 ? ', +' + (entry.value.size()-1) : '')}">
+                    </span>
+                </th:block>
+            </div>
+        </th:block>
+
+        <span class="meta-sep" th:if="${!#maps.isEmpty(selectionsByCategory)}">·</span>
+
+        <!-- Made With — show first selection that matches known platforms if any -->
+        <div class="meta-item">
+            <span class="meta-label">Made With</span>
+            <span class="meta-val" style="display:flex;align-items:center;gap:4px;">
+                <!-- Replit icon placeholder -->
+                <span style="width:14px;height:14px;background:#f26207;border-radius:3px;display:inline-flex;align-items:center;justify-content:center;">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M3 3h8v6H3zM13 3h8v6h-8zM13 9h8v6h-8zM3 15h8v6H3zM13 15h8v6h-8z"/></svg>
+                </span>
+                AI-Powered
+            </span>
+        </div>
+
+        <span class="meta-sep">·</span>
+
+        <!-- Language -->
+        <div class="meta-item">
+            <span class="meta-label">Language</span>
+            <span class="meta-val">EN</span>
+        </div>
+
+        <span class="meta-sep">·</span>
+
+        <!-- Size / version -->
+        <div class="meta-item">
+            <span class="meta-label">Version</span>
+            <span class="meta-val" th:text="'v' + ${app.version}">v1</span>
+        </div>
+
+    </div>
+
+    <!-- ── CERTIFIED REVIEW ─────────────────────────────────────────── -->
+    <div class="section" th:if="${!#lists.isEmpty(visibleReviews)}"
+         th:with="visibleWithScore=${visibleReviews.stream().filter(r -> r.score != null).toList()},
+                  overallAvg=${!visibleWithScore.isEmpty() ? visibleWithScore.stream().mapToDouble(r -> r.score).average().orElse(0.0) : 0.0}">
+
+        <div class="section-title">Certified Review</div>
+
+        <!-- Overall stars + score -->
+        <div class="cr-overall-row">
+            <div class="cr-stars">
+                <span th:each="i : ${#numbers.sequence(1,5)}" class="cr-star"
+                      th:classappend="${overallAvg >= i} ? ' lit' : ''">★</span>
+            </div>
+            <span class="cr-score"
+                  th:text="${#numbers.formatDecimal(overallAvg,1,1)} + '/5'">0.0/5</span>
+            <a class="cr-view-link" href="#cr-detail"
+               onclick="document.getElementById('crDetail').classList.toggle('open');return false;">
+                View
+            </a>
+        </div>
+
+        <!-- Per-category pills -->
+        <div class="cr-cats-row">
+            <div th:each="rev : ${visibleReviews}" class="cr-cat-pill">
+                <span class="cr-cat-name" th:text="${rev.reviewCategory.name}">CAT</span>
+                <div class="cr-cat-stars">
+                    <span th:each="i : ${#numbers.sequence(1,5)}" class="cr-cat-star"
+                          th:classappend="${rev.score != null and rev.score >= i} ? ' lit' : ''">★</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Expandable detail -->
+        <div class="cr-detail-block" id="crDetail">
+            <th:block th:each="rev : ${visibleReviews}">
+                <div class="cr-detail-cat">
+                    <div class="cr-detail-cat-title" th:text="${rev.reviewCategory.name}">CATEGORY</div>
+                    <div th:each="sub : ${subReviewMap.get(rev.id)}" class="cr-sub-row">
+                        <div>
+                            <div class="cr-sub-name" th:text="${sub.reviewSubCategory.name}">Sub</div>
+                            <div th:if="${sub.description != null and !sub.description.isBlank()}"
+                                 class="cr-sub-desc" th:text="${sub.description}"></div>
+                        </div>
+                        <div class="cr-sub-stars-row">
+                            <span th:each="i : ${#numbers.sequence(1,5)}" class="cr-sub-star"
+                                  th:classappend="${sub.score >= i} ? ' lit' : ''">★</span>
+                        </div>
+                    </div>
+                </div>
+            </th:block>
+        </div>
+    </div>
+
+    <!-- ── MEDIA ────────────────────────────────────────────────────── -->
+    <div class="section">
+        <div class="media-grid">
+            <!-- Video slot -->
+            <div class="media-thumb">
+                <th:block th:with="vid=${media.?[type.name()=='VIDEO']}">
+                    <img th:if="${!vid.empty}" th:src="${vid[0].url}" alt=""/>
+                    <div th:if="${vid.empty}" class="media-play">▶</div>
+                </th:block>
+                <div class="media-stars">
+                    <span class="media-star lit">★</span><span class="media-star lit">★</span>
+                    <span class="media-star lit">★</span><span class="media-star lit">★</span>
+                    <span class="media-star lit">★</span>
+                </div>
+            </div>
+
+            <!-- Screenshot slots -->
+            <th:block th:with="shots=${media.?[type.name()=='SCREENSHOT']}">
+                <div class="media-thumb">
+                    <img th:if="${shots.size() > 0}" th:src="${shots[0].url}" alt=""/>
+                    <span th:if="${shots.size() == 0}" class="media-placeholder">🖼</span>
+                </div>
+                <div class="media-thumb">
+                    <img th:if="${shots.size() > 1}" th:src="${shots[1].url}" alt=""/>
+                    <span th:if="${shots.size() <= 1}" class="media-placeholder">🖼</span>
+                </div>
+            </th:block>
+        </div>
+    </div>
+
+    <!-- ── APP FEATURES / CATEGORY PILLS ────────────────────────────── -->
+    <div class="section" th:if="${!#maps.isEmpty(selectionsByCategory)}">
+        <th:block th:each="catGroup : ${selectionsByCategory.entrySet()}">
+            <div class="section-title" th:text="${catGroup.key}">CATEGORY</div>
+            <div class="pills-row" style="margin-bottom:1.25rem;">
+                <span th:each="entry : ${catGroup.value}" class="feat-pill">
+                    <img th:if="${entry.iconUrl != null}" th:src="${entry.iconUrl}" th:alt="${entry.name}"/>
+                    <span th:text="${entry.name}">Entry</span>
+                </span>
+            </div>
+        </th:block>
+    </div>
+
+    <!-- ── WORKFLOWS ────────────────────────────────────────────────── -->
+    <div class="section" th:if="${!#lists.isEmpty(workflows)}">
+        <div class="section-title">Main Workflows</div>
+        <div th:each="wf : ${workflows}" class="workflow-block">
+            <div class="workflow-name" th:text="${wf.title}">Workflow</div>
+            <div class="steps-row">
+                <th:block th:each="step, stat : ${workflowSteps.get(wf.id)}">
+                    <span class="step-arrow" th:if="${!stat.first}">→</span>
+                    <div class="step-pill" th:text="${step.text}">Step</div>
+                </th:block>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── USER RATING (placeholder) ────────────────────────────────── -->
+    <div class="section">
+        <div class="section-title">User Ratings</div>
+        <p class="empty-section" th:if="${app.userRatingCount == 0}">
+            No user ratings yet. Be the first to review this app.
+        </p>
+        <div th:if="${app.userRatingCount > 0}" style="display:flex;align-items:center;gap:0.5rem;">
+            <div class="meta-stars">
+                <span th:each="i : ${#numbers.sequence(1,5)}" class="mstar"
+                      th:classappend="${app.userRatingAvg >= i} ? ' lit' : ''">★</span>
+            </div>
+            <span style="font-size:0.82rem;font-weight:700;"
+                  th:text="${#numbers.formatDecimal(app.userRatingAvg,1,1)}">0.0</span>
+            <span style="font-size:0.75rem;color:#aaa;"
+                  th:text="'(' + ${app.userRatingCount} + ' reviews)'"></span>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

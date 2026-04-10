@@ -18,16 +18,18 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ManageController {
 
-    private final AppService appService;
-    private final AppRepository appRepository;
-    private final CategoryService categoryService;
-    private final WorkflowService workflowService;
+    private final AppService         appService;
+    private final AppRepository      appRepository;
+    private final CategoryService    categoryService;
+    private final WorkflowService    workflowService;
     private final AppMediaRepository appMediaRepository;
+    private final ReviewService      reviewService;
 
     @GetMapping
     public String manage(@PathVariable UUID appId, Model model) {
         App app = appService.findById(appId);
 
+        // ── Category selections ───────────────────────────────────────────
         List<Category> categories = categoryService.findAllVisible();
         Map<Category, List<CategoryEntry>> categorySelections = new LinkedHashMap<>();
         Map<UUID, List<CategoryEntry>> allEntries = new LinkedHashMap<>();
@@ -41,19 +43,29 @@ public class ManageController {
                     .collect(Collectors.toList()));
         }
 
+        // ── Workflows ─────────────────────────────────────────────────────
         List<Workflow> workflows = workflowService.findByAppId(appId);
         Map<UUID, List<WorkflowStep>> workflowSteps = new LinkedHashMap<>();
         for (Workflow wf : workflows) {
             workflowSteps.put(wf.getId(), workflowService.findStepsByWorkflowId(wf.getId()));
         }
 
-        model.addAttribute("app", app);
-        model.addAttribute("categories", categories);
+        // ── Certified reviews (for display in manage page) ────────────────
+        List<AppReview> visibleReviews = reviewService.findVisibleReviewsForApp(appId);
+        Map<UUID, List<AppSubReview>> subReviewMap = new LinkedHashMap<>();
+        for (AppReview rev : visibleReviews) {
+            subReviewMap.put(rev.getId(), reviewService.findSubReviews(rev.getId()));
+        }
+
+        model.addAttribute("app",               app);
+        model.addAttribute("categories",         categories);
         model.addAttribute("categorySelections", categorySelections);
-        model.addAttribute("allEntries", allEntries);
-        model.addAttribute("workflows", workflows);
-        model.addAttribute("workflowSteps", workflowSteps);
-        model.addAttribute("media", appMediaRepository.findAllByAppIdOrderByPositionAsc(appId));
+        model.addAttribute("allEntries",         allEntries);
+        model.addAttribute("workflows",          workflows);
+        model.addAttribute("workflowSteps",      workflowSteps);
+        model.addAttribute("media",              appMediaRepository.findAllByAppIdOrderByPositionAsc(appId));
+        model.addAttribute("visibleReviews",     visibleReviews);
+        model.addAttribute("subReviewMap",       subReviewMap);
 
         return "manage/index";
     }
@@ -73,7 +85,6 @@ public class ManageController {
             if (description != null)              app.setDescription(description.trim());
             if (url != null)                      app.setUrl(url.trim().isEmpty() ? null : url.trim());
 
-            // verifiedScore: "" → clear, valid number → set, null param → leave unchanged
             if (verifiedScore != null) {
                 if (verifiedScore.isBlank()) {
                     app.setVerifiedScore(null);
@@ -123,7 +134,7 @@ public class ManageController {
             if (description != null) wf.setDescription(description);
             Workflow saved = workflowService.create(appId, wf);
             return ResponseEntity.ok(Map.of(
-                    "id", saved.getId().toString(),
+                    "id",    saved.getId().toString(),
                     "title", saved.getTitle()
             ));
         } catch (Exception e) {
@@ -178,8 +189,8 @@ public class ManageController {
             step.setText(text.trim());
             WorkflowStep saved = workflowService.createStep(workflowId, step);
             return ResponseEntity.ok(Map.of(
-                    "id", saved.getId().toString(),
-                    "text", saved.getText(),
+                    "id",       saved.getId().toString(),
+                    "text",     saved.getText(),
                     "position", saved.getPosition()
             ));
         } catch (Exception e) {
