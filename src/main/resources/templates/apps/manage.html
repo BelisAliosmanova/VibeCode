@@ -392,37 +392,29 @@
                 </div>
             </div>
 
-            <!-- Metrics row (placeholders for rating / visibility score) -->
             <div class="meta-row">
                 <span class="meta-label">RATING</span>
                 <div class="stars">
-        <span th:each="i : ${#numbers.sequence(1,5)}" class="star"
+            <span th:each="i : ${#numbers.sequence(1,5)}" class="star"
               th:classappend="${app.userRatingAvg >= i} ? ' lit-user' : ''">★</span>
                 </div>
                 <span class="score-label"
-                      th:text="${#numbers.formatDecimal(app.userRatingAvg,1,1)} + '/5 (' + ${app.userRatingCount} + ')'">
-        0/5 (0)
-    </span>
+                      th:text="${#numbers.formatDecimal(app.userRatingAvg,1,1)} + '/5 (' + ${app.userRatingCount} + ')'">0/5 (0)</span>
                 <button class="btn-sm" style="margin-left:auto;">Get community reviews</button>
                 <button class="btn-sm">Get a PRO review</button>
             </div>
 
-            <!-- 2. ── CERTIFIED REVIEW META ROW (replaces the VISIBILITY SCORE row) ── -->
             <div class="meta-row">
                 <span class="meta-label">CERTIFIED REVIEW</span>
-                <!-- Stars for verified score -->
                 <div class="stars">
         <span th:each="i : ${#numbers.sequence(1,5)}" class="star"
               th:classappend="${app.verifiedScore != null and app.verifiedScore >= i} ? ' lit-verified' : ''">★</span>
                 </div>
                 <span class="score-val" th:if="${app.verifiedScore != null}"
-                      th:text="${#numbers.formatDecimal(app.verifiedScore,1,1)}">—</span>
-                <span class="score-label" th:if="${app.verifiedScore == null}"
-                      style="color:#ccc;">Not reviewed yet</span>
-                <a class="btn-sm" th:href="@{/apps/{id}/reviews(id=${app.id})}"
-                   style="margin-left:auto;">Manage Reviews</a>
-                <a class="btn-sm" th:href="@{/p/{slug}(slug=${app.slug})}"
-                   target="_blank">View Public Page ↗</a>
+                      th:text="${#numbers.formatDecimal(app.verifiedScore,1,1)}"></span>
+                <span class="score-label" th:if="${app.verifiedScore == null}" style="color:#ccc;">Not reviewed yet</span>
+                <a class="btn-sm" th:href="@{/apps/{id}/reviews(id=${app.id})}" style="margin-left:auto;">Manage Reviews</a>
+                <a class="btn-sm" th:href="@{/p/{slug}(slug=${app.slug})}" target="_blank">View Public Page ↗</a>
             </div>
 
             <!-- 3. ── CERTIFIED REVIEW DISPLAY SECTION
@@ -430,40 +422,30 @@
                  It renders the live certified-review data fetched in ManageController.
                  Only shown when there are visible reviews.
             -->
-            <div th:if="${!#lists.isEmpty(visibleReviews)}"
-                 style="border:1.5px solid var(--border);border-radius:12px;padding:1.1rem 1.25rem;margin-bottom:1.5rem;background:#fafafa;">
-
+            <div th:if="${visibleReviews != null and !#lists.isEmpty(visibleReviews)}"
+                 style="border:1.5px solid var(--border);border-radius:12px;padding:1.1rem 1.25rem;margin-bottom:1.5rem;">
                 <div style="font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:#888;margin-bottom:0.85rem;">
                     CERTIFIED REVIEW
                 </div>
-
-                <!-- Overall average of visible category scores -->
-                <th:block th:with="
-        vscore=${visibleReviews.stream().filter(r -> r.score != null).toList()},
-        avg=${!vscore.isEmpty() ? vscore.stream().mapToDouble(r -> r.score).average().orElse(0.0) : 0.0}">
-
-                    <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.75rem;flex-wrap:wrap;">
+                <th:block th:with="vscore=${visibleReviews.stream().filter(r -> r.score != null).toList()},
+                       avg=${!vscore.isEmpty() ? vscore.stream().mapToDouble(r -> r.score).average().orElse(0.0) : 0.0}">
+                    <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.75rem;">
                         <div class="stars">
                 <span th:each="i : ${#numbers.sequence(1,5)}" class="star"
                       th:classappend="${avg >= i} ? ' lit-verified' : ''">★</span>
                         </div>
-                        <span class="score-val" th:text="${#numbers.formatDecimal(avg,1,1)} + '/5'">0.0/5</span>
+                        <span class="score-val" th:text="${#numbers.formatDecimal(avg,1,1)} + '/5'"></span>
                         <a class="btn-sm" th:href="@{/apps/{id}/reviews(id=${app.id})}">Edit reviews</a>
                     </div>
                 </th:block>
-
-                <!-- Per-category pills -->
                 <div style="display:flex;gap:0.45rem;flex-wrap:wrap;">
                     <div th:each="rev : ${visibleReviews}"
                          style="display:flex;flex-direction:column;align-items:center;padding:0.45rem 0.75rem;
-                    border:1.5px solid #ddd;border-radius:10px;min-width:70px;text-align:center;
-                    background:#fff;gap:0.2rem;">
-            <span style="font-size:0.55rem;font-weight:800;text-transform:uppercase;
-                         letter-spacing:0.07em;color:#aaa;"
-                  th:text="${rev.reviewCategory.name}">CAT</span>
+                    border:1.5px solid #ddd;border-radius:10px;min-width:70px;text-align:center;gap:0.2rem;">
+            <span style="font-size:0.55rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;color:#aaa;"
+                  th:text="${rev.reviewCategory.name}"></span>
                         <div style="display:flex;gap:1px;">
                 <span th:each="i : ${#numbers.sequence(1,5)}"
-                      style="font-size:0.68rem;color:#ddd;"
                       th:style="${rev.score != null and rev.score >= i} ? 'font-size:0.68rem;color:#f4a118;' : 'font-size:0.68rem;color:#ddd;'">★</span>
                         </div>
                     </div>
