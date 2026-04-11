@@ -57,6 +57,13 @@ public class ManageController {
             subReviewMap.put(rev.getId(), reviewService.findSubReviews(rev.getId()));
         }
 
+        double certifiedAvg = visibleReviews.stream()
+                .filter(r -> r.getScore() != null)
+                .mapToDouble(AppReview::getScore)
+                .average()
+                .orElse(0.0);
+
+        model.addAttribute("certifiedAvg",       certifiedAvg);
         model.addAttribute("app",               app);
         model.addAttribute("categories",         categories);
         model.addAttribute("categorySelections", categorySelections);

@@ -207,7 +207,7 @@
         .add-step-circle:hover { border-color: var(--black); color: var(--black); }
 
         .add-workflow-row { padding-top: 0.85rem; border-top: 1px solid var(--border); margin-top: 0.5rem; }
-        .add-workflow-btn { background: none; border: none; font-family: var(--font); font-size: 0.75rem; font-weight: 700; color: #3b82f6; cursor: pointer; padding: 0; display: flex; align-items: center; gap: 0.25rem; transition: color 0.12s; letter-spacing: 0.06em; text-transform: uppercase; }
+        .add-workflow-btn { background: none; border: none; font-family: var(--font); font-size: 0.75rem; font-weight: 700; color: #000000ad; cursor: pointer; padding: 0; display: flex; align-items: center; gap: 0.25rem; transition: color 0.12s; letter-spacing: 0.06em; text-transform: uppercase; }
         .add-workflow-btn:hover { color: #2563eb; }
 
         .divider { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
@@ -282,17 +282,32 @@
     <!-- RATING -->
     <div class="meta-row">
         <span class="meta-label">RATING</span>
-        <div class="stars"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span></div>
-        <span class="score-label">0/5</span>
-        <button class="btn-sm" style="margin-left:auto;">Get community reviews</button>
-        <button class="btn-sm">Get a PRO review</button>
-        <button class="btn-sm btn-sm-disabled">Get certified status</button>
+        <div style="display:flex;gap:2px;">
+            <span th:each="i : ${#numbers.sequence(1,5)}"
+            th:style="${certifiedAvg >= i} ? 'font-size:0.9rem;color:#000000ad;' : 'font-size:0.9rem;color:#ddd;'">★</span>
+        </div>
+        <span class="score-label"
+              th:text="${#numbers.formatDecimal(certifiedAvg,1,1)} + '/5'">0/5</span>
+        <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.75rem;flex-wrap:wrap;">
+            <a th:href="@{/apps/{id}/reviews(id=${app.id})}"
+               style="font-size:0.72rem;color:#2563eb;border:1.5px solid #93c5fd;padding:0.18rem 0.65rem;border-radius:50px;background:#eff6ff;text-decoration:none;margin-left:400px;">
+                Edit reviews
+            </a>
+        </div>
     </div>
-    <div class="meta-row">
-        <span class="meta-label">VISIBILITY SCORE</span>
-        <span class="score-val">26.5</span><span class="score-label">/100</span>
-        <button class="btn-sm" style="margin-left:auto;">View report</button>
-        <button class="btn-sm">Visibility Optimization Agents</button>
+    <div th:if="${visibleReviews != null and !#lists.isEmpty(visibleReviews)}"
+         style="margin-bottom:1.75rem;">
+        <div style="display:flex;gap:0.45rem;flex-wrap:wrap;">
+            <div th:each="rev : ${visibleReviews}"
+                 style="display:flex;flex-direction:column;align-items:center;padding:0.45rem 0.75rem;border:1.5px solid #ddd;border-radius:10px;min-width:70px;text-align:center;gap:0.2rem;background:#fafafa;">
+            <span style="font-size:0.55rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;color:#aaa;"
+                  th:text="${rev.reviewCategory.name}"></span>
+                <div style="display:flex;gap:1px;">
+                <span th:each="i : ${#numbers.sequence(1,5)}"
+                      th:style="${rev.score != null and rev.score >= i} ? 'font-size:0.68rem;color:#000000ad;' : 'font-size:0.68rem;color:#ddd;'">★</span>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- MEDIA -->

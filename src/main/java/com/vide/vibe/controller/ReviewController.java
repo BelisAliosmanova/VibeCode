@@ -27,6 +27,8 @@ public class ReviewController {
     public String manage(@PathVariable UUID appId, Model model) {
         App app = appService.findById(appId);
         List<ReviewCategory> allCategories = reviewService.findAllCategories();
+        Map<UUID, Map<UUID, Integer>> subScoreMap = new LinkedHashMap<>();
+        Map<UUID, Map<UUID, String>>  subDescMap  = new LinkedHashMap<>();
 
         // Existing reviews keyed by ReviewCategory
         Map<ReviewCategory, AppReview> existingReviews = new LinkedHashMap<>();
@@ -41,7 +43,18 @@ public class ReviewController {
 
             reviewService.findAppReview(appId, cat.getId()).ifPresent(rev -> {
                 existingReviews.put(cat, rev);
-                subReviewMap.put(cat.getId(), reviewService.findSubReviews(rev.getId()));
+                List<AppSubReview> subList = reviewService.findSubReviews(rev.getId());
+                subReviewMap.put(cat.getId(), subList);
+
+                Map<UUID, Integer> scores = new LinkedHashMap<>();
+                Map<UUID, String>  descs  = new LinkedHashMap<>();
+                for (AppSubReview sr : subList) {
+                    scores.put(sr.getReviewSubCategory().getId(), sr.getScore());
+                    descs.put(sr.getReviewSubCategory().getId(),
+                            sr.getDescription() != null ? sr.getDescription() : "");
+                }
+                subScoreMap.put(cat.getId(), scores);
+                subDescMap.put(cat.getId(),  descs);
             });
         }
 
@@ -50,6 +63,8 @@ public class ReviewController {
         model.addAttribute("existingReviews", existingReviews);
         model.addAttribute("subReviewMap", subReviewMap);
         model.addAttribute("subCatMap", subCatMap);
+        model.addAttribute("subScoreMap", subScoreMap);
+        model.addAttribute("subDescMap",  subDescMap);
 
         return "review-categories/manage";
     }

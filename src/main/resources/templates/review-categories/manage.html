@@ -235,15 +235,10 @@
                     <div class="star-picker"
                          th:id="'picker-' + ${sub.id}"
                          th:data-sub-id="${sub.id}"
-                         th:data-score="${subReviewMap.containsKey(cat.id) ?
-                             subReviewMap.get(cat.id).stream().filter(sr -> sr.reviewSubCategory.id == sub.id).map(sr -> sr.score).findFirst().orElse(0) : 0}">
+                         th:data-score="${subScoreMap.containsKey(cat.id) and subScoreMap.get(cat.id).containsKey(sub.id) ? subScoreMap.get(cat.id).get(sub.id) : 0}">
 
-                        <th:block th:with="existingSubs=${subReviewMap.get(cat.id)},
-                                          currentScore=${existingSubs != null ?
-                                              existingSubs.stream()
-                                                  .filter(sr -> sr.reviewSubCategory.id.equals(sub.id))
-                                                  .mapToInt(sr -> sr.score)
-                                                  .findFirst().orElse(0) : 0}">
+                        <th:block th:with="catScores=${subScoreMap.get(cat.id)},
+                            currentScore=${catScores != null and catScores.containsKey(sub.id) ? catScores.get(sub.id) : 0}">
                             <span th:each="i : ${#numbers.sequence(1,5)}"
                                   class="sp"
                                   th:classappend="${currentScore >= i} ? ' lit' : ''"
@@ -253,14 +248,9 @@
                     </div>
                 </div>
 
-                <!-- Optional description box -->
                 <th:block th:if="${sub.hasDescriptionBox}"
-                          th:with="existingSubs=${subReviewMap.get(cat.id)},
-                                   existingDesc=${existingSubs != null ?
-                                       existingSubs.stream()
-                                           .filter(sr -> sr.reviewSubCategory.id.equals(sub.id))
-                                           .map(sr -> sr.description)
-                                           .findFirst().orElse('') : ''}">
+                          th:with="catDescs=${subDescMap.get(cat.id)},
+                          existingDesc=${catDescs != null and catDescs.containsKey(sub.id) ? catDescs.get(sub.id) : ''}">
                     <textarea class="sub-desc-box"
                               th:id="'desc-' + ${sub.id}"
                               th:placeholder="'Explain the ' + ${sub.name} + ' rating...'"
