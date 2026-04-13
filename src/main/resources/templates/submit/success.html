@@ -44,17 +44,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 </head>
 <body>
-<nav>
-    <div class="nav-left">
-        <div class="nav-logo">V</div>
-        <a th:href="@{/submit}" class="nav-link">Submit</a>
-        <a th:href="@{/explore}" class="nav-link">Explore</a>
-    </div>
-    <div class="nav-right">
-        <a th:href="@{/login}" class="btn-ghost">Sign in</a>
-        <a th:href="@{/register}" class="btn-outline">Sign up</a>
-    </div>
-</nav>
+<nav th:replace="~{fragments/navbar :: navbar}"></nav>
 
 <div class="success">
     <div class="checkmark">✓</div>

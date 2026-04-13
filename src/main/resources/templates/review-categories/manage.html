@@ -137,18 +137,7 @@
 </head>
 <body>
 
-<nav>
-    <div class="nav-left">
-        <div class="nav-logo">V</div>
-        <a class="nav-link" th:href="@{/apps}">Apps</a>
-        <a class="nav-link" th:href="@{/review-categories}" style="font-weight:600;">Reviews</a>
-    </div>
-    <div class="nav-right">
-        <a class="btn-ghost-nav" th:href="@{/login}">Sign in</a>
-        <a class="btn-outline-nav" th:href="@{/register}">Sign up</a>
-    </div>
-</nav>
-
+<nav th:replace="~{fragments/navbar :: navbar}"></nav>
 <div class="header-band">
     <h1>Certified Review</h1>
     <p th:text="${app.name}">App Name</p>

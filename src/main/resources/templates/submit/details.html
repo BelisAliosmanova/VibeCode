@@ -168,17 +168,7 @@
 </head>
 <body>
 
-<nav>
-    <div class="nav-left">
-        <div class="nav-logo">V</div>
-        <a th:href="@{/submit}" class="nav-link">Submit</a>
-        <a th:href="@{/explore}" class="nav-link">Explore</a>
-    </div>
-    <div class="nav-right">
-        <a th:href="@{/login}" class="btn-ghost">Sign in</a>
-        <a th:href="@{/register}" class="btn-outline">Sign up</a>
-    </div>
-</nav>
+<nav th:replace="~{fragments/navbar :: navbar}"></nav>
 
 <div class="header-band">
     <h1>Submit your app</h1>

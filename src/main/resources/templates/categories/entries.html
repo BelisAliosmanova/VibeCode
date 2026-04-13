@@ -119,17 +119,7 @@
 </head>
 <body>
 
-<nav>
-    <div class="nav-left">
-        <div class="nav-logo">V</div>
-        <a th:href="@{/apps}" class="nav-link">Apps</a>
-        <a th:href="@{/categories}" class="nav-link">Categories</a>
-        <a th:href="@{/users}" class="nav-link">Users</a>
-    </div>
-    <div class="nav-right">
-        <a th:href="@{/submit}" class="btn-outline-nav">Submit App</a>
-    </div>
-</nav>
+<nav th:replace="~{fragments/navbar :: navbar}"></nav>
 
 <div class="page">
 

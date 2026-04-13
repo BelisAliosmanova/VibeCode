@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<body>
+
+<nav th:fragment="navbar" style="display:flex;align-items:center;justify-content:space-between;padding:0.85rem 2rem;background:#5a5a5a;">
+    <div style="display:flex;align-items:center;gap:1.5rem;">
+        <div style="width:32px;height:32px;background:#222;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:0.9rem;">V</div>
+        <a th:href="@{/explore}"        style="color:#fff;text-decoration:none;font-size:0.9rem;opacity:0.9;font-family:'Inter',system-ui,sans-serif;">Explore</a>
+        <a th:href="@{/submit}"         style="color:#fff;text-decoration:none;font-size:0.9rem;opacity:0.9;font-family:'Inter',system-ui,sans-serif;">Submit</a>
+        <a th:href="@{/apps}"           style="color:#fff;text-decoration:none;font-size:0.9rem;opacity:0.9;font-family:'Inter',system-ui,sans-serif;">Apps</a>
+        <a th:href="@{/categories}"     style="color:#fff;text-decoration:none;font-size:0.9rem;opacity:0.9;font-family:'Inter',system-ui,sans-serif;">Categories</a>
+        <a th:href="@{/review-categories}" style="color:#fff;text-decoration:none;font-size:0.9rem;opacity:0.9;font-family:'Inter',system-ui,sans-serif;">Reviews</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:1rem;">
+        <a th:href="@{/login}"    style="background:transparent;border:none;color:#fff;font-size:0.9rem;cursor:pointer;text-decoration:none;font-family:'Inter',system-ui,sans-serif;">Sign in</a>
+        <a th:href="@{/register}" style="background:transparent;border:1.5px solid #fff;color:#fff;font-size:0.85rem;padding:0.4rem 1rem;border-radius:50px;text-decoration:none;font-family:'Inter',system-ui,sans-serif;">Sign up</a>
+    </div>
+</nav>
+
+</body>
+</html>

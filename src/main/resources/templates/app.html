@@ -270,17 +270,7 @@
 <body>
 
 <!-- NAV -->
-<nav>
-    <div class="nav-left">
-        <div class="nav-logo">V</div>
-        <a class="nav-link" th:href="@{/submit}">Submit</a>
-        <a class="nav-link" th:href="@{/explore}">Explore</a>
-    </div>
-    <div class="nav-right">
-        <a class="btn-ghost-nav" th:href="@{/login}">Sign in</a>
-        <a class="btn-outline-nav" th:href="@{/register}">Sign up</a>
-    </div>
-</nav>
+<nav th:replace="~{fragments/navbar :: navbar}"></nav>
 
 <!-- HERO VISUAL -->
 <div class="hero-band">
