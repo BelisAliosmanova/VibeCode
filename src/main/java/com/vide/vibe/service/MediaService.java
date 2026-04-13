@@ -54,9 +54,8 @@ public class MediaService {
         Map<?, ?> result = cloudinary.uploader().upload(
                 file.getBytes(),
                 ObjectUtils.asMap(
-                        "folder",          "vibe/" + subdirectory,
-                        "resource_type",   "image",
-                        "transformation",  ObjectUtils.asMap("quality", "auto", "fetch_format", "auto")
+                        "folder",        "vibe/" + subdirectory,
+                        "resource_type", "image"
                 )
         );
 
