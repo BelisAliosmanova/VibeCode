@@ -1,93 +1,105 @@
 package com.vide.vibe.service;
 
-import lombok.RequiredArgsConstructor;
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
+import java.util.Map;
 
 @Service
 public class MediaService {
 
-    @Value("${app.upload.dir:static/images}")
-    private String uploadDir;
+    private final Cloudinary cloudinary;
 
     private static final List<String> ALLOWED_IMAGE_TYPES = Arrays.asList(
             "image/png", "image/jpeg", "image/jpg", "image/gif", "image/webp", "image/svg+xml"
     );
 
-    private static final List<String> ALLOWED_IMAGE_EXTENSIONS = Arrays.asList(
-            ".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg"
-    );
-
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
+    public MediaService(
+            @Value("${cloudinary.cloud-name}") String cloudName,
+            @Value("${cloudinary.api-key}")    String apiKey,
+            @Value("${cloudinary.api-secret}") String apiSecret) {
+
+        this.cloudinary = new Cloudinary(ObjectUtils.asMap(
+                "cloud_name", cloudName,
+                "api_key",    apiKey,
+                "api_secret", apiSecret,
+                "secure",     true
+        ));
+    }
+
     /**
-     * Upload a file and return its public URL path.
-     * Subdirectory is used to organise files (e.g., "icons", "screenshots").
+     * Upload a file to Cloudinary and return its public URL.
+     * The subdirectory is used as the Cloudinary folder (e.g. "icons", "screenshots").
      */
     public String upload(MultipartFile file, String subdirectory) throws IOException {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("File is empty");
         }
-
         if (file.getSize() > MAX_FILE_SIZE) {
             throw new IllegalArgumentException("File exceeds 5MB limit");
         }
-
         String contentType = file.getContentType();
         if (contentType == null || !ALLOWED_IMAGE_TYPES.contains(contentType)) {
             throw new IllegalArgumentException("Unsupported file type: " + contentType);
         }
 
-        String originalFilename = file.getOriginalFilename();
-        String extension = getExtension(originalFilename);
+        Map<?, ?> result = cloudinary.uploader().upload(
+                file.getBytes(),
+                ObjectUtils.asMap(
+                        "folder",          "vibe/" + subdirectory,
+                        "resource_type",   "image",
+                        "transformation",  ObjectUtils.asMap("quality", "auto", "fetch_format", "auto")
+                )
+        );
 
-        if (!ALLOWED_IMAGE_EXTENSIONS.contains(extension.toLowerCase())) {
-            throw new IllegalArgumentException("Unsupported file extension: " + extension);
-        }
-
-        // Generate unique filename
-        String uniqueFilename = UUID.randomUUID().toString() + extension;
-
-        // Resolve target directory
-        Path targetDir = Paths.get(uploadDir, subdirectory).toAbsolutePath();
-        Files.createDirectories(targetDir);
-
-        Path targetPath = targetDir.resolve(uniqueFilename);
-        Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
-
-        // Return public URL path
-        return "/images/" + subdirectory + "/" + uniqueFilename;
+        return (String) result.get("secure_url");
     }
 
     /**
-     * Delete a file by its public URL path.
+     * Delete a file from Cloudinary by its URL.
+     * Extracts the public_id from the URL.
      */
     public void delete(String publicUrl) {
         if (publicUrl == null || publicUrl.isBlank()) return;
-
         try {
-            // Convert public URL to file path
-            String relativePath = publicUrl.replace("/images/", "");
-            Path filePath = Paths.get(uploadDir, relativePath).toAbsolutePath();
-            Files.deleteIfExists(filePath);
-        } catch (IOException e) {
-            // Log but don't throw — file deletion is best-effort
-            System.err.println("Failed to delete file: " + publicUrl + " — " + e.getMessage());
+            String publicId = extractPublicId(publicUrl);
+            cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+        } catch (Exception e) {
+            System.err.println("Failed to delete from Cloudinary: " + publicUrl + " — " + e.getMessage());
         }
     }
 
-    private String getExtension(String filename) {
-        if (filename == null || !filename.contains(".")) return "";
-        return filename.substring(filename.lastIndexOf('.'));
+    /**
+     * Extracts the Cloudinary public_id from a secure URL.
+     * e.g. https://res.cloudinary.com/demo/image/upload/v123/vibe/icons/abc.png
+     *   -> vibe/icons/abc
+     */
+    private String extractPublicId(String url) {
+        // Find "/upload/" and take everything after the version segment
+        int uploadIdx = url.indexOf("/upload/");
+        if (uploadIdx == -1) return url;
+        String afterUpload = url.substring(uploadIdx + 8); // skip "/upload/"
+
+        // Skip version segment if present (v1234567890/)
+        if (afterUpload.startsWith("v") && afterUpload.contains("/")) {
+            int slashIdx = afterUpload.indexOf("/");
+            afterUpload = afterUpload.substring(slashIdx + 1);
+        }
+
+        // Remove file extension
+        int dotIdx = afterUpload.lastIndexOf(".");
+        if (dotIdx != -1) {
+            afterUpload = afterUpload.substring(0, dotIdx);
+        }
+
+        return afterUpload;
     }
 }
