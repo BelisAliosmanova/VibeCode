@@ -247,6 +247,7 @@
             color: #ccc; font-size: 0.78rem; text-align: center;
             padding: 1.5rem 0;
         }
+        .rating-count { font-size: 0.62rem; color: #888; font-weight: 500; }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 </head>
@@ -369,20 +370,24 @@
                             <!-- User rating (gold stars) -->
                             <div class="rating-block">
                                 <div class="stars">
-                                    <span th:each="i : ${#numbers.sequence(1,5)}"
-                                          class="star"
-                                          th:classappend="${app.userRatingAvg >= i} ? ' lit-user' : ''">★</span>
+                <span th:each="i : ${#numbers.sequence(1,5)}"
+                      class="star"
+                      th:classappend="${app.userRatingAvg >= i} ? ' lit-user' : ''">★</span>
                                 </div>
-                                <span class="rating-count" th:text="${app.userRatingCount}">0</span>
+                                <span class="rating-count"
+                                      th:text="${#numbers.formatDecimal(app.userRatingAvg,1,1)} + ' (' + ${app.userRatingCount} + ')'">0</span>
                             </div>
                             <span class="rating-sep">|</span>
-                            <!-- Verified rating (blue stars) — show dashes if not rated -->
+                            <!-- Verified rating (blue stars) -->
                             <div class="rating-block">
                                 <div class="stars" th:if="${app.verifiedScore != null}">
-                                    <span th:each="i : ${#numbers.sequence(1,5)}"
-                                          class="star"
-                                          th:classappend="${app.verifiedScore >= i} ? ' lit-verified' : ''">★</span>
+                <span th:each="i : ${#numbers.sequence(1,5)}"
+                      class="star"
+                      th:classappend="${app.verifiedScore >= i} ? ' lit-verified' : ''">★</span>
                                 </div>
+                                <span th:if="${app.verifiedScore != null}"
+                                      style="font-size:0.62rem;color:#3b82f6;font-weight:600;"
+                                      th:text="${#numbers.formatDecimal(app.verifiedScore,1,1)}"></span>
                                 <span th:if="${app.verifiedScore == null}"
                                       style="font-size:0.62rem;color:#ddd;">—</span>
                             </div>
