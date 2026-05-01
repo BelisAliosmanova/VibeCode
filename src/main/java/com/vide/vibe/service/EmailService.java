@@ -5,14 +5,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 /**
- * Thin wrapper around JavaMailSender.
+ * Sends emails on a background thread (@Async) so the calling HTTP request
+ * returns immediately — SMTP latency never blocks the user.
  *
- * JavaMailSender is injected with required=false so the application starts
- * even when SMTP credentials are not configured — in that case every send
- * call prints the verification link to stdout instead (useful in dev / CI).
+ * Requires @EnableAsync on the application class (see VibeApplication.java).
  */
 @Service
 public class EmailService {
@@ -26,23 +26,17 @@ public class EmailService {
     @Value("${spring.mail.username:noreply@vibe.example.com}")
     private String fromAddress;
 
-    // ─────────────────────────────────────────────────────────────────────────
-
     /**
-     * Send an ownership-verification email for an app claim.
-     *
-     * @param to        recipient address
-     * @param appName   human-readable app name shown in the email body
-     * @param token     the URL-safe token that identifies this claim
+     * Fire-and-forget: returns instantly, email is delivered in the background.
      */
+    @Async
     public void sendClaimEmail(String to, String appName, String token) {
         String verifyUrl = baseUrl + "/claim/verify/" + token;
 
         if (mailSender == null) {
-            // Dev/CI fallback — print the link so developers can still test the flow
             System.out.printf(
-                "%n[EMAIL — not configured]%nTo:      %s%nSubject: Verify ownership of \"%s\"%nLink:    %s%n%n",
-                to, appName, verifyUrl
+                    "%n[EMAIL — not configured]%nTo:      %s%nSubject: Verify ownership of \"%s\"%nLink:    %s%n%n",
+                    to, appName, verifyUrl
             );
             return;
         }
@@ -50,21 +44,15 @@ public class EmailService {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
             helper.setFrom(fromAddress);
             helper.setTo(to);
             helper.setSubject("Verify your ownership of \"" + appName + "\" on Vibe");
             helper.setText(buildHtml(appName, verifyUrl), true);
-
             mailSender.send(message);
         } catch (Exception e) {
             System.err.println("[EmailService] Failed to send claim email to " + to + ": " + e.getMessage());
         }
     }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // HTML template
-    // ─────────────────────────────────────────────────────────────────────────
 
     private String buildHtml(String appName, String verifyUrl) {
         return """
@@ -73,28 +61,22 @@ public class EmailService {
             <head>
               <meta charset="UTF-8"/>
               <meta name="viewport" content="width=device-width,initial-scale=1"/>
-              <style>
-                body { margin:0; padding:0; background:#f5f5f5; font-family:Inter,system-ui,sans-serif; }
-              </style>
             </head>
-            <body>
+            <body style="margin:0;padding:0;background:#f5f5f5;font-family:Inter,system-ui,sans-serif;">
               <table width="100%%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 16px;">
                 <tr><td align="center">
                   <table width="480" cellpadding="0" cellspacing="0"
                          style="background:#fff;border-radius:16px;padding:40px 36px;border:1.5px solid #e0e0e0;">
-                    <!-- Logo / wordmark -->
                     <tr>
                       <td style="padding-bottom:28px;">
                         <span style="font-size:1.1rem;font-weight:800;letter-spacing:-0.5px;color:#111;">Vibe</span>
                       </td>
                     </tr>
-                    <!-- Heading -->
                     <tr>
                       <td style="font-size:1.35rem;font-weight:700;color:#111;padding-bottom:12px;line-height:1.3;">
                         Verify your ownership
                       </td>
                     </tr>
-                    <!-- Body copy -->
                     <tr>
                       <td style="font-size:0.9rem;color:#555;line-height:1.6;padding-bottom:28px;">
                         You (or someone using this address) submitted
@@ -103,7 +85,6 @@ public class EmailService {
                         The link is valid for <strong>24 hours</strong>.
                       </td>
                     </tr>
-                    <!-- CTA -->
                     <tr>
                       <td style="padding-bottom:32px;">
                         <a href="%s"
@@ -114,18 +95,15 @@ public class EmailService {
                         </a>
                       </td>
                     </tr>
-                    <!-- Or link fallback -->
                     <tr>
                       <td style="font-size:0.75rem;color:#aaa;padding-bottom:24px;word-break:break-all;">
                         Or copy this link into your browser:<br/>
                         <a href="%s" style="color:#2563eb;">%s</a>
                       </td>
                     </tr>
-                    <!-- Footer note -->
                     <tr>
                       <td style="font-size:0.72rem;color:#bbb;border-top:1px solid #eee;padding-top:20px;">
                         If you didn't submit this app you can safely ignore this email.
-                        No account has been created.
                       </td>
                     </tr>
                   </table>
