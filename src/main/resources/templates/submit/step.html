@@ -155,6 +155,8 @@
                   class="pill"
                   th:data-id="${entry.id}"
                   th:data-name="${entry.name}"
+                  th:data-description="${entry.description}"
+                  th:title="${entry.description}"
                   th:classappend="${#lists.contains(selectedIds, entry.id)} ? ' selected' : ''">
                 <img th:if="${entry.iconUrl != null}"
                      th:src="${entry.iconUrl}"

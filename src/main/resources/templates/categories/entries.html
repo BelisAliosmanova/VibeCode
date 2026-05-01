@@ -102,6 +102,36 @@
             gap: 4px; cursor: pointer; transition: border-color 0.15s; position: relative;
             overflow: hidden; background: #fafafa;
         }
+        /* Tooltip */
+        .entry-pill { position: relative; }
+        .entry-tooltip {
+            display: none;
+            position: absolute;
+            bottom: calc(100% + 6px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #111;
+            color: #fff;
+            font-size: 0.7rem;
+            line-height: 1.4;
+            padding: 0.4rem 0.7rem;
+            border-radius: 8px;
+            white-space: normal;
+            width: max-content;
+            max-width: 220px;
+            z-index: 100;
+            pointer-events: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+        }
+        .entry-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%; left: 50%; transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: #111;
+        }
+        .entry-pill:hover .entry-tooltip { display: block; }
+
         .icon-upload-area:hover { border-color: var(--black); }
         .icon-upload-area input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
         .icon-upload-area .upload-label { font-size: 0.72rem; color: #aaa; }
@@ -146,6 +176,10 @@
                 <span th:each="entry : ${entries}"
                       class="entry-pill"
                       th:classappend="${!entry.visibility} ? ' entry-pill-hidden' : ''">
+                     <span th:if="${entry.description != null and !entry.description.isBlank()}"
+                           class="entry-tooltip"
+                           th:text="${entry.description}"></span>
+
                     <span class="entry-icon-upload-wrap"
                           th:data-icon-id="'icon-' + ${entry.id}"
                           onclick="document.getElementById(this.dataset.iconId).click()">
@@ -217,6 +251,12 @@
                 <div class="field">
                     <label for="entryPosition">Position</label>
                     <input id="entryPosition" type="number" name="position" min="0" placeholder="0"/>
+                </div>
+
+                <div class="field">
+                    <label for="entryDescription">Description</label>
+                    <input id="entryDescription" type="text" name="description"
+                           placeholder="Short description shown on hover (optional)" maxlength="500"/>
                 </div>
 
                 <label class="check-row">

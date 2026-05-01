@@ -344,7 +344,8 @@
                     <span th:if="${ce.value.contains(entry)}"
                           class="sel-pill"
                           th:data-entry-id="${entry.id}"
-                          th:data-category-id="${ce.key.id}">
+                          th:data-category-id="${ce.key.id}"
+                          th:title="${entry.description}">
                         <img th:if="${entry.iconUrl != null}"
                              th:src="${entry.iconUrl}" th:alt="${entry.name}"/>
                         <span th:text="${entry.name}">Entry</span>
@@ -368,6 +369,8 @@
                               th:classappend="${ce.value.contains(entry)} ? ' selected' : ''"
                               th:data-entry-id="${entry.id}"
                               th:data-entry-name="${entry.name}"
+                              th:title="${entry.description}"
+                              th:data-entry-description="${entry.description}"
                               th:data-entry-icon="${entry.iconUrl}"
                               th:data-category-id="${ce.key.id}"
                               th:data-max="${ce.key.maxSelected}"
@@ -631,7 +634,8 @@
             const addBtn = selRow.querySelector('.pill-add-btn');
             const newPill = buildSelPill(
                 pill.dataset.entryId, catId,
-                pill.dataset.entryName, pill.dataset.entryIcon
+                pill.dataset.entryName, pill.dataset.entryIcon,
+                pill.dataset.entryDescription
             );
             selRow.insertBefore(newPill, addBtn);
         }
@@ -654,7 +658,7 @@
         const addBtn = selRow.querySelector('.pill-add-btn');
         selRow.querySelectorAll('.sel-pill').forEach(p => p.remove());
         selectedOptPills.forEach(optPill => {
-            const pill = buildSelPill(optPill.dataset.entryId, categoryId, optPill.dataset.entryName, optPill.dataset.entryIcon);
+            const pill = buildSelPill(optPill.dataset.entryId, categoryId, optPill.dataset.entryName, optPill.dataset.entryIcon, optPill.dataset.entryDescription);
             selRow.insertBefore(pill, addBtn);
         });
 
@@ -672,9 +676,10 @@
         }
     }
 
-    function buildSelPill(entryId, catId, name, iconUrl) {
+    function buildSelPill(entryId, catId, name, iconUrl, description) {
         const span = document.createElement('span');
         span.className = 'sel-pill';
+        if (description && description !== 'null') span.title = description;
         span.dataset.entryId = entryId;
         span.dataset.categoryId = catId;
         if (iconUrl && iconUrl !== 'null') {

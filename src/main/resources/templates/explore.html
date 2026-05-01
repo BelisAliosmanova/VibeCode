@@ -317,6 +317,7 @@
                      th:id="'fi-' + ${entry.id}"
                      th:data-entry-id="${entry.id}"
                      th:data-entry-name="${entry.name}"
+                     th:title="${entry.description}"
                      th:data-cat-id="${catId}"
                      th:classappend="${#lists.contains(selectedEntryIds, entry.id.toString())} ? ' active' : ''"
                      onclick="toggleFilter(this)">

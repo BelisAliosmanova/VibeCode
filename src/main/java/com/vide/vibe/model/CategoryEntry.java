@@ -35,6 +35,9 @@ public class CategoryEntry extends SoftDeletableEntity {
     @Column(name = "icon_url", length = 2048)
     private String iconUrl;
 
+    @Column(name = "description", length = 500)
+    private String description;
+
     @Column(name = "interest", nullable = false)
     @Builder.Default
     private Integer interest = 0;

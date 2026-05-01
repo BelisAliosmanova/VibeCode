@@ -72,6 +72,7 @@ public class CategoryController {
             @RequestParam String name,
             @RequestParam String slug,
             @RequestParam(defaultValue = "0") Integer interest,
+            @RequestParam(required = false) String description,
             @RequestParam(defaultValue = "0") Integer position,
             @RequestParam(defaultValue = "false") Boolean visibility,
             @RequestParam(required = false) MultipartFile icon) {
@@ -80,6 +81,7 @@ public class CategoryController {
                 .name(name)
                 .slug(slug)
                 .interest(interest)
+                .description(description)
                 .position(position)
                 .visibility(visibility)
                 .build();

@@ -113,6 +113,7 @@ public class CategoryService {
         existing.setName(updated.getName());
         existing.setSlug(updated.getSlug());
         existing.setInterest(updated.getInterest());
+        existing.setDescription(updated.getDescription());
         existing.setPosition(updated.getPosition());
         existing.setVisibility(updated.getVisibility());
         return categoryEntryRepository.save(existing);

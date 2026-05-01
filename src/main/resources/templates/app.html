@@ -472,7 +472,8 @@
         <th:block th:each="catGroup : ${selectionsByCategory.entrySet()}">
             <div class="section-title" th:text="${catGroup.key}">CATEGORY</div>
             <div class="pills-row" style="margin-bottom:1.25rem;">
-                <span th:each="entry : ${catGroup.value}" class="feat-pill">
+                <span th:each="entry : ${catGroup.value}" class="feat-pill"
+                      th:title="${entry.description}">
                     <img th:if="${entry.iconUrl != null}" th:src="${entry.iconUrl}" th:alt="${entry.name}"/>
                     <span th:text="${entry.name}">Entry</span>
                 </span>
