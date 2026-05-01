@@ -220,24 +220,23 @@
 
 <script>
     const input = document.getElementById('iconInput');
-    const preview = document.getElementById('iconPreview');
     const plus = document.getElementById('iconPlus');
     const text = document.getElementById('iconText');
+    const label = document.getElementById('iconLabel');
 
     input.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (!file) return;
         const reader = new FileReader();
         reader.onload = (ev) => {
-            if (!preview) {
-                const img = document.createElement('img');
-                img.src = ev.target.result;
-                img.className = 'icon-preview';
-                document.getElementById('iconLabel').prepend(img);
-            } else {
-                preview.src = ev.target.result;
-                preview.style.display = 'block';
-            }
+            const existing = label.querySelector('.icon-preview');
+            if (existing) existing.remove();
+
+            const img = document.createElement('img');
+            img.src = ev.target.result;
+            img.className = 'icon-preview';
+            label.prepend(img);
+
             if (plus) plus.style.display = 'none';
             if (text) text.style.display = 'none';
         };
