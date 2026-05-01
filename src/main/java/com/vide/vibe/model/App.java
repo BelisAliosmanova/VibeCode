@@ -18,7 +18,8 @@ import java.util.Set;
                 @Index(name = "idx_apps_visibility",      columnList = "visibility"),
                 @Index(name = "idx_apps_deleted_at",      columnList = "deleted_at"),
                 @Index(name = "idx_apps_verified_score",  columnList = "verified_score"),
-                @Index(name = "idx_apps_user_rating_avg", columnList = "user_rating_avg")
+                @Index(name = "idx_apps_user_rating_avg", columnList = "user_rating_avg"),
+                @Index(name = "idx_apps_claimed_at",      columnList = "claimed_at")
         }
 )
 @Getter
@@ -86,8 +87,7 @@ public class App extends SoftDeletableEntity {
     private String version = "1";
 
     /**
-     * Admin-set quality score (0.0–5.0). Null means we haven't rated this app yet.
-     * Used for the "Verified" tab and "TOP VERIFIED APPS" sections on the Explore page.
+     * Admin-set quality score (0.0–5.0). Null means not yet rated.
      */
     @Column(name = "verified_score")
     private Double verifiedScore;
@@ -100,6 +100,18 @@ public class App extends SoftDeletableEntity {
     @Builder.Default
     private Double userRatingAvg = 0.0;
 
+    /**
+     * When the submitter clicked the verification link for THIS app.
+     * Null = not yet claimed. Each app is claimed independently — verifying
+     * app A never affects app B, even if they share the same owner email.
+     */
+    @Column(name = "claimed_at")
+    private Instant claimedAt;
+
+    /** Convenience: true once the owner has verified their email for this app. */
+    public boolean isClaimed() {
+        return claimedAt != null;
+    }
 
     @OneToMany(mappedBy = "app", cascade = CascadeType.ALL,
             orphanRemoval = true, fetch = FetchType.LAZY)
