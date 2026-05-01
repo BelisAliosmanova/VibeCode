@@ -5,15 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-/**
- * Sends emails on a background thread (@Async) so the calling HTTP request
- * returns immediately — SMTP latency never blocks the user.
- *
- * Requires @EnableAsync on the application class (see VibeApplication.java).
- */
 @Service
 public class EmailService {
 
@@ -26,10 +19,6 @@ public class EmailService {
     @Value("${spring.mail.username:noreply@vibe.example.com}")
     private String fromAddress;
 
-    /**
-     * Fire-and-forget: returns instantly, email is delivered in the background.
-     */
-    @Async
     public void sendClaimEmail(String to, String appName, String token) {
         String verifyUrl = baseUrl + "/claim/verify/" + token;
 
@@ -50,7 +39,8 @@ public class EmailService {
             helper.setText(buildHtml(appName, verifyUrl), true);
             mailSender.send(message);
         } catch (Exception e) {
-            System.err.println("[EmailService] Failed to send claim email to " + to + ": " + e.getMessage());
+            // temporarily rethrowing to expose the real error in logs
+            throw new RuntimeException("[EmailService] Failed to send to " + to + ": " + e.getMessage(), e);
         }
     }
 

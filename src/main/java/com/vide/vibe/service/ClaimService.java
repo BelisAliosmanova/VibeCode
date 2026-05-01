@@ -13,15 +13,6 @@ import java.util.Base64;
 import java.util.Optional;
 import java.util.UUID;
 
-/**
- * Handles per-app email ownership verification.
- *
- * Key design decision: the claim flag lives on App.claimedAt, NOT on User.status.
- * This means:
- *   - Verifying app A never affects app B, even if they share the same owner email.
- *   - Each app must be claimed independently by whoever submitted it.
- *   - User.status is left untouched by this flow entirely.
- */
 @Service
 @RequiredArgsConstructor
 public class ClaimService {
@@ -32,33 +23,13 @@ public class ClaimService {
     private final AppRepository           appRepository;
     private final EmailService            emailService;
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Public API
-    // ─────────────────────────────────────────────────────────────────────────
-
-    /**
-     * Automatically invoked when a new app is submitted.
-     * Silently swallows errors so a broken mail config never blocks submission.
-     */
     public void sendInitialClaimEmail(App app) {
-        try {
-            AppClaimToken token = buildToken(app, app.getOwner().getEmail());
-            tokenRepository.save(token);
-            emailService.sendClaimEmail(app.getOwner().getEmail(), app.getName(), token.getToken());
-        } catch (Exception e) {
-            System.err.println("[ClaimService] Initial claim email failed for app "
-                    + app.getId() + ": " + e.getMessage());
-        }
+        // temporarily removed try/catch to expose the real error in logs
+        AppClaimToken token = buildToken(app, app.getOwner().getEmail());
+        tokenRepository.save(token);
+        emailService.sendClaimEmail(app.getOwner().getEmail(), app.getName(), token.getToken());
     }
 
-    /**
-     * Re-sends a verification email on demand from the manage page.
-     *
-     * Validation rules:
-     *  - The supplied email must match the app's owner email.
-     *  - The app must not already be claimed.
-     *  - A valid token created less than 5 minutes ago blocks re-sends (rate limit).
-     */
     @Transactional
     public void requestClaimEmail(UUID appId, String email) {
         App app = appRepository.findById(appId)
@@ -76,7 +47,6 @@ public class ClaimService {
                     "That email does not match the address used to submit this app.");
         }
 
-        // Rate-limit: block re-send within 5 minutes of a still-valid token
         Optional<AppClaimToken> latest =
                 tokenRepository.findTopByAppIdOrderByCreatedAtDesc(appId);
         if (latest.isPresent()) {
@@ -95,12 +65,6 @@ public class ClaimService {
         emailService.sendClaimEmail(email.trim(), app.getName(), token.getToken());
     }
 
-    /**
-     * Consumes the token from the email link and marks THIS app as claimed.
-     * No other app is affected, even if owned by the same email address.
-     *
-     * @return the claimed App so the controller can redirect to its manage page
-     */
     @Transactional
     public App verifyAndClaim(String rawToken) {
         AppClaimToken claimToken = tokenRepository.findByToken(rawToken)
@@ -119,11 +83,9 @@ public class ClaimService {
                             + "Please request a new one from the manage page.");
         }
 
-        // Consume the token
         claimToken.setUsedAt(Instant.now());
         tokenRepository.save(claimToken);
 
-        // Mark only this specific app as claimed — no other app is touched
         App app = claimToken.getApp();
         app.setClaimedAt(Instant.now());
         appRepository.save(app);
@@ -131,15 +93,9 @@ public class ClaimService {
         return app;
     }
 
-    /**
-     * Whether this specific app's ownership email has been verified.
-     * Checks App.claimedAt, not User.status — fully per-app.
-     */
     public boolean isOwnerUnverified(App app) {
         return !app.isClaimed();
     }
-
-    // ─────────────────────────────────────────────────────────────────────────
 
     private AppClaimToken buildToken(App app, String normalizedEmail) {
         return AppClaimToken.builder()
