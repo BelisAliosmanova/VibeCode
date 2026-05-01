@@ -359,7 +359,9 @@
                         onclick="togglePicker(this)">+</button>
             </div>
 
-            <div class="pill-picker" th:id="'picker-' + ${ce.key.id}">
+            <div class="pill-picker" th:id="'picker-' + ${ce.key.id}"
+                 th:data-allow-custom="${ce.key.allowCustom}"
+                 th:data-category-id="${ce.key.id}">
                 <div class="picker-hint"
                      th:text="${ce.key.maxSelected != null} ? 'Select up to ' + ${ce.key.maxSelected} + ' (' + ${#lists.size(ce.value)} + '/' + ${ce.key.maxSelected} + ' left)' : 'Click below to add or remove'">
                 </div>
@@ -380,6 +382,28 @@
                             <span th:text="${entry.name}">Entry</span>
                         </span>
                     </th:block>
+                </div>
+                <div class="custom-entry-row" th:if="${ce.key.allowCustom}"
+                     th:id="'custom-row-' + ${ce.key.id}"
+                     style="display:flex;align-items:center;gap:0.5rem;margin:0.75rem 0;padding-top:0.75rem;border-top:1px dashed var(--border);">
+                    <span style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#bbb;white-space:nowrap;flex-shrink:0;">
+                        Custom
+                    </span>
+                    <input type="text"
+                           th:id="'custom-input-' + ${ce.key.id}"
+                           style="flex:1;padding:0.3rem 0.85rem;border:1.5px solid var(--border);border-radius:var(--radius-pill);font-size:0.78rem;font-family:var(--font);outline:none;transition:border-color 0.15s;color:var(--black);"
+                           placeholder="Type and press Enter or +"
+                           maxlength="100"
+                           th:data-category-id="${ce.key.id}"
+                           onkeydown="handleCustomEntryKey(event, this)"
+                           onfocus="this.style.borderColor='var(--black)'"
+                           onblur="this.style.borderColor='var(--border)'"/>
+                    <button type="button"
+                            style="width:28px;height:28px;border-radius:50%;border:1.5px solid var(--black);background:var(--white);color:var(--black);font-size:1rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background 0.12s,color 0.12s;font-family:var(--font);"
+                            th:data-category-id="${ce.key.id}"
+                            onmouseenter="this.style.background='var(--black)';this.style.color='white'"
+                            onmouseleave="this.style.background='var(--white)';this.style.color='var(--black)'"
+                            onclick="addCustomEntry(this.dataset.categoryId)">+</button>
                 </div>
                 <div class="picker-actions">
                     <button class="btn-update"
@@ -522,6 +546,74 @@
             else if (document.getElementById('addWorkflowModal').classList.contains('open')) createWorkflow();
         }
     });
+
+    async function addCustomEntry(catId) {
+        const input = document.getElementById('custom-input-' + catId);
+        const name = input.value.trim();
+        if (!name) return;
+
+        // Build slug from name
+        const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+            + '-' + Date.now();
+
+        const fd = new FormData();
+        fd.append('name', name);
+        fd.append('slug', slug);
+        fd.append('interest', '0');
+        fd.append('position', '999');
+        fd.append('visibility', 'true');
+
+        try {
+            const r = await fetch(`/categories/${catId}/entries`, { method: 'POST', body: fd });
+            if (!r.ok) throw new Error('Failed to create entry');
+
+            // The endpoint redirects, so we need to fetch the entry id a different way.
+            // Re-fetch the picker entries to find the new one.
+            const pageR = await fetch(`/categories/${catId}/entries`);
+            const html = await pageR.text();
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            const match = [...doc.querySelectorAll('.entry-pill-name')]
+                .find(el => el.textContent.trim() === name);
+
+            if (!match) throw new Error('Could not find created entry');
+            const pill = match.closest('.entry-pill');
+            // extract id from the delete form action
+            const deleteForm = pill.querySelector('form');
+            const parts = deleteForm?.action?.split('/');
+            const entryId = parts?.[parts.length - 2];
+            if (!entryId) throw new Error('Could not parse entry id');
+
+            // Add as opt-pill to picker
+            const pickerPills = document.getElementById('picker-pills-' + catId);
+            const optPill = document.createElement('span');
+            optPill.className = 'opt-pill selected';
+            optPill.dataset.entryId = entryId;
+            optPill.dataset.entryName = name;
+            optPill.dataset.categoryId = catId;
+            optPill.dataset.max = pickerPills.querySelector('.opt-pill')?.dataset.max || '';
+            optPill.onclick = function() { toggleOptPill(this); };
+            optPill.innerHTML = `<span>${name}</span>`;
+            pickerPills.appendChild(optPill);
+
+            // Also add to sel-row immediately
+            const selRow = document.getElementById('sel-row-' + catId);
+            const addBtn = selRow.querySelector('.pill-add-btn');
+            const selPill = buildSelPill(entryId, catId, name, null, null);
+            selRow.insertBefore(selPill, addBtn);
+
+            input.value = '';
+            showToast('Entry added');
+        } catch (e) {
+            showToast(e.message, true);
+        }
+    }
+
+    function handleCustomEntryKey(event, input) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            addCustomEntry(input.dataset.categoryId);
+        }
+    }
 
     // ─── ICON UPLOAD ────────────────────────────────────────────────────────
     document.getElementById('iconFileInput').addEventListener('change', async function () {
