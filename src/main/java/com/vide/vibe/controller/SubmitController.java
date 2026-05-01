@@ -15,10 +15,11 @@ import java.util.*;
 @RequiredArgsConstructor
 public class SubmitController {
 
-    private final AppService appService;
-    private final UserService userService;
+    private final AppService      appService;
+    private final UserService     userService;
     private final CategoryService categoryService;
-    private final MediaService mediaService;
+    private final MediaService    mediaService;
+    private final ClaimService    claimService;   // ← injected
 
     @GetMapping
     public String landing() {
@@ -79,21 +80,21 @@ public class SubmitController {
             saved = appService.create(newApp, owner.getId());
         }
 
-        // Handle icon upload
         if (icon != null && !icon.isEmpty()) {
             try {
                 String iconUrl = mediaService.upload(icon, "icons");
                 appService.updateIconUrl(saved.getId(), iconUrl);
             } catch (Exception e) {
-                // Log but continue — icon upload failure shouldn't block the flow
                 System.err.println("Icon upload failed: " + e.getMessage());
             }
         }
 
         List<Category> categories = categoryService.findAllVisible();
         if (categories.isEmpty()) {
-            appService.submit(saved.getId());
-            return "redirect:/submit/success?appId=" + saved.getId();
+            App submitted = appService.submit(saved.getId());
+            // ── Send verification email ──────────────────────────────────────
+            claimService.sendInitialClaimEmail(submitted);
+            return "redirect:/submit/success?appId=" + submitted.getId();
         }
         return "redirect:/submit/step?appId=" + saved.getId()
                 + "&categoryId=" + categories.get(0).getId();
@@ -114,15 +115,15 @@ public class SubmitController {
         Category prevCategory = currentIndex > 0 ? allCategories.get(currentIndex - 1) : null;
         Category nextCategory = currentIndex < allCategories.size() - 1 ? allCategories.get(currentIndex + 1) : null;
 
-        model.addAttribute("app", app);
-        model.addAttribute("category", category);
-        model.addAttribute("entries", entries);
-        model.addAttribute("selectedIds", selectedIds);
+        model.addAttribute("app",          app);
+        model.addAttribute("category",     category);
+        model.addAttribute("entries",      entries);
+        model.addAttribute("selectedIds",  selectedIds);
         model.addAttribute("prevCategory", prevCategory);
         model.addAttribute("nextCategory", nextCategory);
-        model.addAttribute("stepNumber", currentIndex + 2);
-        model.addAttribute("totalSteps", allCategories.size() + 1);
-        model.addAttribute("isLastStep", nextCategory == null);
+        model.addAttribute("stepNumber",   currentIndex + 2);
+        model.addAttribute("totalSteps",   allCategories.size() + 1);
+        model.addAttribute("isLastStep",   nextCategory == null);
 
         return "submit/step";
     }
@@ -139,13 +140,11 @@ public class SubmitController {
         if (customEntries != null) {
             for (String name : customEntries) {
                 if (name == null || name.isBlank()) continue;
-                String slug = name.toLowerCase().trim().replaceAll("[^a-z0-9]+", "-") + "-" + System.currentTimeMillis();
+                String slug = name.toLowerCase().trim().replaceAll("[^a-z0-9]+", "-")
+                              + "-" + System.currentTimeMillis();
                 CategoryEntry custom = CategoryEntry.builder()
-                        .name(name.trim())
-                        .slug(slug)
-                        .visibility(true)
-                        .interest(0)
-                        .position(999)
+                        .name(name.trim()).slug(slug)
+                        .visibility(true).interest(0).position(999)
                         .build();
                 CategoryEntry savedEntry = categoryService.createEntry(categoryId, custom);
                 allEntryIds.add(savedEntry.getId());
@@ -158,7 +157,9 @@ public class SubmitController {
             return "redirect:/submit/step?appId=" + appId + "&categoryId=" + nextCategoryId;
         }
 
-        appService.submit(appId);
+        // Final step — submit and send claim email
+        App submitted = appService.submit(appId);
+        claimService.sendInitialClaimEmail(submitted);   // ← verification email
         return "redirect:/submit/success?appId=" + appId;
     }
 

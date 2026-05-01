@@ -24,9 +24,12 @@ public class ManageController {
     private final WorkflowService    workflowService;
     private final AppMediaRepository appMediaRepository;
     private final ReviewService      reviewService;
+    private final ClaimService       claimService;   // ← injected
 
     @GetMapping
-    public String manage(@PathVariable UUID appId, Model model) {
+    public String manage(@PathVariable UUID appId,
+                         @RequestParam(required = false) String claimed,
+                         Model model) {
         App app = appService.findById(appId);
 
         // ── Category selections ───────────────────────────────────────────
@@ -50,7 +53,7 @@ public class ManageController {
             workflowSteps.put(wf.getId(), workflowService.findStepsByWorkflowId(wf.getId()));
         }
 
-        // ── Certified reviews (for display in manage page) ────────────────
+        // ── Certified reviews ─────────────────────────────────────────────
         List<AppReview> visibleReviews = reviewService.findVisibleReviewsForApp(appId);
         Map<UUID, List<AppSubReview>> subReviewMap = new LinkedHashMap<>();
         for (AppReview rev : visibleReviews) {
@@ -63,8 +66,13 @@ public class ManageController {
                 .average()
                 .orElse(0.0);
 
+        // ── Claim / verification state ────────────────────────────────────
+        boolean ownerUnverified = claimService.isOwnerUnverified(app);
+        // "claimed=1" is appended by the verification redirect — show a one-time success notice
+        boolean justClaimed = "1".equals(claimed);
+
         model.addAttribute("certifiedAvg",       certifiedAvg);
-        model.addAttribute("app",               app);
+        model.addAttribute("app",                app);
         model.addAttribute("categories",         categories);
         model.addAttribute("categorySelections", categorySelections);
         model.addAttribute("allEntries",         allEntries);
@@ -73,6 +81,8 @@ public class ManageController {
         model.addAttribute("media",              appMediaRepository.findAllByAppIdOrderByPositionAsc(appId));
         model.addAttribute("visibleReviews",     visibleReviews);
         model.addAttribute("subReviewMap",       subReviewMap);
+        model.addAttribute("ownerUnverified",    ownerUnverified);
+        model.addAttribute("justClaimed",        justClaimed);
 
         return "manage/index";
     }
@@ -140,10 +150,7 @@ public class ManageController {
             wf.setTitle(title.trim());
             if (description != null) wf.setDescription(description);
             Workflow saved = workflowService.create(appId, wf);
-            return ResponseEntity.ok(Map.of(
-                    "id",    saved.getId().toString(),
-                    "title", saved.getTitle()
-            ));
+            return ResponseEntity.ok(Map.of("id", saved.getId().toString(), "title", saved.getTitle()));
         } catch (Exception e) {
             return ResponseEntity.status(500)
                     .body(Map.of("error", e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));

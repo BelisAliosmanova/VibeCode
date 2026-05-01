@@ -268,7 +268,184 @@
             </div>
         </div>
     </div>
+    <!--
+      ══════════════════════════════════════════════════════════════════════════════
+      CLAIM BANNER  —  paste this block immediately after <div class="page"> in
+      src/main/resources/templates/manage/index.html
+      ══════════════════════════════════════════════════════════════════════════════
 
+      It renders:
+       • a green "just verified" flash when ?claimed=1 is in the URL
+       • an amber "unverified email" banner with a Claim button when the owner
+         is still in PENDING status
+    -->
+
+    <!-- ── Just-claimed success flash ────────────────────────────────────────── -->
+    <div th:if="${justClaimed}"
+         id="claimedFlash"
+         style="display:flex;align-items:center;gap:0.75rem;
+            background:#f0fdf4;border:1.5px solid #6ee7b7;border-radius:12px;
+            padding:0.85rem 1.1rem;margin-bottom:1.25rem;">
+        <span style="font-size:1.1rem;">✅</span>
+        <div>
+            <div style="font-size:0.82rem;font-weight:700;color:#2d9e6b;">Email verified!</div>
+            <div style="font-size:0.75rem;color:#4b7c65;margin-top:1px;">
+                You've successfully claimed this app. Your listing is now linked to your verified email.
+            </div>
+        </div>
+        <button onclick="document.getElementById('claimedFlash').remove()"
+                style="margin-left:auto;background:none;border:none;color:#aaa;cursor:pointer;font-size:1rem;">✕</button>
+    </div>
+
+    <!-- ── Unverified-owner banner ────────────────────────────────────────────── -->
+    <div th:if="${ownerUnverified}"
+         id="claimBanner"
+         style="display:flex;align-items:flex-start;gap:0.75rem;
+            background:#fffbeb;border:1.5px solid #fcd34d;border-radius:12px;
+            padding:0.9rem 1.1rem;margin-bottom:1.25rem;">
+        <span style="font-size:1.1rem;flex-shrink:0;margin-top:1px;">⚠️</span>
+        <div style="flex:1;min-width:0;">
+            <div style="font-size:0.82rem;font-weight:700;color:#92400e;">Email not verified</div>
+            <div style="font-size:0.75rem;color:#78350f;margin-top:2px;line-height:1.5;">
+                We sent a verification link to
+                <strong th:text="${app.owner.email}">owner@example.com</strong>
+                when this app was submitted. Verify your email to confirm ownership.
+            </div>
+            <div style="display:flex;gap:0.5rem;margin-top:0.65rem;flex-wrap:wrap;">
+                <button onclick="openClaimModal()"
+                        style="background:#92400e;color:#fff;border:none;
+                     padding:0.35rem 1rem;border-radius:50px;
+                     font-size:0.75rem;font-weight:600;cursor:pointer;
+                     font-family:var(--font);">
+                    Claim this app
+                </button>
+                <span style="font-size:0.72rem;color:#a16207;align-self:center;">
+        Didn't get the email? Enter your address below to resend it.
+      </span>
+            </div>
+        </div>
+    </div>
+
+    <!--
+      ══════════════════════════════════════════════════════════════════════════════
+      CLAIM MODAL  —  paste this block just before </body> in manage/index.html,
+                      alongside the existing ADD WORKFLOW MODAL and ADD STEP MODAL
+      ══════════════════════════════════════════════════════════════════════════════
+    -->
+    <div class="modal-overlay" id="claimModal">
+        <div class="modal">
+            <div class="modal-title" style="display:flex;align-items:center;gap:0.5rem;">
+                <span>🔐</span> Verify ownership
+            </div>
+            <p style="font-size:0.82rem;color:#555;margin-bottom:1.25rem;line-height:1.5;">
+                Enter the email address you used when submitting this app.
+                We'll send you a verification link to confirm you own this listing.
+            </p>
+            <div class="modal-field">
+                <label>Your email address</label>
+                <input type="email" id="claimEmailInput"
+                       th:placeholder="${app.owner.email}"
+                       autocomplete="off"/>
+            </div>
+            <div id="claimModalMsg" style="font-size:0.78rem;margin-top:0.5rem;display:none;"></div>
+            <div class="modal-actions">
+                <button class="btn-modal-cancel" onclick="closeModal('claimModal')">Cancel</button>
+                <button class="btn-modal-submit" id="claimSubmitBtn" onclick="submitClaim()">
+                    Send verification email
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!--
+      ══════════════════════════════════════════════════════════════════════════════
+      CLAIM JS  —  paste these functions inside the existing <script> block in
+                   manage/index.html (anywhere after APP_ID is declared)
+      ══════════════════════════════════════════════════════════════════════════════
+    -->
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+
+        // Auto-dismiss the "just claimed" flash after 6 seconds
+        (function() {
+            const flash = document.getElementById('claimedFlash');
+            if (flash) setTimeout(() => flash.style.opacity = '0', 5500);
+        })();
+
+        function openClaimModal() {
+            const input = document.getElementById('claimEmailInput');
+            if (input) input.value = '';
+            const msg = document.getElementById('claimModalMsg');
+            if (msg) { msg.style.display = 'none'; msg.textContent = ''; }
+            openModal('claimModal');
+            setTimeout(() => input && input.focus(), 80);
+        }
+
+        async function submitClaim() {
+            const email = document.getElementById('claimEmailInput').value.trim();
+            const msg   = document.getElementById('claimModalMsg');
+            const btn   = document.getElementById('claimSubmitBtn');
+
+            if (!email) {
+                showClaimMsg('Please enter your email address.', false);
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Sending…';
+
+            try {
+                const fd = new FormData();
+                fd.append('email', email);
+                const r    = await fetch(`/apps/${APP_ID}/claim/request`, { method: 'POST', body: fd });
+                const data = await r.json();
+
+                if (r.ok && data.ok) {
+                    showClaimMsg('✓ ' + data.message, true);
+                    btn.textContent = 'Sent!';
+                    setTimeout(() => closeModal('claimModal'), 2500);
+                } else {
+                    showClaimMsg(data.error || 'Something went wrong.', false);
+                    btn.disabled = false;
+                    btn.textContent = 'Send verification email';
+                }
+            } catch (e) {
+                showClaimMsg('Network error — please try again.', false);
+                btn.disabled = false;
+                btn.textContent = 'Send verification email';
+            }
+        }
+
+        function showClaimMsg(text, success) {
+            const el = document.getElementById('claimModalMsg');
+            el.textContent = text;
+            el.style.color  = success ? '#2d9e6b' : '#e05c5c';
+            el.style.display = 'block';
+        }
+
+        // Allow Enter key in the email field
+        document.addEventListener('DOMContentLoaded', function() {
+            const input = document.getElementById('claimEmailInput');
+            if (input) {
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') { e.preventDefault(); submitClaim(); }
+                });
+            }
+        });
+
+        /*]]>*/
+    </script>
+
+
+    <!--
+      ══════════════════════════════════════════════════════════════════════════════
+      CSS additions  —  paste inside the existing <style> block in manage/index.html
+      ══════════════════════════════════════════════════════════════════════════════
+
+      No new rules are strictly needed — the banner uses only inline styles so it
+      doesn't conflict with the existing stylesheet.  The modal re-uses existing
+      .modal / .modal-overlay / .modal-field classes already present in the file.
+    -->
     <!-- RATING -->
     <div class="meta-row">
         <span class="meta-label">RATING</span>
