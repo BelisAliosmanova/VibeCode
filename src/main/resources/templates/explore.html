@@ -57,7 +57,6 @@
             display: flex; align-items: center; gap: 0.4rem;
         }
 
-        /* Tab pills — these are real links that trigger a page reload with ?tab=... */
         .tab-pill {
             display: inline-flex; align-items: center;
             padding: 0.28rem 0.85rem;
@@ -143,11 +142,19 @@
             padding: 0 0.3rem;
             display: flex; align-items: center; justify-content: space-between;
         }
+
+        /* Category-level count badge */
+        .filter-group-count {
+            font-size: 0.6rem; font-weight: 700;
+            color: #bbb; margin-left: 0.3rem;
+            font-style: normal; text-transform: none; letter-spacing: 0;
+        }
+
         .filter-group-clear {
             font-size: 0.62rem; color: var(--accent); cursor: pointer;
             font-weight: 600; text-transform: none; letter-spacing: 0;
             background: none; border: none; font-family: var(--font);
-            display: none;
+            display: none; margin-left: auto;
         }
         .filter-group-clear.show { display: block; }
         .filter-group-clear:hover { text-decoration: underline; }
@@ -170,6 +177,14 @@
             width: 14px; height: 14px; border-radius: 3px;
             object-fit: contain; flex-shrink: 0;
         }
+
+        /* Entry-level count */
+        .filter-item-name { flex: 1; min-width: 0; }
+        .filter-item-count {
+            font-size: 0.62rem; color: #bbb; font-weight: 500;
+            flex-shrink: 0; margin-left: auto;
+        }
+        .filter-item.active .filter-item-count { color: #888; }
 
         /* ── APP SECTIONS ────────────────────────────────────────────────── */
         .content { padding: 1.25rem 9.5rem 3rem; }
@@ -222,7 +237,6 @@
             gap: 0.3rem; flex-shrink: 0;
         }
 
-        /* Dual rating row */
         .rating-row { display: flex; align-items: center; gap: 0.3rem; }
         .rating-block { display: flex; align-items: center; gap: 0.2rem; }
         .rating-sep { color: #ddd; font-size: 0.65rem; }
@@ -230,9 +244,9 @@
         .stars { display: flex; gap: 1px; }
         .star  { font-size: 0.68rem; color: #ddd; }
         .star.lit-user     { color: var(--gold); }
-        .star.lit-verified { color: #3b82f6; }   /* blue stars for verified */
+        .star.lit-verified { color: #3b82f6; }
 
-        .rating-count { font-size: 0.62rem; color: #bbb; }
+        .rating-count { font-size: 0.62rem; color: #888; font-weight: 500; }
 
         .app-price {
             font-size: 0.68rem; font-weight: 700;
@@ -242,12 +256,10 @@
         }
         .app-price.free { border-color: #6ee7b7; color: var(--green); background: #f0fdf4; }
 
-        /* Empty section state */
         .empty-section {
             color: #ccc; font-size: 0.78rem; text-align: center;
             padding: 1.5rem 0;
         }
-        .rating-count { font-size: 0.62rem; color: #888; font-weight: 500; }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 </head>
@@ -259,11 +271,6 @@
     <h1>Explore</h1>
 </div>
 
-<!--
-  Top filter bar.
-  Tab pills are standard <a> links so the server re-renders the correct sections.
-  They preserve the currently-selected sidebar filters via JS-built URLs.
--->
 <div class="top-bar">
     <a class="tab-pill"
        th:classappend="${tab == 'top-rated'} ? ' active' : ''"
@@ -299,13 +306,19 @@
     <!-- ── SIDEBAR ─────────────────────────────────────────────────────── -->
     <aside class="sidebar">
         <th:block th:each="cat, catStat : ${filterEntries.entrySet()}"
-                  th:with="catId=${cat.key.id}">
+                  th:with="catId=${cat.key.id},
+                            catCount=${categoryAppCounts[cat.key.id]}">
 
             <hr class="filter-sep" th:if="${!catStat.first}"/>
 
             <div class="filter-group" th:id="'fg-' + ${catId}">
                 <div class="filter-group-header">
-                    <span th:text="'ALL ' + ${cat.key.name.toUpperCase()}">ALL CATEGORIES</span>
+                    <span>
+                        <span th:text="'ALL ' + ${cat.key.name.toUpperCase()}">ALL CATEGORIES</span>
+                        <span class="filter-group-count"
+                              th:if="${catCount != null and catCount > 0}"
+                              th:text="'(' + ${catCount} + ')'"></span>
+                    </span>
                     <button class="filter-group-clear"
                             th:id="'clear-' + ${catId}"
                             th:data-cat-id="${catId}"
@@ -325,7 +338,10 @@
                          th:src="${entry.iconUrl}"
                          th:alt="${entry.name}"
                          class="filter-item-icon"/>
-                    <span th:text="${entry.name}">Entry</span>
+                    <span class="filter-item-name" th:text="${entry.name}">Entry</span>
+                    <span class="filter-item-count"
+                          th:if="${entryAppCounts[entry.id] != null and entryAppCounts[entry.id] > 0}"
+                          th:text="'(' + ${entryAppCounts[entry.id]} + ')'"></span>
                 </div>
             </div>
         </th:block>
@@ -371,9 +387,9 @@
                             <!-- User rating (gold stars) -->
                             <div class="rating-block">
                                 <div class="stars">
-                <span th:each="i : ${#numbers.sequence(1,5)}"
-                      class="star"
-                      th:classappend="${app.userRatingAvg >= i} ? ' lit-user' : ''">★</span>
+                                    <span th:each="i : ${#numbers.sequence(1,5)}"
+                                          class="star"
+                                          th:classappend="${app.userRatingAvg >= i} ? ' lit-user' : ''">★</span>
                                 </div>
                                 <span class="rating-count"
                                       th:text="${#numbers.formatDecimal(app.userRatingAvg,1,1)} + ' (' + ${app.userRatingCount} + ')'">0</span>
@@ -382,9 +398,9 @@
                             <!-- Verified rating (blue stars) -->
                             <div class="rating-block">
                                 <div class="stars" th:if="${app.verifiedScore != null}">
-                <span th:each="i : ${#numbers.sequence(1,5)}"
-                      class="star"
-                      th:classappend="${app.verifiedScore >= i} ? ' lit-verified' : ''">★</span>
+                                    <span th:each="i : ${#numbers.sequence(1,5)}"
+                                          class="star"
+                                          th:classappend="${app.verifiedScore >= i} ? ' lit-verified' : ''">★</span>
                                 </div>
                                 <span th:if="${app.verifiedScore != null}"
                                       style="font-size:0.62rem;color:#3b82f6;font-weight:600;"
@@ -526,7 +542,6 @@
     }
 
     // ── Tab pills: rebuild href to carry current filters ─────────────────────
-    // Runs on page load so tab links always include the active entry filters.
     (function patchTabLinks() {
         const entryParams = [...selectedIds].map(id => `entries=${encodeURIComponent(id)}`).join('&');
         document.querySelectorAll('.tab-pill').forEach(link => {
@@ -565,7 +580,7 @@
         });
     }
 
-    // ── Client-side search (instant, within visible cards only) ─────────────
+    // ── Client-side search ───────────────────────────────────────────────────
     document.getElementById('searchInput').addEventListener('input', function () {
         const q = this.value.toLowerCase().trim();
         document.querySelectorAll('#mainContent .app-card').forEach(card => {

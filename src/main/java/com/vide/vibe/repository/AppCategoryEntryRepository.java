@@ -15,7 +15,6 @@ public interface AppCategoryEntryRepository extends JpaRepository<AppCategoryEnt
     // All selections for an app (all categories combined)
     List<AppCategoryEntry> findAllByAppId(UUID appId);
 
-    // All selections for an app within a specific category
     @Query("""
         SELECT ace FROM AppCategoryEntry ace
         WHERE ace.app.id = :appId
@@ -36,6 +35,8 @@ public interface AppCategoryEntryRepository extends JpaRepository<AppCategoryEnt
         """)
     void deleteByAppIdAndCategoryId(UUID appId, UUID categoryId);
 
-    // Remove a specific selection
     void deleteByAppIdAndEntryId(UUID appId, UUID entryId);
+
+    @Query("SELECT ace.entry.id, COUNT(ace) FROM AppCategoryEntry ace GROUP BY ace.entry.id")
+    List<Object[]> countGroupedByEntryId();
 }

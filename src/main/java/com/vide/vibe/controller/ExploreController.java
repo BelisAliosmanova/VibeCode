@@ -139,6 +139,18 @@ public class ExploreController {
         model.addAttribute("section2Title",   section2Title);
         model.addAttribute("section2Apps",    section2Apps);
 
+
+        Map<UUID, Long> entryAppCounts = categoryService.getAppCountByEntry();
+        Map<UUID, Long> categoryAppCounts = new LinkedHashMap<>();
+        for (Map.Entry<Category, List<CategoryEntry>> catEntry : filterEntries.entrySet()) {
+            long sum = catEntry.getValue().stream()
+                    .mapToLong(e -> entryAppCounts.getOrDefault(e.getId(), 0L))
+                    .sum();
+            categoryAppCounts.put(catEntry.getKey().getId(), sum);
+        }
+        model.addAttribute("entryAppCounts",    entryAppCounts);
+        model.addAttribute("categoryAppCounts", categoryAppCounts);
+
         return "explore";
     }
 }
