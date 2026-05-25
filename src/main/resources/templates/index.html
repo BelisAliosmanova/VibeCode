@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Vibe — Apps for people by people</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --black:       #111111;
+            --gray-900:    #1e1e1e;
+            --gray-800:    #2d2d2d;
+            --gray-700:    #3d3d3d;
+            --gray-600:    #5a5a5a;
+            --gray-500:    #737373;
+            --gray-400:    #a3a3a3;
+            --gray-300:    #d4d4d4;
+            --gray-200:    #e5e5e5;
+            --gray-100:    #f5f5f5;
+            --gray-50:     #fafafa;
+            --white:       #ffffff;
+            --gold:        #f59e0b;
+            --blue:        #3b82f6;
+            --green:       #22c55e;
+            --radius-sm:   6px;
+            --radius-md:   10px;
+            --radius-lg:   14px;
+            --radius-xl:   20px;
+            --radius-pill: 999px;
+            --font:        'Inter', system-ui, -apple-system, sans-serif;
+            --nav-h:       42px;
+            --shadow-sm:   0 1px 3px rgba(0,0,0,0.08);
+            --shadow-md:   0 4px 12px rgba(0,0,0,0.08);
+            --shadow-lg:   0 8px 32px rgba(0,0,0,0.10);
+        }
+        html { scroll-behavior: smooth; }
+        body { font-family: var(--font); background: var(--white); color: var(--black); font-size: 13px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+        a { text-decoration: none; color: inherit; }
+        button { font-family: var(--font); cursor: pointer; }
+
+        /* NAV — matches explore page */
+        nav {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 1.75rem; height: var(--nav-h);
+            background: var(--gray-600);
+            position: fixed; top: 0; left: 0; right: 0; z-index: 300;
+        }
+        .nav-left  { display: flex; align-items: center; gap: 1.25rem; }
+        .nav-logo  {
+            width: 26px; height: 26px; background: #222; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-weight: 800; font-size: 0.75rem;
+            text-decoration: none;
+        }
+        .nav-link  { color: #fff; text-decoration: none; font-size: 0.82rem; opacity: 0.85; }
+        .nav-link:hover { opacity: 1; }
+        .nav-right { display: flex; align-items: center; gap: 0.75rem; }
+        .btn-ghost-nav   { background: transparent; border: none; color: #fff; font-size: 0.8rem; cursor: pointer; text-decoration: none; }
+        .btn-outline-nav { background: transparent; border: 1.5px solid #fff; color: #fff; font-size: 0.75rem; padding: 0.28rem 0.8rem; border-radius: var(--radius-pill); text-decoration: none; }
+        .btn-outline-nav:hover { background: rgba(255,255,255,0.1); }
+
+        .page-wrapper { padding-top: var(--nav-h); }
+
+        /* HERO — centered */
+        .hero {
+            background: var(--gray-600);
+            position: relative; overflow: hidden;
+            padding: 4rem 2rem 4.5rem;
+            display: flex; align-items: center; justify-content: center;
+            min-height: 220px;
+        }
+        .hero-shapes { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+        .shape { position: absolute; border-radius: 16px; border: 1.5px solid rgba(255,255,255,0.10); background: rgba(255,255,255,0.03); }
+        .shape-1 { width:120px;height:120px;top:-30px;right:80px;transform:rotate(15deg);animation:float1 6s ease-in-out infinite; }
+        .shape-2 { width:80px;height:80px;top:40px;right:220px;transform:rotate(-8deg);animation:float2 7s ease-in-out infinite 1s;background:rgba(255,255,255,0.05); }
+        .shape-3 { width:100px;height:100px;bottom:-20px;right:140px;transform:rotate(25deg);animation:float1 8s ease-in-out infinite 0.5s; }
+        .shape-4 { width:60px;height:60px;top:60px;right:60px;transform:rotate(-20deg);border-radius:12px;animation:float2 5s ease-in-out infinite 2s;background:rgba(255,255,255,0.04); }
+        .shape-5 { width:140px;height:50px;bottom:30px;right:260px;transform:rotate(10deg);border-radius:10px;animation:float1 9s ease-in-out infinite 0.8s; }
+        .shape-6 { width:90px;height:90px;top:-20px;left:60px;transform:rotate(-12deg);animation:float2 7s ease-in-out infinite 0.3s; }
+        .shape-7 { width:60px;height:60px;bottom:20px;left:140px;transform:rotate(18deg);animation:float1 6s ease-in-out infinite 1.2s;background:rgba(255,255,255,0.04); }
+        @keyframes float1 { 0%,100%{transform:rotate(15deg) translateY(0)} 50%{transform:rotate(15deg) translateY(-8px)} }
+        @keyframes float2 { 0%,100%{transform:rotate(-8deg) translateY(0)} 50%{transform:rotate(-8deg) translateY(-6px)} }
+
+        .hero-content {
+            position: relative; z-index: 1;
+            display: flex; flex-direction: column; align-items: center;
+            text-align: center; max-width: 520px;
+        }
+        .hero-heading { font-size: 2.1rem; font-weight: 800; color: var(--white); line-height: 1.15; letter-spacing: -0.8px; margin-bottom: 1.25rem; }
+        .hero-search-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.9rem; width: 100%; justify-content: center; }
+        .hero-search { display: flex; align-items: center; background: var(--white); border-radius: var(--radius-pill); padding: 0 1rem; gap: 0.5rem; flex: 1; max-width: 360px; height: 40px; box-shadow: var(--shadow-md); }
+        .hero-search svg { color: var(--gray-400); flex-shrink: 0; width: 13px; height: 13px; }
+        .hero-search-input { border: none; outline: none; font-family: var(--font); font-size: 0.82rem; color: var(--black); width: 100%; background: transparent; }
+        .hero-search-input::placeholder { color: var(--gray-400); }
+        .hero-search-btn { width: 30px; height: 30px; background: var(--gray-900); border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--white); transition: background 0.12s; }
+        .hero-search-btn:hover { background: var(--black); }
+        .hero-developer-badge { display: inline-flex; align-items: center; gap: 0.5rem; }
+        .developer-label { font-size: 0.7rem; color: rgba(255,255,255,0.5); font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; }
+        .btn-submit { display: inline-flex; align-items: center; background: rgba(255,255,255,0.12); border: 1.5px solid rgba(255,255,255,0.2); color: var(--white); font-size: 0.76rem; font-weight: 600; padding: 0.32rem 0.9rem; border-radius: var(--radius-pill); transition: background 0.12s, border-color 0.12s; }
+        .btn-submit:hover { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.3); }
+
+        /* CONTENT */
+        .content { padding: 1.5rem 2rem 4rem; max-width: 1100px; margin: 0 auto; }
+
+        .sections-container { display: flex; flex-direction: column; gap: 0.5rem; }
+
+        .section-row { display: grid; gap: 0.5rem; }
+        .section-row.row-1 { grid-template-columns: 1fr; }
+        .section-row.row-2 { grid-template-columns: 1fr 1fr; }
+
+        .home-section {
+            background: var(--white); border-radius: var(--radius-xl);
+            border: 1.5px solid var(--gray-200); overflow: hidden;
+            transition: box-shadow 0.2s, transform 0.15s, border-color 0.15s;
+            display: flex; flex-direction: column;
+        }
+        .home-section:hover { border-color: var(--gray-300); }
+        .home-section.dragging { opacity: 0.92; box-shadow: var(--shadow-lg); transform: scale(1.01); z-index: 10; position: relative; }
+        .home-section.drag-over { border-color: var(--gray-400); }
+
+        .section-drag-handle { display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 1.25rem 0; cursor: grab; }
+        .section-drag-handle:active { cursor: grabbing; }
+        .section-title-row { display: flex; align-items: center; gap: 0.6rem; }
+        .section-title { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--black); }
+        .section-count { font-size: 0.62rem; color: var(--gray-400); font-weight: 500; }
+        .drag-dots { display: flex; gap: 2px; opacity: 0.25; transition: opacity 0.15s; }
+        .drag-dots span { display: block; width: 3px; height: 3px; background: var(--gray-500); border-radius: 50%; }
+        .home-section:hover .drag-dots { opacity: 0.6; }
+
+        .section-body { padding: 0.65rem 1.25rem 0.85rem; flex: 1; }
+
+        .section-more-link { font-size: 0.7rem; color: var(--gray-400); font-weight: 600; padding: 0.35rem 1.25rem 0.75rem; display: inline-block; transition: color 0.12s; cursor: pointer; }
+        .section-more-link:hover { color: var(--black); }
+
+        /* APP CARD — list */
+        .app-list-card { display: flex; align-items: center; gap: 0.65rem; padding: 0.5rem 0; border-bottom: 1px solid var(--gray-100); transition: background 0.1s; border-radius: var(--radius-sm); cursor: pointer; }
+        .app-list-card:last-child { border-bottom: none; }
+        .app-list-card:hover { background: var(--gray-50); }
+        .app-list-icon { width: 36px; height: 36px; border-radius: var(--radius-md); border: 1.5px solid var(--gray-200); background: var(--gray-100); flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; color: var(--gray-300); }
+        .app-list-icon img { width: 100%; height: 100%; object-fit: cover; }
+        .app-list-body { flex: 1; min-width: 0; }
+        .app-list-name { font-size: 0.78rem; font-weight: 700; color: var(--black); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 0.1rem; }
+        .app-list-desc { font-size: 0.67rem; color: var(--gray-500); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.4; }
+        .app-list-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.2rem; flex-shrink: 0; }
+        .app-list-rating { display: flex; align-items: center; gap: 0.25rem; }
+        .stars-xs { display: flex; gap: 1px; }
+        .star-xs { font-size: 0.58rem; color: var(--gray-300); }
+        .star-xs.lit { color: var(--gold); }
+        .star-xs.lit-blue { color: var(--blue); }
+        .rating-num { font-size: 0.62rem; font-weight: 600; color: var(--gray-500); }
+        .price-tag { font-size: 0.6rem; font-weight: 700; color: var(--gray-400); border: 1.5px solid var(--gray-200); border-radius: var(--radius-pill); padding: 0.1rem 0.45rem; }
+        .price-tag.free { border-color: #bbf7d0; color: var(--green); background: #f0fdf4; }
+
+        /* FEATURED REVIEW */
+        .featured-review-card { background: var(--gray-50); border-radius: var(--radius-lg); padding: 0.85rem 1rem; border: 1.5px solid var(--gray-200); }
+        .featured-review-header { display: flex; align-items: flex-start; gap: 0.65rem; margin-bottom: 0.55rem; }
+        .featured-icon { width: 44px; height: 44px; border-radius: var(--radius-lg); border: 1.5px solid var(--gray-200); background: var(--white); overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; color: var(--gray-300); flex-shrink: 0; }
+        .featured-icon img { width: 100%; height: 100%; object-fit: cover; }
+        .featured-info { flex: 1; min-width: 0; }
+        .featured-name { font-size: 0.85rem; font-weight: 800; color: var(--black); margin-bottom: 0.15rem; }
+        .featured-desc { font-size: 0.68rem; color: var(--gray-500); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .featured-review-summary { font-size: 0.7rem; font-weight: 600; color: var(--gray-500); margin-bottom: 0.5rem; padding-bottom: 0.45rem; border-bottom: 1px solid var(--gray-200); }
+        .featured-feature-pills { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+        .feat-chip { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.18rem 0.55rem; background: var(--black); color: var(--white); border-radius: var(--radius-pill); font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+        .feat-chip.more { background: var(--gray-200); color: var(--gray-600); }
+
+        /* FEATURES STRIP */
+        .features-strip { display: flex; flex-wrap: wrap; gap: 0.35rem; padding: 0.65rem 1.25rem 0.85rem; }
+        .feature-pill { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.28rem 0.75rem; background: var(--black); color: var(--white); border-radius: var(--radius-pill); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer; transition: background 0.12s; }
+        .feature-pill:hover { background: var(--gray-800); }
+        .feature-pill-count { background: rgba(255,255,255,0.18); border-radius: 999px; font-size: 0.58rem; padding: 0.05rem 0.35rem; font-weight: 700; }
+
+        /* APP OF THE WEEK */
+        .aow-card { display: flex; flex-direction: column; gap: 0.5rem; }
+        .aow-header { display: flex; align-items: flex-start; gap: 0.75rem; }
+        .aow-icon { width: 54px; height: 54px; border-radius: var(--radius-lg); border: 1.5px solid var(--gray-200); overflow: hidden; background: var(--gray-100); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: var(--gray-300); flex-shrink: 0; }
+        .aow-icon img { width: 100%; height: 100%; object-fit: cover; }
+        .aow-info { flex: 1; min-width: 0; }
+        .aow-name { font-size: 0.9rem; font-weight: 800; color: var(--black); margin-bottom: 0.15rem; }
+        .aow-desc { font-size: 0.7rem; color: var(--gray-500); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .aow-stars-row { display: flex; align-items: center; gap: 0.4rem; margin-top: 0.3rem; }
+        .aow-feature-pills { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.25rem; }
+        .aow-pill { display: inline-flex; align-items: center; padding: 0.18rem 0.55rem; background: var(--black); color: var(--white); border-radius: var(--radius-pill); font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+
+        /* GRID for "Apps with a different vibe" */
+        .section-body-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+        .grid-card { display: flex; align-items: center; gap: 0.6rem; padding: 0.55rem 1.25rem; border-bottom: 1px solid var(--gray-100); cursor: pointer; transition: background 0.1s; }
+        .grid-card:nth-child(odd) { border-right: 1px solid var(--gray-100); }
+        .grid-card:hover { background: var(--gray-50); }
+        .grid-card:nth-last-child(-n+2) { border-bottom: none; }
+        .grid-card:last-child { border-bottom: none; }
+        .grid-icon { width: 34px; height: 34px; border-radius: var(--radius-md); border: 1.5px solid var(--gray-200); background: var(--gray-100); flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: var(--gray-300); }
+        .grid-icon img { width: 100%; height: 100%; object-fit: cover; }
+        .grid-body { flex: 1; min-width: 0; }
+        .grid-name { font-size: 0.75rem; font-weight: 700; color: var(--black); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 0.08rem; }
+        .grid-desc { font-size: 0.64rem; color: var(--gray-500); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.35; }
+
+        .empty-state { text-align: center; padding: 1.5rem; color: var(--gray-300); font-size: 0.78rem; }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .hero-heading { font-size: 1.5rem; }
+            .section-row.row-2 { grid-template-columns: 1fr; }
+            .section-body-grid { grid-template-columns: 1fr; }
+            .grid-card:nth-child(odd) { border-right: none; }
+            .content { padding: 1rem 1rem 3rem; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAV — matches explore style -->
+<nav>
+    <div class="nav-left">
+        <a href="/" class="nav-logo">V</a>
+        <a th:href="@{/submit}"  class="nav-link">Submit</a>
+        <a th:href="@{/explore}" class="nav-link">Explore</a>
+        <a th:href="@{/apps}"    class="nav-link">Wish an app</a>
+    </div>
+    <div class="nav-right">
+        <a th:href="@{/login}"    class="btn-ghost-nav">Sign in</a>
+        <a th:href="@{/register}" class="btn-outline-nav">Sign up</a>
+    </div>
+</nav>
+
+<div class="page-wrapper">
+
+    <!-- HERO — centered -->
+    <div class="hero">
+        <div class="hero-shapes">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-2"></div>
+            <div class="shape shape-3"></div>
+            <div class="shape shape-4"></div>
+            <div class="shape shape-5"></div>
+            <div class="shape shape-6"></div>
+            <div class="shape shape-7"></div>
+        </div>
+        <div class="hero-content">
+            <h1 class="hero-heading">Apps for people<br/>by people</h1>
+            <div class="hero-search-row">
+                <div class="hero-search">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+                    <input class="hero-search-input" type="text" id="heroSearch" placeholder="Find an app…"/>
+                </div>
+                <button class="hero-search-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+                </button>
+            </div>
+            <div class="hero-developer-badge">
+                <span class="developer-label">Developer</span>
+                <a th:href="@{/submit}" class="btn-submit">Submit your app</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTENT -->
+    <main class="content" id="mainContent">
+        <div class="sections-container">
+
+            <!-- ROW 1: Newest in Productivity + Reviewed today -->
+            <div class="section-row row-2">
+
+                <!-- LEFT: Newest in Productivity -->
+                <div class="home-section" id="sec-newest" data-section-id="newest">
+                    <div class="section-drag-handle">
+                        <div class="section-title-row">
+                            <span class="section-title">Newest in Productivity</span>
+                            <span class="section-count"
+                                  th:if="${!#lists.isEmpty(newestApps)}"
+                                  th:text="'(' + ${#lists.size(newestApps)} + ')'"></span>
+                        </div>
+                        <div class="drag-dots"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+                    </div>
+                    <div class="section-body">
+                        <div th:if="${#lists.isEmpty(newestApps)}" class="empty-state">No apps yet — be the first to submit one.</div>
+                        <th:block th:each="app, st : ${newestApps}" th:if="${st.index < 5}">
+                            <a class="app-list-card"
+                               th:href="@{/p/{slug}(slug=${app.slug})}"
+                               th:data-name="${app.name.toLowerCase()}"
+                               th:data-desc="${app.description != null ? app.description.toLowerCase() : ''}">
+                                <div class="app-list-icon">
+                                    <img th:if="${app.iconUrl != null}" th:src="${app.iconUrl}" alt=""/>
+                                    <span th:if="${app.iconUrl == null}">🖼</span>
+                                </div>
+                                <div class="app-list-body">
+                                    <div class="app-list-name" th:text="${app.name}">App Name</div>
+                                    <div class="app-list-desc" th:text="${app.description != null ? app.description : 'No description'}"></div>
+                                </div>
+                                <div class="app-list-right">
+                                    <div class="app-list-rating">
+                                        <div class="stars-xs">
+                                            <span th:each="i : ${#numbers.sequence(1,5)}" class="star-xs" th:classappend="${app.userRatingAvg >= i} ? ' lit' : ''">★</span>
+                                        </div>
+                                        <span class="rating-num" th:text="${#numbers.formatDecimal(app.userRatingAvg,1,1)}">0.0</span>
+                                    </div>
+                                    <span class="price-tag free">FREE</span>
+                                </div>
+                            </a>
+                        </th:block>
+                    </div>
+                    <a th:href="@{/explore}" class="section-more-link">More…</a>
+                </div>
+
+                <!-- RIGHT: Reviewed today -->
+                <div class="home-section" id="sec-reviewed" data-section-id="reviewed">
+                    <div class="section-drag-handle">
+                        <div class="section-title-row">
+                            <span class="section-title">Reviewed today</span>
+                        </div>
+                        <div class="drag-dots"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+                    </div>
+                    <div class="section-body">
+                        <div th:if="${#lists.isEmpty(reviewedApps)}" class="empty-state">No reviewed apps today.</div>
+                        <div th:if="${!#lists.isEmpty(reviewedApps)}" th:with="rev=${reviewedApps[0]}">
+                            <div class="featured-review-card">
+                                <div class="featured-review-header">
+                                    <div class="featured-icon">
+                                        <img th:if="${rev.iconUrl != null}" th:src="${rev.iconUrl}" alt=""/>
+                                        <span th:if="${rev.iconUrl == null}">🖼</span>
+                                    </div>
+                                    <div class="featured-info">
+                                        <div class="featured-name" th:text="${rev.name}">App Name</div>
+                                        <div class="app-list-rating" style="margin:0.15rem 0;">
+                                            <div class="stars-xs">
+                                                <span th:each="i : ${#numbers.sequence(1,5)}" class="star-xs lit-blue">★</span>
+                                            </div>
+                                            <span class="rating-num" th:text="${#numbers.formatDecimal(rev.verifiedScore,1,1)} + '/5'">5.0/5</span>
+                                        </div>
+                                        <div class="featured-desc" th:text="${rev.description != null ? rev.description : ''}"></div>
+                                    </div>
+                                </div>
+                                <div class="featured-review-summary">Review short summary — awesome!</div>
+                                <div class="featured-feature-pills">
+                                    <span class="feat-chip">AI Presentation</span>
+                                    <span class="feat-chip">AI Video</span>
+                                    <span class="feat-chip more">+3 more</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <a th:href="@{/explore}" class="section-more-link">More…</a>
+                </div>
+
+            </div>
+
+            <!-- ROW 2: Most popular features — full width -->
+            <div class="section-row row-1">
+                <div class="home-section" id="sec-features" data-section-id="features"
+                     th:if="${!#lists.isEmpty(popularFeatures)}">
+                    <div class="section-drag-handle">
+                        <div class="section-title-row">
+                            <span class="section-title">Most popular features</span>
+                        </div>
+                        <div class="drag-dots"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+                    </div>
+                    <div class="features-strip">
+                        <span th:each="feat : ${popularFeatures}" class="feature-pill" th:onclick="'window.location=\'/explore\''">
+                            <span th:text="${feat.name.toUpperCase()}">FEATURE</span>
+                            <span class="feature-pill-count" th:if="${entryAppCounts[feat.id] != null}" th:text="${entryAppCounts[feat.id]}">0</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROW 3: App of the week + Top paid apps -->
+            <div class="section-row row-2">
+
+                <!-- LEFT: App of the week -->
+                <div class="home-section" id="sec-aow" data-section-id="aow">
+                    <div class="section-drag-handle">
+                        <div class="section-title-row">
+                            <span class="section-title">App of the week</span>
+                        </div>
+                        <div class="drag-dots"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+                    </div>
+                    <div class="section-body">
+                        <div th:if="${appOfWeek != null}" class="aow-card">
+                            <div class="aow-header">
+                                <div class="aow-icon">
+                                    <img th:if="${appOfWeek.iconUrl != null}" th:src="${appOfWeek.iconUrl}" alt=""/>
+                                    <span th:if="${appOfWeek.iconUrl == null}">🖼</span>
+                                </div>
+                                <div class="aow-info">
+                                    <div class="aow-name" th:text="${appOfWeek.name}">App Name</div>
+                                    <div class="aow-desc" th:text="${appOfWeek.description != null ? appOfWeek.description : ''}"></div>
+                                    <div class="aow-stars-row">
+                                        <div class="stars-xs">
+                                            <span th:each="i : ${#numbers.sequence(1,5)}" class="star-xs"
+                                                  th:classappend="${appOfWeek.verifiedScore != null and appOfWeek.verifiedScore >= i} ? ' lit-blue' : (${appOfWeek.userRatingAvg >= i} ? ' lit' : '')">★</span>
+                                        </div>
+                                        <span class="rating-num">
+                                            <span th:if="${appOfWeek.verifiedScore != null}" th:text="${#numbers.formatDecimal(appOfWeek.verifiedScore,1,1)}">5.0</span>
+                                            <span th:if="${appOfWeek.verifiedScore == null}" th:text="${#numbers.formatDecimal(appOfWeek.userRatingAvg,1,1)}">0.0</span>
+                                        </span>
+                                        <span class="price-tag free">FREE</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="aow-feature-pills" th:if="${!#lists.isEmpty(popularFeatures)}">
+                                <span th:each="feat, st : ${popularFeatures}" th:if="${st.index < 3}" class="aow-pill" th:text="${feat.name.toUpperCase()}">FEATURE</span>
+                                <span class="aow-pill" style="background:var(--gray-200);color:var(--gray-600);" th:if="${#lists.size(popularFeatures) > 3}">
+                                    +<span th:text="${#lists.size(popularFeatures) - 3}">0</span> more
+                                </span>
+                            </div>
+                        </div>
+                        <div th:if="${appOfWeek == null}" class="empty-state">No app of the week yet.</div>
+                    </div>
+                    <a th:href="@{/explore}" class="section-more-link">More…</a>
+                </div>
+
+                <!-- RIGHT: Top paid apps -->
+                <div class="home-section" id="sec-toprated" data-section-id="toprated">
+                    <div class="section-drag-handle">
+                        <div class="section-title-row">
+                            <span class="section-title">Top paid apps</span>
+                        </div>
+                        <div class="drag-dots"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+                    </div>
+                    <div class="section-body">
+                        <th:block th:each="app : ${topRatedApps}">
+                            <a class="app-list-card"
+                               th:href="@{/p/{slug}(slug=${app.slug})}"
+                               th:data-name="${app.name.toLowerCase()}"
+                               th:data-desc="${app.description != null ? app.description.toLowerCase() : ''}">
+                                <div class="app-list-icon">
+                                    <img th:if="${app.iconUrl != null}" th:src="${app.iconUrl}" alt=""/>
+                                    <span th:if="${app.iconUrl == null}">🖼</span>
+                                </div>
+                                <div class="app-list-body">
+                                    <div class="app-list-name" th:text="${app.name}">App Name</div>
+                                    <div class="app-list-desc" th:text="${app.description != null ? app.description : 'No description'}"></div>
+                                </div>
+                                <div class="app-list-right">
+                                    <div class="app-list-rating">
+                                        <div class="stars-xs">
+                                            <span th:each="i : ${#numbers.sequence(1,5)}" class="star-xs"
+                                                  th:classappend="${app.verifiedScore != null and app.verifiedScore >= i} ? ' lit-blue' : (${app.userRatingAvg >= i} ? ' lit' : '')">★</span>
+                                        </div>
+                                        <span class="rating-num" th:text="${#numbers.formatDecimal(app.userRatingAvg,1,1)}">0.0</span>
+                                    </div>
+                                    <span class="price-tag free">FREE</span>
+                                </div>
+                            </a>
+                        </th:block>
+                        <div th:if="${#lists.isEmpty(topRatedApps)}" class="empty-state">No rated apps yet.</div>
+                    </div>
+                    <a th:href="@{/explore(tab='top-rated')}" class="section-more-link">More…</a>
+                </div>
+
+            </div>
+
+            <!-- ROW 4: Apps with a different vibe — full width, 2-col grid inside -->
+            <div class="section-row row-1">
+                <div class="home-section" id="sec-vibe" data-section-id="vibe">
+                    <div class="section-drag-handle">
+                        <div class="section-title-row">
+                            <span class="section-title">Apps with a different vibe</span>
+                            <span class="section-count" th:text="'(' + ${#lists.size(vibeApps)} + ')'"></span>
+                        </div>
+                        <div class="drag-dots"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+                    </div>
+                    <div th:if="${#lists.isEmpty(vibeApps)}" class="empty-state">Submit apps to see them here.</div>
+                    <div class="section-body-grid" th:if="${!#lists.isEmpty(vibeApps)}">
+                        <th:block th:each="app : ${vibeApps}">
+                            <a class="grid-card"
+                               th:href="@{/p/{slug}(slug=${app.slug})}"
+                               th:data-name="${app.name.toLowerCase()}"
+                               th:data-desc="${app.description != null ? app.description.toLowerCase() : ''}">
+                                <div class="grid-icon">
+                                    <img th:if="${app.iconUrl != null}" th:src="${app.iconUrl}" alt=""/>
+                                    <span th:if="${app.iconUrl == null}">🖼</span>
+                                </div>
+                                <div class="grid-body">
+                                    <div class="grid-name" th:text="${app.name}">App Name</div>
+                                    <div class="grid-desc" th:text="${app.description != null ? app.description : 'No description'}"></div>
+                                </div>
+                            </a>
+                        </th:block>
+                    </div>
+                    <a th:href="@{/explore}" class="section-more-link">More…</a>
+                </div>
+            </div>
+
+        </div>
+    </main>
+</div>
+
+<form id="filterForm" th:action="@{/explore}" method="get" style="display:none;">
+    <input type="hidden" name="tab" value="top-rated"/>
+    <div id="filterInputs"></div>
+</form>
+
+<script>
+    const STORAGE_KEY = 'vibe_section_order_v1';
+
+    function saveSectionOrder() {
+        const ids = [...document.querySelectorAll('.home-section')].map(s => s.dataset.sectionId).filter(Boolean);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
+    }
+
+    function restoreSectionOrder() {
+        try {
+            const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            if (!saved.length) return;
+        } catch (_) {}
+    }
+
+    function initDraggableSections() {
+        let dragSrc = null;
+
+        document.querySelectorAll('.home-section').forEach(section => {
+            const handle = section.querySelector('.section-drag-handle');
+            if (!handle) return;
+
+            handle.addEventListener('mousedown', () => section.setAttribute('draggable', 'true'));
+
+            section.addEventListener('dragstart', (e) => {
+                dragSrc = section;
+                setTimeout(() => section.classList.add('dragging'), 0);
+                e.dataTransfer.effectAllowed = 'move';
+            });
+
+            section.addEventListener('dragend', () => {
+                section.classList.remove('dragging');
+                section.removeAttribute('draggable');
+                document.querySelectorAll('.home-section').forEach(s => s.classList.remove('drag-over'));
+                saveSectionOrder();
+                dragSrc = null;
+            });
+
+            section.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                if (dragSrc && dragSrc !== section) section.classList.add('drag-over');
+            });
+
+            section.addEventListener('dragleave', () => section.classList.remove('drag-over'));
+
+            section.addEventListener('drop', (e) => {
+                e.preventDefault();
+                section.classList.remove('drag-over');
+                if (!dragSrc || dragSrc === section) return;
+
+                const srcRow = dragSrc.closest('.section-row');
+                const tgtRow = section.closest('.section-row');
+                if (!srcRow || !tgtRow) return;
+
+                if (srcRow === tgtRow) {
+                    // Same row — swap the two cards in place
+                    const siblings = [...srcRow.children];
+                    const srcIdx = siblings.indexOf(dragSrc);
+                    const tgtIdx = siblings.indexOf(section);
+                    if (srcIdx === -1 || tgtIdx === -1) return;
+                    // Insert a placeholder, swap, remove placeholder
+                    const placeholder = document.createElement('div');
+                    srcRow.insertBefore(placeholder, dragSrc);
+                    srcRow.insertBefore(dragSrc, section);
+                    srcRow.insertBefore(section, placeholder);
+                    placeholder.remove();
+                } else {
+                    // Different rows — move entire source row relative to target row
+                    const container = srcRow.parentElement;
+                    const rows = [...container.querySelectorAll('.section-row')];
+                    const srcRowIdx = rows.indexOf(srcRow);
+                    const tgtRowIdx = rows.indexOf(tgtRow);
+                    if (srcRowIdx < tgtRowIdx) tgtRow.after(srcRow);
+                    else tgtRow.before(srcRow);
+                }
+            });
+        });
+    }
+
+    const heroSearchInput = document.getElementById('heroSearch');
+    if (heroSearchInput) {
+        heroSearchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const q = heroSearchInput.value.trim();
+                if (q) window.location.href = `/explore?search=${encodeURIComponent(q)}`;
+            }
+        });
+        heroSearchInput.addEventListener('input', function () {
+            const q = this.value.toLowerCase().trim();
+            document.querySelectorAll('#mainContent [data-name]').forEach(card => {
+                if (!q) { card.style.display = ''; return; }
+                card.style.display = ((card.dataset.name||'').includes(q)||(card.dataset.desc||'').includes(q)) ? '' : 'none';
+            });
+        });
+    }
+
+    restoreSectionOrder();
+    initDraggableSections();
+</script>
+</body>
+</html>
