@@ -686,12 +686,14 @@
                                     </div>
                                     <div class="reviewed-summary" style="border-top:1px dotted rgba(255,255,255,0.25); border-bottom:1px dotted rgba(255,255,255,0.25); padding:0.5rem 0; margin-top:1rem;">Review short summary — awesome!</div>
                                     <div class="feat-label">Top features:</div>
-                                    <div class="aow-chips" th:if="${!#lists.isEmpty(popularFeatures)}">
-                                        <span th:each="feat, st : ${popularFeatures}" th:if="${st.index < 3}"
-                                              class="aow-chip" th:text="${feat.name.toUpperCase()}">FEATURE</span>
-                                        <span class="aow-chip chip-more" th:if="${#lists.size(popularFeatures) > 3}">
-                                            +<span th:text="${#lists.size(popularFeatures) - 3}">0</span> More
-                                        </span>
+                                    <div class="aow-chips" th:if="${!#maps.isEmpty(reviewedAppFeatures)}">
+                                        <th:block th:each="catEntry : ${reviewedAppFeatures}">
+                                            <span th:each="feat, st : ${catEntry.value}" th:if="${st.index < 2}"
+                                                  class="aow-chip" th:text="${feat.name.toUpperCase()}">FEATURE</span>
+                                        </th:block>
+                                    </div>
+                                    <div class="aow-chips" th:if="${#maps.isEmpty(reviewedAppFeatures)}">
+                                        <span class="aow-chip chip-more" style="opacity:0.4;">No features tagged yet</span>
                                     </div>
                                 </div>
                             </div>
@@ -813,13 +815,15 @@
                                     </div>
                                 </div>
                                 <div class="feat-label-aow">Top features:</div>
-                                <div class="aow-chips" th:if="${!#lists.isEmpty(popularFeatures)}">
-                                    <span th:each="feat, st : ${popularFeatures}" th:if="${st.index < 3}"
-                                          class="aow-chip" th:text="${feat.name.toUpperCase()}">FEATURE</span>
-                                    <span class="aow-chip chip-more" th:if="${#lists.size(popularFeatures) > 3}">
-                                        +<span th:text="${#lists.size(popularFeatures) - 3}">0</span> More
-                                    </span>
-                                </div>
+                                    <div class="aow-chips" th:if="${!#maps.isEmpty(appOfWeekFeatures)}">
+                                        <th:block th:each="catEntry : ${appOfWeekFeatures}">
+        <span th:each="feat, st : ${catEntry.value}" th:if="${st.index < 2}"
+              class="aow-chip" th:text="${feat.name.toUpperCase()}">FEATURE</span>
+                                        </th:block>
+                                    </div>
+                                    <div class="aow-chips" th:if="${#maps.isEmpty(appOfWeekFeatures)}">
+                                        <span class="aow-chip chip-more" style="opacity:0.4;">No features tagged yet</span>
+                                    </div>
                             </div>
 
                             <!-- FALLBACK static -->
