@@ -87,6 +87,33 @@ public class ManageController {
         return "manage/index";
     }
 
+    @PostMapping("/video")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> saveVideo(
+            @PathVariable UUID appId,
+            @RequestParam String url,
+            @RequestParam(defaultValue = "0") int position) {
+        try {
+            appMediaRepository.findAllByAppIdAndTypeOrderByPositionAsc(appId, AppMedia.MediaType.VIDEO)
+                    .forEach(appMediaRepository::delete);
+
+            App app = appRepository.findById(appId)
+                    .orElseThrow(() -> new RuntimeException("App not found"));
+
+            AppMedia media = AppMedia.builder()
+                    .app(app)
+                    .type(AppMedia.MediaType.VIDEO)
+                    .url(url)
+                    .position(position)
+                    .build();
+            appMediaRepository.save(media);
+            return ResponseEntity.ok(Map.of("ok", true, "url", url));
+        } catch (Exception e) {
+            return ResponseEntity.status(500)
+                    .body(Map.of("error", e.getMessage() != null ? e.getMessage() : "Error"));
+        }
+    }
+
     @PostMapping("/info")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> updateInfo(
