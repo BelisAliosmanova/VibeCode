@@ -4,7 +4,9 @@
 
 <nav th:fragment="navbar" style="display:flex;align-items:center;justify-content:space-between;padding:0.85rem 2rem;">
     <div style="display:flex;align-items:center;gap:1.5rem;">
-        <div style="width:32px;height:32px;background:#222;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:0.9rem;">V</div>
+        <a th:href="@{/}" style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;">
+            <img th:src="@{/logo_sm.png}" src="/logo_sm.png" alt="Vibe logo" style="width:100%;height:100%;object-fit:cover; background: black;"/>
+        </a>
         <a th:href="@{/explore}"        style="color:#fff;text-decoration:none;font-size:0.9rem;opacity:0.9;font-family:'Inter',system-ui,sans-serif;">Explore</a>
         <a th:href="@{/submit}"         style="color:#fff;text-decoration:none;font-size:0.9rem;opacity:0.9;font-family:'Inter',system-ui,sans-serif;">Submit</a>
         <a th:href="@{/apps}"           style="color:#fff;text-decoration:none;font-size:0.9rem;opacity:0.9;font-family:'Inter',system-ui,sans-serif;">Apps</a>

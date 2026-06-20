@@ -103,7 +103,7 @@
         .app-header-card { display: flex; align-items: flex-start; gap: 1.25rem; margin-bottom: 1.75rem; }
         .app-icon-wrap { width: 86px; height: 86px; flex-shrink: 0; border-radius: var(--radius-xl); overflow: hidden; background: var(--white); display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; box-shadow: 0 4px 18px rgba(0,0,0,0.25); }
         .app-icon-wrap img { width: 100%; height: 100%; object-fit: cover; }
-        .app-icon-placeholder { font-size: 2rem; color: var(--card-bg2); }
+        .app-icon-placeholder { width: 38px; height: 38px; object-fit: contain; opacity: 0.35; }
         .app-icon-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; color: white; font-size: 0.72rem; font-weight: 600; }
         .app-icon-wrap:hover .app-icon-overlay { display: flex; }
 
@@ -151,9 +151,10 @@
         .media-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
         .media-cell { background: var(--card-bg2); border-radius: var(--radius-lg); aspect-ratio: 4/3; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; cursor: pointer; transition: background 0.12s; }
         .media-cell:hover { background: #34495e; }
-        .media-cell img { width: 100%; height: 100%; object-fit: cover; }
-        .play-btn { width: 40px; height: 40px; background: rgba(255,255,255,0.12); border: 1.5px solid rgba(255,255,255,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1rem; }
-        .media-placeholder { color: var(--gray-300); font-size: 1.7rem; }
+        .media-cell img { height: 100%;}
+        .play-btn { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1rem; }
+        .play-btn img { height: 36px; object-fit: contain; }
+        .media-placeholder { width: 30px; height: 30px; object-fit: contain; opacity: 0.55; }
         .media-upload-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; color: white; font-size: 0.72rem; font-weight: 600; }
         .media-cell:hover .media-upload-overlay { display: flex; }
         .media-dots { display: none; }
@@ -349,7 +350,7 @@
     <div class="app-header-card">
         <div class="app-icon-wrap" id="iconWrap" onclick="document.getElementById('iconFileInput').click()">
             <img alt="icon" id="iconImg" th:if="${app.iconUrl != null}" th:src="${app.iconUrl}"/>
-            <span class="app-icon-placeholder" id="iconPlaceholder" th:if="${app.iconUrl == null}">🖼</span>
+            <img alt="" class="app-icon-placeholder" id="iconPlaceholder" src="/img_placeholder_ico.png" th:if="${app.iconUrl == null}"/>
             <div class="app-icon-overlay">Upload</div>
         </div>
         <input accept="image/*" id="iconFileInput" style="display:none;" type="file"/>
@@ -585,8 +586,7 @@
                     <div th:if="${vm.empty}" id="ytPlaceholder"
                          style="display:flex;flex-direction:column;align-items:center;gap:0.4rem;cursor:pointer;"
                          onclick="openYouTubeModal()">
-                        <div class="play-btn">▶</div>
-                        <span style="font-size:0.62rem;font-weight:700;color:var(--gray-300);letter-spacing:0.08em;text-transform:uppercase;">Add YouTube</span>
+                        <div class="play-btn"><img alt="" src="/video_placeholder_ico.png"/></div>
                     </div>
                 </th:block>
                 <!-- edit button always visible over the iframe -->
@@ -600,12 +600,12 @@
             <th:block th:with="ss=${media.?[type.name()=='SCREENSHOT']}">
                 <div class="media-cell" onclick="triggerMediaUpload('shot1')">
                     <img alt="" id="shot1Img" th:if="${ss.size()>0}" th:src="${ss[0].url}"/>
-                    <span class="media-placeholder" th:if="${ss.size()==0}">🖼</span>
+                    <img alt="" class="media-placeholder" src="/img_placeholder_ico.png" th:if="${ss.size()==0}"/>
                     <div class="media-upload-overlay">Upload</div>
                 </div>
                 <div class="media-cell" onclick="triggerMediaUpload('shot2')">
                     <img alt="" id="shot2Img" th:if="${ss.size()>1}" th:src="${ss[1].url}"/>
-                    <span class="media-placeholder" th:if="${ss.size()<=1}">🖼</span>
+                    <img alt="" class="media-placeholder" src="/img_placeholder_ico.png" th:if="${ss.size()<=1}"/>
                     <div class="media-upload-overlay">Upload</div>
                 </div>
             </th:block>
