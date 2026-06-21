@@ -1,6 +1,7 @@
 package com.vide.vibe.controller;
 
 import com.vide.vibe.model.App;
+import com.vide.vibe.model.AppCategoryEntry;
 import com.vide.vibe.model.Category;
 import com.vide.vibe.model.CategoryEntry;
 import com.vide.vibe.model.HomeSection;
@@ -17,6 +18,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Admin page for building/editing the manual homepage sections shown in the
@@ -68,8 +70,21 @@ public class HomeSectionController {
         Map<UUID, List<App>> sectionListApps   = homeSectionService.findAllListAppsBySection();
         Map<UUID, App>       sectionFeatured   = homeSectionService.findAllFeaturedAppsBySection();
 
+        // app.id -> list of entry IDs it's tagged with, so the picker's sidebar
+        // filters can narrow the app list client-side without another round trip.
+        Map<UUID, List<UUID>> appEntryIds = new LinkedHashMap<>();
+        for (App app : allApps) {
+            List<UUID> entryIds = categoryService.findAllSelectionsForApp(app.getId())
+                    .stream()
+                    .map(ace -> ace.getEntry().getId())
+                    .distinct()
+                    .collect(Collectors.toList());
+            appEntryIds.put(app.getId(), entryIds);
+        }
+
         model.addAttribute("allApps",        allApps);
         model.addAttribute("filterEntries",  filterEntries);
+        model.addAttribute("appEntryIds",    appEntryIds);
         model.addAttribute("topUserRated",   topUserRated);
         model.addAttribute("topVerified",    topVerified);
         model.addAttribute("sections",       sections);

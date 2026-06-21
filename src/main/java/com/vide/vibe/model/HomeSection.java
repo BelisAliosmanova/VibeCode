@@ -6,23 +6,6 @@ import lombok.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * A user-configurable section on the homepage (e.g. "Newest in Productivity").
- *
- * Two layouts are supported:
- *
- *  FIVE_PLUS_ONE — five apps in a list on one side, one "featured" app on the
- *                  other. Each side has its own independently editable title
- *                  ({@code title} for the list side, {@code featuredTitle}
- *                  for the featured side).
- *
- *  SIX_GRID      — six apps shown in a single 2x3 (or similar) grid, no
- *                  featured slot. Only {@code title} is used; featuredTitle
- *                  is ignored for this layout.
- *
- * Sections themselves are ordered via {@code position}, which is what gets
- * persisted when the admin drags a section to a new spot on the homepage.
- */
 @Entity
 @Table(
         name = "home_sections",

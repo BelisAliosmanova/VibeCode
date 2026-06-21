@@ -305,7 +305,7 @@
                 <!-- SIDEBAR: filter entries by category -->
                 <aside class="picker-sidebar">
                     <th:block th:each="cat, catStat : ${filterEntries.entrySet()}">
-                        <div class="filter-group">
+                        <div class="filter-group" th:data-cat-id="${cat.key.id}">
                             <div class="filter-group-header" th:text="${cat.key.name.toUpperCase()}">CATEGORY</div>
                             <div th:each="entry : ${cat.value}"
                                  class="filter-item"
@@ -329,7 +329,8 @@
                         <div class="app-pick-row"
                              th:id="'pick-' + ${app.id}"
                              th:data-app-id="${app.id}"
-                             th:data-app-name="${app.name.toLowerCase()}">
+                             th:data-app-name="${app.name.toLowerCase()}"
+                             th:data-entry-ids="${#strings.listJoin(appEntryIds.get(app.id) ?: {}, ',')}">
                             <div class="app-pick-icon">
                                 <img th:if="${app.iconUrl != null}" th:src="${app.iconUrl}" alt=""/>
                                 <span th:if="${app.iconUrl == null}">🖼</span>
@@ -470,6 +471,13 @@
     }
 
     /* ── Filter sidebar ────────────────────────────────────────────────── */
+    // entryId -> categoryId, built from the sidebar markup, so we can group
+    // active filters by category (AND across categories, OR within one).
+    const entryCategoryMap = {};
+    document.querySelectorAll('.picker-sidebar .filter-item[data-entry-id]').forEach(el => {
+        entryCategoryMap[el.dataset.entryId] = el.closest('.filter-group')?.dataset.catId || null;
+    });
+
     function toggleEntryFilter(el) {
         const id = el.dataset.entryId;
         if (activeEntryFilters.has(id)) {
@@ -484,11 +492,34 @@
 
     function applyFilters() {
         const searchQ = document.getElementById('appSearch').value.toLowerCase().trim();
+
+        // Group active filters by category: { catId: Set(entryId, ...) }
+        const byCategory = {};
+        activeEntryFilters.forEach(entryId => {
+            const catId = entryCategoryMap[entryId];
+            if (!catId) return;
+            if (!byCategory[catId]) byCategory[catId] = new Set();
+            byCategory[catId].add(entryId);
+        });
+        const categoryGroups = Object.values(byCategory);
+
         document.querySelectorAll('#appPickList .app-pick-row').forEach(row => {
             const nameMatch = !searchQ || row.dataset.appName.includes(searchQ);
-            // Filters currently narrow by name search only — entry-based filtering
-            // would need server-supplied app→entry membership data per row.
-            row.style.display = nameMatch ? '' : 'none';
+
+            let filterMatch = true;
+            if (categoryGroups.length > 0) {
+                const appEntries = new Set((row.dataset.entryIds || '').split(',').filter(Boolean));
+                // AND across categories: app must satisfy every active category group
+                filterMatch = categoryGroups.every(group => {
+                    // OR within a category: app needs at least one entry from this group
+                    for (const entryId of group) {
+                        if (appEntries.has(entryId)) return true;
+                    }
+                    return false;
+                });
+            }
+
+            row.style.display = (nameMatch && filterMatch) ? '' : 'none';
         });
     }
 

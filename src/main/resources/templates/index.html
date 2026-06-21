@@ -185,7 +185,7 @@
         .section-title[contenteditable="true"]:focus { border-bottom-color: rgba(255,255,255,0.5); }
         .drag-dots { display: flex; gap: 2px; opacity: 0.2; transition: opacity 0.15s; }
         .drag-dots span { display: block; width: 3px; height: 3px; background: rgba(255,255,255,0.8); border-radius: 50%; }
-        .section-pair:hover .drag-dots { opacity: 0.5; }
+        .section-pair:hover .drag-dots, .section-row-full:hover .drag-dots { opacity: 0.5; }
 
         /* ── SECTION CARD ───────────────────────────────────────── */
         .home-section {
@@ -200,8 +200,8 @@
             background: radial-gradient(81.22% 106.36% at 28.19% 30.97%, #163a70 0%, #4b91f4 100%);
         }
 
-        .section-pair.dragging-pair { opacity: 0.8; }
-        .section-pair.drag-over-pair { outline: 2px dashed rgba(255,255,255,0.3); outline-offset: 4px; border-radius: var(--radius-xl); }
+        .section-pair.dragging-pair, .section-row-full.dragging-pair { opacity: 0.8; }
+        .section-pair.drag-over-pair, .section-row-full.drag-over-pair { outline: 2px dashed rgba(255,255,255,0.3); outline-offset: 4px; border-radius: var(--radius-xl); }
 
         .section-body { padding: 2rem 1rem 1rem; }
 
@@ -369,212 +369,265 @@
     <main class="content" id="mainContent">
         <div class="sections-container" id="sectionsContainer">
 
-            <!-- ── DYNAMIC HOME SECTIONS ──────────────────────────── -->
+            <!-- ── HOMEPAGE BLOCKS (drag to reorder) ──────────────────────── -->
             <!--
-              Each HomeSection is either:
-                FIVE_PLUS_ONE — a "pair": up to 5 list apps on the left + 1
-                                featured app on the right, each side with its
-                                own independently editable title.
-                SIX_GRID      — a single full-width card with up to 6 apps
-                                laid out in a grid, one title.
-              All variants share one section-pair div per section so they
-              drag together as a unit.
+              One unified, drag-reorderable sequence. Each block is one of:
+                - a custom HomeSection (FIVE_PLUS_ONE or SIX_GRID), looked up
+                  by id from ${sections}
+                - the fixed "Most popular features" block
+                - the fixed "Apps with a different vibe" block
+              Order comes from ${blockOrder} (persisted via site config), so
+              fixed and custom blocks can be freely interleaved by dragging.
             -->
-            <th:block th:each="section : ${sections}">
+            <th:block th:each="blockId : ${blockOrder}">
 
-                <!-- ═══════════ FIVE_PLUS_ONE layout ═══════════ -->
-                <div th:if="${section.layout.name() == 'FIVE_PLUS_ONE'}"
-                     class="section-pair layout-5-1"
-                     draggable="false"
-                     th:data-section-id="${section.id}"
-                     th:id="'pair-' + ${section.id}">
-
-                    <!-- LEFT: list of up to 5 apps -->
+                <!-- ═══ Fixed block: Most popular features ═══ -->
+                <div th:if="${blockId == blockPopular}"
+                     class="section-row-full"
+                     th:data-block-id="${blockId}"
+                     th:id="'block-' + ${blockId}">
                     <div class="section-wrapper">
                         <div class="section-header">
-                            <div class="section-title-row">
-                                <span class="section-title"
-                                      contenteditable="true"
-                                      th:data-section-id="${section.id}"
-                                      th:data-title-field="title"
-                                      th:data-original="${section.title}"
-                                      th:text="${section.title}"
-                                      onblur="saveSectionTitle(this)"
-                                      onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"></span>
+                            <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+                                <span class="section-title">Most popular features</span>
+                                <div style="display:flex;align-items:center;gap:0.4rem;">
+                                    <button class="features-arrow-btn" id="featuresScrollLeft">‹</button>
+                                    <button class="features-arrow-btn" id="featuresScrollRight">›</button>
+                                    <div class="drag-dots">
+                                        <span></span><span></span><span></span><span></span><span></span><span></span>
+                                    </div>
+                                </div>
                             </div>
+                        </div>
+                        <div class="home-section" style="background:none;" th:if="${!#lists.isEmpty(popularFeatures)}">
+                            <div class="features-wrap">
+                                <div class="features-strip-row" id="featuresStrip">
+                                    <span class="feature-pill"
+                                          th:each="feat : ${popularFeatures}"
+                                          onclick="window.location='/explore'">
+                                        <span class="pill-name" th:text="${feat.name.toUpperCase()}">FEATURE</span>
+                                        <span class="pill-count"
+                                              th:if="${entryAppCounts[feat.id] != null}"
+                                              th:text="'(' + ${entryAppCounts[feat.id]} + ')'"></span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="home-section" style="background:none;" th:if="${#lists.isEmpty(popularFeatures)}">
+                            <div class="empty-state">No popular features yet.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═══ Fixed block: Apps with a different vibe ═══ -->
+                <div th:if="${blockId == blockVibe}"
+                     class="section-row-full"
+                     th:data-block-id="${blockId}"
+                     th:id="'block-' + ${blockId}">
+                    <div class="section-wrapper">
+                        <div class="section-header">
+                            <span class="section-title" style="color:rgba(255,255,255,0.65);">Apps with a different vibe</span>
                             <div class="drag-dots">
                                 <span></span><span></span><span></span><span></span><span></span><span></span>
                             </div>
                         </div>
-                        <div class="home-section">
-                            <div class="section-body">
-                                <th:block th:with="listApps=${sectionListApps.get(section.id)}">
-                                    <th:block th:if="${listApps != null and !#lists.isEmpty(listApps)}">
-                                        <th:block th:each="app : ${listApps}">
-                                            <a class="app-list-card"
+                        <div class="home-section blue-vibe" th:if="${!#lists.isEmpty(vibeApps)}">
+                            <div class="vibe-grid">
+                                <a class="grid-card"
+                                   th:each="app : ${vibeApps}"
+                                   th:href="@{/p/{slug}(slug=${app.slug})}"
+                                   th:data-name="${app.name.toLowerCase()}"
+                                   th:data-desc="${app.description != null ? app.description.toLowerCase() : ''}">
+                                    <div class="grid-icon">
+                                        <img alt="" th:if="${app.iconUrl != null}" th:src="${app.iconUrl}"/>
+                                        <span th:if="${app.iconUrl == null}">🖼</span>
+                                    </div>
+                                    <div>
+                                        <div class="grid-name" th:text="${app.name}">App Name</div>
+                                        <div class="grid-desc"
+                                             th:text="${app.description != null ? app.description : 'No description'}"></div>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="home-section blue-vibe" th:if="${#lists.isEmpty(vibeApps)}">
+                            <div class="empty-state">No apps yet.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═══ Custom section blocks ═══ -->
+                <th:block th:with="section=${sectionsById.get(blockId)}">
+                    <th:block th:if="${section != null}">
+
+                        <!-- FIVE_PLUS_ONE layout -->
+                        <div th:if="${section.layout.name() == 'FIVE_PLUS_ONE'}"
+                             class="section-pair layout-5-1"
+                             draggable="false"
+                             th:data-block-id="${blockId}"
+                             th:id="'block-' + ${blockId}">
+
+                            <!-- LEFT: list of up to 5 apps -->
+                            <div class="section-wrapper">
+                                <div class="section-header">
+                                    <div class="section-title-row">
+                                    <span class="section-title"
+                                          contenteditable="true"
+                                          th:data-section-id="${section.id}"
+                                          th:data-title-field="title"
+                                          th:data-original="${section.title}"
+                                          th:text="${section.title}"
+                                          onblur="saveSectionTitle(this)"
+                                          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"></span>
+                                    </div>
+                                    <div class="drag-dots">
+                                        <span></span><span></span><span></span><span></span><span></span><span></span>
+                                    </div>
+                                </div>
+                                <div class="home-section">
+                                    <div class="section-body">
+                                        <th:block th:with="listApps=${sectionListApps.get(section.id)}">
+                                            <th:block th:if="${listApps != null and !#lists.isEmpty(listApps)}">
+                                                <th:block th:each="app : ${listApps}">
+                                                    <a class="app-list-card"
+                                                       th:href="@{/p/{slug}(slug=${app.slug})}"
+                                                       th:data-name="${app.name.toLowerCase()}"
+                                                       th:data-desc="${app.description != null ? app.description.toLowerCase() : ''}">
+                                                        <div class="app-list-icon">
+                                                            <img alt="" th:if="${app.iconUrl != null}" th:src="${app.iconUrl}"/>
+                                                            <span th:if="${app.iconUrl == null}">🖼</span>
+                                                        </div>
+                                                        <div class="app-list-body">
+                                                            <div class="app-list-name" th:text="${app.name}">App Name</div>
+                                                            <div class="app-list-desc"
+                                                                 th:text="${app.description != null ? app.description : 'No description'}"></div>
+                                                        </div>
+                                                        <div class="app-list-right">
+                                                            <span class="price-tag free">FREE</span>
+                                                            <div class="rating-row">
+                                                                <div class="stars-xs">
+                                                                <span th:each="i : ${#numbers.sequence(1,5)}" class="star-xs"
+                                                                      th:classappend="${app.userRatingAvg >= i} ? ' lit' : ''">★</span>
+                                                                </div>
+                                                                <span class="rating-num"
+                                                                      th:text="${#numbers.formatDecimal(app.userRatingAvg,1,1)}">0.0</span>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </th:block>
+                                            </th:block>
+                                            <div th:if="${listApps == null or #lists.isEmpty(listApps)}" class="empty-state">
+                                                No apps in this section yet.
+                                            </div>
+                                        </th:block>
+                                    </div>
+                                    <a class="section-more" href="/explore" th:href="@{/explore}">More</a>
+                                </div>
+                            </div>
+
+                            <!-- RIGHT: featured app, with its own independently editable title -->
+                            <div class="section-wrapper">
+                                <div class="section-header">
+                                    <div class="section-title-row">
+                                    <span class="section-title"
+                                          contenteditable="true"
+                                          th:data-section-id="${section.id}"
+                                          th:data-title-field="featuredTitle"
+                                          th:data-original="${section.featuredTitle != null ? section.featuredTitle : 'Featured'}"
+                                          th:text="${section.featuredTitle != null ? section.featuredTitle : 'Featured'}"
+                                          onblur="saveSectionTitle(this)"
+                                          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"></span>
+                                    </div>
+                                </div>
+                                <div class="home-section dark-card">
+                                    <th:block th:with="feat=${sectionFeatured.get(section.id)}">
+                                        <div th:if="${feat != null}" class="featured-card-inner">
+                                            <a th:href="@{/p/{slug}(slug=${feat.slug})}" style="text-decoration:none;color:inherit;">
+                                                <div class="featured-icon">
+                                                    <img alt="" th:if="${feat.iconUrl != null}" th:src="${feat.iconUrl}"/>
+                                                    <span th:if="${feat.iconUrl == null}">⭐</span>
+                                                </div>
+                                                <div class="featured-name" th:text="${feat.name}">App Name</div>
+                                                <div class="featured-desc" th:text="${feat.description != null ? feat.description : ''}"></div>
+                                                <div class="rating-row" style="margin-top:0.75rem;">
+                                                    <div class="stars-xs">
+                                                    <span th:each="i : ${#numbers.sequence(1,5)}" class="star-xs"
+                                                          th:classappend="${feat.verifiedScore != null and feat.verifiedScore >= i} ? ' lit-blue' : (${feat.userRatingAvg >= i} ? ' lit' : '')">★</span>
+                                                    </div>
+                                                    <span class="price-tag free" style="font-size:0.62rem;padding:0.12rem 0.5rem;margin-left:0.4rem;">FREE</span>
+                                                </div>
+                                            </a>
+                                        </div>
+                                        <div th:if="${feat == null}" class="empty-state">No featured app.</div>
+                                    </th:block>
+                                    <a class="section-more" href="/explore" th:href="@{/explore}">More</a>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- SIX_GRID layout -->
+                        <div th:if="${section.layout.name() == 'SIX_GRID'}"
+                             class="section-pair layout-6-grid section-row-full"
+                             draggable="false"
+                             th:data-block-id="${blockId}"
+                             th:id="'block-' + ${blockId}">
+                            <div class="section-wrapper">
+                                <div class="section-header">
+                                    <div class="section-title-row">
+                                    <span class="section-title"
+                                          contenteditable="true"
+                                          th:data-section-id="${section.id}"
+                                          th:data-title-field="title"
+                                          th:data-original="${section.title}"
+                                          th:text="${section.title}"
+                                          onblur="saveSectionTitle(this)"
+                                          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"></span>
+                                    </div>
+                                    <div class="drag-dots">
+                                        <span></span><span></span><span></span><span></span><span></span><span></span>
+                                    </div>
+                                </div>
+                                <div class="home-section blue-vibe">
+                                    <th:block th:with="listApps=${sectionListApps.get(section.id)}">
+                                        <div class="vibe-grid" th:if="${listApps != null and !#lists.isEmpty(listApps)}">
+                                            <a class="grid-card"
+                                               th:each="app : ${listApps}"
                                                th:href="@{/p/{slug}(slug=${app.slug})}"
                                                th:data-name="${app.name.toLowerCase()}"
                                                th:data-desc="${app.description != null ? app.description.toLowerCase() : ''}">
-                                                <div class="app-list-icon">
+                                                <div class="grid-icon">
                                                     <img alt="" th:if="${app.iconUrl != null}" th:src="${app.iconUrl}"/>
                                                     <span th:if="${app.iconUrl == null}">🖼</span>
                                                 </div>
-                                                <div class="app-list-body">
-                                                    <div class="app-list-name" th:text="${app.name}">App Name</div>
-                                                    <div class="app-list-desc"
+                                                <div>
+                                                    <div class="grid-name" th:text="${app.name}">App Name</div>
+                                                    <div class="grid-desc"
                                                          th:text="${app.description != null ? app.description : 'No description'}"></div>
                                                 </div>
-                                                <div class="app-list-right">
-                                                    <span class="price-tag free">FREE</span>
-                                                    <div class="rating-row">
-                                                        <div class="stars-xs">
-                                                            <span th:each="i : ${#numbers.sequence(1,5)}" class="star-xs"
-                                                                  th:classappend="${app.userRatingAvg >= i} ? ' lit' : ''">★</span>
-                                                        </div>
-                                                        <span class="rating-num"
-                                                              th:text="${#numbers.formatDecimal(app.userRatingAvg,1,1)}">0.0</span>
-                                                    </div>
-                                                </div>
                                             </a>
-                                        </th:block>
+                                        </div>
+                                        <div th:if="${listApps == null or #lists.isEmpty(listApps)}" class="empty-state">
+                                            No apps in this section yet.
+                                        </div>
                                     </th:block>
-                                    <div th:if="${listApps == null or #lists.isEmpty(listApps)}" class="empty-state">
-                                        No apps in this section yet.
-                                    </div>
-                                </th:block>
-                            </div>
-                            <a class="section-more" href="/explore" th:href="@{/explore}">More</a>
-                        </div>
-                    </div>
-
-                    <!-- RIGHT: featured app, with its own independently editable title -->
-                    <div class="section-wrapper">
-                        <div class="section-header">
-                            <div class="section-title-row">
-                                <span class="section-title"
-                                      contenteditable="true"
-                                      th:data-section-id="${section.id}"
-                                      th:data-title-field="featuredTitle"
-                                      th:data-original="${section.featuredTitle != null ? section.featuredTitle : 'Featured'}"
-                                      th:text="${section.featuredTitle != null ? section.featuredTitle : 'Featured'}"
-                                      onblur="saveSectionTitle(this)"
-                                      onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"></span>
-                            </div>
-                        </div>
-                        <div class="home-section dark-card">
-                            <th:block th:with="feat=${sectionFeatured.get(section.id)}">
-                                <div th:if="${feat != null}" class="featured-card-inner">
-                                    <a th:href="@{/p/{slug}(slug=${feat.slug})}" style="text-decoration:none;color:inherit;">
-                                        <div class="featured-icon">
-                                            <img alt="" th:if="${feat.iconUrl != null}" th:src="${feat.iconUrl}"/>
-                                            <span th:if="${feat.iconUrl == null}">⭐</span>
-                                        </div>
-                                        <div class="featured-name" th:text="${feat.name}">App Name</div>
-                                        <div class="featured-desc" th:text="${feat.description != null ? feat.description : ''}"></div>
-                                        <div class="rating-row" style="margin-top:0.75rem;">
-                                            <div class="stars-xs">
-                                                <span th:each="i : ${#numbers.sequence(1,5)}" class="star-xs"
-                                                      th:classappend="${feat.verifiedScore != null and feat.verifiedScore >= i} ? ' lit-blue' : (${feat.userRatingAvg >= i} ? ' lit' : '')">★</span>
-                                            </div>
-                                            <span class="price-tag free" style="font-size:0.62rem;padding:0.12rem 0.5rem;margin-left:0.4rem;">FREE</span>
-                                        </div>
-                                    </a>
                                 </div>
-                                <div th:if="${feat == null}" class="empty-state">No featured app.</div>
-                            </th:block>
-                            <a class="section-more" href="/explore" th:href="@{/explore}">More</a>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- ═══════════ SIX_GRID layout ═══════════ -->
-                <div th:if="${section.layout.name() == 'SIX_GRID'}"
-                     class="section-pair layout-6-grid section-row-full"
-                     draggable="false"
-                     th:data-section-id="${section.id}"
-                     th:id="'pair-' + ${section.id}">
-                    <div class="section-wrapper">
-                        <div class="section-header">
-                            <div class="section-title-row">
-                                <span class="section-title"
-                                      contenteditable="true"
-                                      th:data-section-id="${section.id}"
-                                      th:data-title-field="title"
-                                      th:data-original="${section.title}"
-                                      th:text="${section.title}"
-                                      onblur="saveSectionTitle(this)"
-                                      onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"></span>
-                            </div>
-                            <div class="drag-dots">
-                                <span></span><span></span><span></span><span></span><span></span><span></span>
                             </div>
                         </div>
-                        <div class="home-section blue-vibe">
-                            <th:block th:with="listApps=${sectionListApps.get(section.id)}">
-                                <div class="vibe-grid" th:if="${listApps != null and !#lists.isEmpty(listApps)}">
-                                    <a class="grid-card"
-                                       th:each="app : ${listApps}"
-                                       th:href="@{/p/{slug}(slug=${app.slug})}"
-                                       th:data-name="${app.name.toLowerCase()}"
-                                       th:data-desc="${app.description != null ? app.description.toLowerCase() : ''}">
-                                        <div class="grid-icon">
-                                            <img alt="" th:if="${app.iconUrl != null}" th:src="${app.iconUrl}"/>
-                                            <span th:if="${app.iconUrl == null}">🖼</span>
-                                        </div>
-                                        <div>
-                                            <div class="grid-name" th:text="${app.name}">App Name</div>
-                                            <div class="grid-desc"
-                                                 th:text="${app.description != null ? app.description : 'No description'}"></div>
-                                        </div>
-                                    </a>
-                                </div>
-                                <div th:if="${listApps == null or #lists.isEmpty(listApps)}" class="empty-state">
-                                    No apps in this section yet.
-                                </div>
-                            </th:block>
-                        </div>
-                    </div>
-                </div>
+
+                    </th:block>
+                </th:block>
 
             </th:block>
 
-            <!-- ── EMPTY STATE when no sections yet ─────────────── -->
+            <!-- ── EMPTY STATE when no custom sections exist yet ─────────── -->
             <div th:if="${#lists.isEmpty(sections)}"
-                 style="text-align:center;padding:4rem 2rem;color:var(--gray-300);font-size:0.88rem;line-height:1.7;">
-                No homepage sections yet.<br/>
+                 style="text-align:center;padding:2.5rem 2rem 1rem;color:var(--gray-300);font-size:0.88rem;line-height:1.7;">
+                No custom homepage sections yet.<br/>
                 <a th:href="@{/admin/home-sections}"
                    style="color:var(--accent-green);font-weight:700;text-decoration:underline;">Add your first section →</a>
             </div>
 
-            <!-- ── MOST POPULAR FEATURES (always shown) ──────────── -->
-            <div class="section-row-full" th:if="${!#lists.isEmpty(popularFeatures)}">
-                <div class="section-wrapper">
-                    <div class="section-header" style="cursor:default;">
-                        <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
-                            <span class="section-title">Most popular features</span>
-                            <div style="display:flex;gap:0.4rem;">
-                                <button class="features-arrow-btn" id="featuresScrollLeft">‹</button>
-                                <button class="features-arrow-btn" id="featuresScrollRight">›</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="home-section" style="background:none;">
-                        <div class="features-wrap">
-                            <div class="features-strip-row" id="featuresStrip">
-                                <span class="feature-pill"
-                                      th:each="feat : ${popularFeatures}"
-                                      onclick="window.location='/explore'">
-                                    <span class="pill-name" th:text="${feat.name.toUpperCase()}">FEATURE</span>
-                                    <span class="pill-count"
-                                          th:if="${entryAppCounts[feat.id] != null}"
-                                          th:text="'(' + ${entryAppCounts[feat.id]} + ')'"></span>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     </main>
 </div>
@@ -616,60 +669,65 @@
         } catch (e) { /* best effort */ }
     }
 
-    /* ── Drag-and-drop section pairs ─────────────────────────────── */
+    /* ── Drag-and-drop homepage blocks (custom sections + fixed blocks) ──── */
     (function initDrag() {
         const container = document.getElementById('sectionsContainer');
         if (!container) return;
 
+        const blockSelector = '.section-pair[data-block-id], .section-row-full[data-block-id]';
         let dragEl = null;
 
-        container.querySelectorAll('.section-pair[data-section-id]').forEach(pair => {
-            pair.addEventListener('dragstart', e => {
-                dragEl = pair;
-                setTimeout(() => pair.classList.add('dragging-pair'), 0);
+        container.querySelectorAll(blockSelector).forEach(block => {
+            block.addEventListener('dragstart', e => {
+                dragEl = block;
+                setTimeout(() => block.classList.add('dragging-pair'), 0);
                 e.dataTransfer.effectAllowed = 'move';
             });
-            pair.addEventListener('dragend', () => {
-                pair.classList.remove('dragging-pair');
-                container.querySelectorAll('.section-pair').forEach(p => p.classList.remove('drag-over-pair'));
+            block.addEventListener('dragend', () => {
+                block.classList.remove('dragging-pair');
+                container.querySelectorAll(blockSelector).forEach(b => b.classList.remove('drag-over-pair'));
                 persistOrder();
                 dragEl = null;
             });
-            pair.addEventListener('dragover', e => {
+            block.addEventListener('dragover', e => {
                 e.preventDefault();
-                if (!dragEl || dragEl === pair) return;
-                pair.classList.add('drag-over-pair');
+                if (!dragEl || dragEl === block) return;
+                block.classList.add('drag-over-pair');
             });
-            pair.addEventListener('dragleave', () => pair.classList.remove('drag-over-pair'));
-            pair.addEventListener('drop', e => {
+            block.addEventListener('dragleave', () => block.classList.remove('drag-over-pair'));
+            block.addEventListener('drop', e => {
                 e.preventDefault();
-                pair.classList.remove('drag-over-pair');
-                if (!dragEl || dragEl === pair) return;
-                const els = [...container.querySelectorAll('.section-pair[data-section-id]')];
+                block.classList.remove('drag-over-pair');
+                if (!dragEl || dragEl === block) return;
+                const els = [...container.querySelectorAll(blockSelector)];
                 const dragIdx = els.indexOf(dragEl);
-                const dropIdx = els.indexOf(pair);
-                if (dragIdx < dropIdx) pair.after(dragEl);
-                else pair.before(dragEl);
+                const dropIdx = els.indexOf(block);
+                if (dragIdx < dropIdx) block.after(dragEl);
+                else block.before(dragEl);
             });
 
             // Enable drag only when grabbing the header's drag-dots
-            const header = pair.querySelector('.section-header');
+            // (not when clicking interactive controls like the scroll arrows)
+            const header = block.querySelector('.section-header');
             if (header) {
-                header.addEventListener('mousedown', () => pair.setAttribute('draggable', 'true'));
-                header.addEventListener('mouseup', () => pair.removeAttribute('draggable'));
+                header.addEventListener('mousedown', e => {
+                    if (e.target.closest('button, a, [contenteditable]')) return;
+                    block.setAttribute('draggable', 'true');
+                });
+                header.addEventListener('mouseup', () => block.removeAttribute('draggable'));
             }
         });
 
         async function persistOrder() {
-            const ids = [...container.querySelectorAll('.section-pair[data-section-id]')]
-                .map(p => p.dataset.sectionId)
+            const ids = [...container.querySelectorAll(blockSelector)]
+                .map(b => b.dataset.blockId)
                 .filter(Boolean);
             if (!ids.length) return;
             try {
-                await fetch('/admin/home-sections/reorder', {
+                await fetch('/api/site-config/section-order', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(ids)
+                    body: JSON.stringify({ order: ids.join(',') })
                 });
             } catch (_) { /* best effort */ }
         }
