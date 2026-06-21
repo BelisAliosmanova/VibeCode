@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Add/Edit home section — Vibe</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #233141; --panel: #1e2a3a; --panel2: #2a3a50;
+            --border: rgba(255,255,255,0.1); --white: #fff;
+            --gray-200: #b0b8c4; --gray-300: #7a8494;
+            --blue: #2563eb; --green: #8fe604; --gold: #f4a118; --danger: #e05c5c;
+            --radius-pill: 999px; --radius-md: 10px; --radius-lg: 14px;
+            --font: 'Inter', system-ui, sans-serif;
+        }
+        body { font-family: var(--font); background: #0d1520; color: var(--white); font-size: 13px; line-height: 1.5; }
+        a { color: inherit; text-decoration: none; }
+
+        nav { display: flex; align-items: center; justify-content: space-between; padding: 0 1.75rem; height: 48px; background: #5a5a5a; }
+        .nav-left { display: flex; align-items: center; gap: 1.5rem; }
+        .nav-logo { width: 26px; height: 26px; background: #222; border-radius: 50%; }
+        .nav-link { color: #fff; opacity: 0.85; font-size: 0.82rem; }
+        .nav-right { display: flex; align-items: center; gap: 0.75rem; }
+        .btn-outline-nav { border: 1.5px solid #fff; color: #fff; font-size: 0.75rem; padding: 0.28rem 0.8rem; border-radius: var(--radius-pill); }
+
+        .page-header { background: #5a5a5a; color: #fff; text-align: center; padding: 1.1rem 1.5rem; font-size: 1.3rem; font-weight: 600; }
+
+        .editor { display: grid; grid-template-columns: 230px 1fr; gap: 1.25rem; padding: 1.5rem; max-width: 1180px; margin: 0 auto; }
+
+        /* ── left controls ─────────────────────────────────────── */
+        .controls-col { display: flex; flex-direction: column; gap: 1rem; }
+        .control-block { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.85rem; }
+        .control-label { font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray-300); margin-bottom: 0.5rem; }
+        select, .title-input {
+            width: 100%; background: var(--panel2); border: 1.5px solid var(--border); color: #fff;
+            border-radius: 8px; padding: 0.5rem 0.6rem; font-size: 0.82rem; font-family: var(--font); outline: none;
+        }
+        .title-input:focus, select:focus { border-color: var(--blue); }
+
+        .tab-list { display: flex; flex-direction: column; gap: 0.3rem; }
+        .tab-btn {
+            text-align: left; background: transparent; border: 1.5px solid var(--border);
+            color: var(--gray-200); border-radius: 8px; padding: 0.5rem 0.7rem; font-size: 0.78rem;
+            font-weight: 600; cursor: pointer; font-family: var(--font);
+        }
+        .tab-btn.active { background: var(--panel2); color: #fff; border-color: var(--blue); }
+
+        .btn-add {
+            background: var(--green); color: #15280a; border: none; border-radius: var(--radius-pill);
+            padding: 0.6rem 1rem; font-size: 0.85rem; font-weight: 800; cursor: pointer; font-family: var(--font);
+        }
+        .btn-add:hover { opacity: 0.9; }
+        .btn-add:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        /* ── content panel ─────────────────────────────────────── */
+        .content-panel { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem; }
+        .panel-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.6rem; }
+        .panel-title { font-size: 0.66rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray-300); }
+        .search-box { display: flex; align-items: center; gap: 0.4rem; background: var(--panel2); border: 1.5px solid var(--border); border-radius: var(--radius-pill); padding: 0.3rem 0.8rem; min-width: 200px; }
+        .search-box input { background: transparent; border: none; outline: none; color: #fff; font-size: 0.78rem; width: 100%; font-family: var(--font); }
+
+        .picker-layout { display: grid; grid-template-columns: 190px 1fr; gap: 1rem; }
+        .picker-sidebar { border-right: 1px solid var(--border); padding-right: 0.75rem; max-height: 420px; overflow-y: auto; }
+        .filter-group { margin-bottom: 0.9rem; }
+        .filter-group-header { font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gray-300); margin-bottom: 0.3rem; }
+        .filter-item { display: flex; align-items: center; gap: 0.35rem; padding: 0.22rem 0.3rem; border-radius: 6px; cursor: pointer; font-size: 0.74rem; color: var(--gray-200); }
+        .filter-item:hover { background: var(--panel2); }
+        .filter-item.active { background: var(--panel2); color: #fff; font-weight: 600; }
+
+        .app-pick-list { max-height: 420px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.35rem; }
+        .app-pick-row { display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 0.5rem; border-radius: 8px; cursor: pointer; border: 1.5px solid transparent; }
+        .app-pick-row:hover { background: var(--panel2); }
+        .app-pick-row.sel-list { border-color: var(--blue); background: rgba(37,99,235,0.12); }
+        .app-pick-row.sel-featured { border-color: var(--gold); background: rgba(244,161,24,0.12); }
+        .app-pick-icon { width: 28px; height: 28px; border-radius: 7px; background: var(--panel2); flex-shrink: 0; overflow: hidden; display:flex;align-items:center;justify-content:center;font-size:0.7rem;color:var(--gray-300); }
+        .app-pick-icon img { width: 100%; height: 100%; object-fit: cover; }
+        .app-pick-name { flex: 1; min-width: 0; font-size: 0.78rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .app-pick-actions { display: flex; gap: 0.3rem; flex-shrink: 0; }
+        .pick-chip { font-size: 0.62rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: var(--radius-pill); border: 1.5px solid var(--border); color: var(--gray-300); cursor: pointer; background: transparent; font-family: var(--font); }
+        .pick-chip.list-chip.on { background: var(--blue); border-color: var(--blue); color: #fff; }
+        .pick-chip.feat-chip.on { background: var(--gold); border-color: var(--gold); color: #1a1306; }
+
+        /* live preview, mirrors the screenshot's right-hand card */
+        .preview-col { display: flex; flex-direction: column; gap: 0.5rem; }
+        .preview-card { background: #1a2332; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 0.75rem; }
+        .preview-row { display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 0; position: relative; }
+        .preview-row .app-pick-icon { width: 32px; height: 32px; }
+        .preview-name { font-size: 0.76rem; font-weight: 700; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .preview-price { font-size: 0.65rem; font-weight: 700; padding: 0.12rem 0.5rem; border-radius: var(--radius-pill); background: var(--blue); }
+        .preview-remove { display: none; width: 16px; height: 16px; border-radius: 50%; background: var(--danger); color: #fff; border: none; font-size: 0.6rem; cursor: pointer; align-items: center; justify-content: center; }
+        .preview-row:hover .preview-remove { display: flex; }
+        .preview-hint { font-size: 0.66rem; color: var(--gray-300); margin-top: 0.3rem; }
+        .preview-empty { font-size: 0.72rem; color: var(--gray-300); padding: 0.5rem 0; }
+        .preview-section-label { font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gray-300); margin: 0.6rem 0 0.3rem; }
+
+        /* ── existing sections manager (drag to reorder) ─────────── */
+        .manager { max-width: 1180px; margin: 1.5rem auto 3rem; padding: 0 1.5rem; }
+        .manager-title { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.75rem; }
+        .section-row-admin {
+            display: flex; align-items: center; gap: 0.75rem;
+            background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-md);
+            padding: 0.6rem 0.85rem; margin-bottom: 0.5rem; cursor: grab;
+        }
+        .section-row-admin.dragging { opacity: 0.6; }
+        .drag-handle { color: var(--gray-300); font-size: 0.9rem; }
+        .section-row-name { flex: 1; font-size: 0.82rem; font-weight: 700; }
+        .section-row-meta { font-size: 0.68rem; color: var(--gray-300); }
+        .btn-row-delete { background: none; border: none; color: var(--gray-300); cursor: pointer; font-size: 0.85rem; }
+        .btn-row-delete:hover { color: var(--danger); }
+
+        @media (max-width: 900px) {
+            .editor { grid-template-columns: 1fr; }
+            .picker-layout { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="nav-left">
+        <a class="nav-logo" th:href="@{/}"></a>
+        <a class="nav-link" th:href="@{/submit}">Submit</a>
+        <a class="nav-link" th:href="@{/explore}">Explore</a>
+    </div>
+    <div class="nav-right">
+        <a class="btn-outline-nav" th:href="@{/}">Back to site</a>
+    </div>
+</nav>
+
+<div class="page-header">Add/Edit home section</div>
+
+<div class="editor">
+
+    <!-- ── LEFT: layout / content / add ─────────────────────────── -->
+    <div class="controls-col">
+        <div class="control-block">
+            <div class="control-label">Title</div>
+            <input class="title-input" id="sectionTitle" type="text" placeholder="e.g. Newest in Productivity" maxlength="60"/>
+        </div>
+
+        <div class="control-block">
+            <div class="control-label">Layout</div>
+            <select id="sectionLayout">
+                <option value="FIVE_PLUS_ONE">5 + 1</option>
+            </select>
+        </div>
+
+        <div class="control-block">
+            <div class="control-label">Content</div>
+            <div class="tab-list">
+                <button class="tab-btn active" data-tab="filters" onclick="switchTab('filters', this)">Filters</button>
+                <button class="tab-btn" data-tab="toprated" onclick="switchTab('toprated', this)">Top rated</button>
+                <button class="tab-btn" data-tab="verified" onclick="switchTab('verified', this)">Verified</button>
+            </div>
+        </div>
+
+        <button class="btn-add" id="addBtn" onclick="submitSection()">ADD</button>
+        <div id="formMsg" style="font-size:0.72rem;color:var(--gray-300);"></div>
+    </div>
+
+    <!-- ── RIGHT: app picker + live preview ─────────────────────── -->
+    <div style="display:flex; flex-direction:column; gap:1rem;">
+
+        <div class="content-panel">
+
+            <!-- FILTERS tab -->
+            <div id="tab-filters">
+                <div class="panel-title-row">
+                    <span class="panel-title">Pick apps — filter or search</span>
+                    <div class="search-box">
+                        <input id="appSearch" placeholder="Find an app..." type="text"/>
+                    </div>
+                </div>
+                <div class="picker-layout">
+                    <aside class="picker-sidebar">
+                        <th:block th:each="cat : ${filterEntries.entrySet()}">
+                            <div class="filter-group">
+                                <div class="filter-group-header" th:text="${cat.key.name.toUpperCase()}">CATEGORY</div>
+                                <div th:each="entry : ${cat.value}"
+                                     class="filter-item"
+                                     th:data-entry-id="${entry.id}"
+                                     onclick="toggleEntryFilter(this)">
+                                    <span th:text="${entry.name}">Entry</span>
+                                </div>
+                            </div>
+                        </th:block>
+                        <div th:if="${#maps.isEmpty(filterEntries)}" style="color:var(--gray-300);font-size:0.72rem;">No filters configured.</div>
+                    </aside>
+
+                    <div class="app-pick-list" id="appPickList">
+                        <th:block th:each="app : ${allApps}">
+                            <div class="app-pick-row"
+                                 th:id="'pick-' + ${app.id}"
+                                 th:data-app-id="${app.id}"
+                                 th:data-app-name="${app.name.toLowerCase()}">
+                                <div class="app-pick-icon">
+                                    <img th:if="${app.iconUrl != null}" th:src="${app.iconUrl}" alt=""/>
+                                    <span th:if="${app.iconUrl == null}">🖼</span>
+                                </div>
+                                <span class="app-pick-name" th:text="${app.name}">App name</span>
+                                <div class="app-pick-actions">
+                                    <button type="button" class="pick-chip list-chip" onclick="toggleList(event, this)">+ list</button>
+                                    <button type="button" class="pick-chip feat-chip" onclick="toggleFeatured(event, this)">★ featured</button>
+                                </div>
+                            </div>
+                        </th:block>
+                        <div th:if="${#lists.isEmpty(allApps)}" style="color:var(--gray-300);font-size:0.78rem;">No apps yet.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TOP RATED tab (quick-add reference list) -->
+            <div id="tab-toprated" style="display:none;">
+                <div class="panel-title">Top user rated apps — click to add to list</div>
+                <div class="app-pick-list">
+                    <th:block th:each="app : ${topUserRated}">
+                        <div class="app-pick-row" th:data-app-id="${app.id}" onclick="quickAddToList('${app.id}', this)">
+                            <div class="app-pick-icon">
+                                <img th:if="${app.iconUrl != null}" th:src="${app.iconUrl}" alt=""/>
+                                <span th:if="${app.iconUrl == null}">🖼</span>
+                            </div>
+                            <span class="app-pick-name" th:text="${app.name}">App name</span>
+                            <span style="font-size:0.65rem;color:var(--gray-300);"
+                                  th:text="${#numbers.formatDecimal(app.userRatingAvg,1,1)} + ' (' + ${app.userRatingCount} + ')'"></span>
+                        </div>
+                    </th:block>
+                </div>
+            </div>
+
+            <!-- VERIFIED tab -->
+            <div id="tab-verified" style="display:none;">
+                <div class="panel-title">Top verified apps — click to add to list</div>
+                <div class="app-pick-list">
+                    <th:block th:each="app : ${topVerified}">
+                        <div class="app-pick-row" th:data-app-id="${app.id}" onclick="quickAddToList('${app.id}', this)">
+                            <div class="app-pick-icon">
+                                <img th:if="${app.iconUrl != null}" th:src="${app.iconUrl}" alt=""/>
+                                <span th:if="${app.iconUrl == null}">🖼</span>
+                            </div>
+                            <span class="app-pick-name" th:text="${app.name}">App name</span>
+                            <span style="font-size:0.65rem;color:var(--gray-300);"
+                                  th:text="${#numbers.formatDecimal(app.verifiedScore,1,1)}"></span>
+                        </div>
+                    </th:block>
+                </div>
+            </div>
+        </div>
+
+        <!-- live preview, like the "Reviewed today" card in the mock -->
+        <div class="preview-card">
+            <div class="preview-section-label">List (max 5) — hover, click ✕ to remove</div>
+            <div id="previewList"><div class="preview-empty">No apps selected yet.</div></div>
+            <div class="preview-section-label">Featured (1)</div>
+            <div id="previewFeatured"><div class="preview-empty">No featured app selected.</div></div>
+        </div>
+    </div>
+</div>
+
+<!-- ── existing sections — drag to reorder, persisted to DB ───────── -->
+<div class="manager">
+    <div class="manager-title">Homepage sections (drag to reorder)</div>
+    <div id="sectionsManagerList">
+        <th:block th:each="section : ${sections}">
+            <div class="section-row-admin" draggable="true" th:data-id="${section.id}">
+                <span class="drag-handle">⠿⠿</span>
+                <span class="section-row-name" th:text="${section.title}">Section title</span>
+                <span class="section-row-meta"
+                      th:text="${#lists.size(sectionListApps.get(section.id) ?: {})} + ' list apps'
+                                + (${sectionFeatured.get(section.id) != null} ? ' · 1 featured' : '')"></span>
+                <button class="btn-row-delete" th:data-id="${section.id}" onclick="deleteSection(this.dataset.id)">✕ Delete</button>
+            </div>
+        </th:block>
+        <div th:if="${#lists.isEmpty(sections)}" style="color:var(--gray-300);font-size:0.78rem;">No custom sections yet — build one above.</div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    let selectedListIds = [];       // ordered, max 5
+    let selectedFeaturedId = null;
+    let activeEntryFilters = new Set();
+
+    function switchTab(tab, btn) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        ['filters', 'toprated', 'verified'].forEach(t => {
+            document.getElementById('tab-' + t).style.display = (t === tab) ? '' : 'none';
+        });
+    }
+
+    function toggleEntryFilter(el) {
+        const id = el.dataset.entryId;
+        if (activeEntryFilters.has(id)) { activeEntryFilters.delete(id); el.classList.remove('active'); }
+        else { activeEntryFilters.add(id); el.classList.add('active'); }
+        // NOTE: app→entry membership isn't sent to this page (keeps payload light);
+        // filtering here is by name search only. Category clicks just highlight —
+        // hook up entryAppCounts/data-entry-ids here if you need true filtering.
+    }
+
+    document.getElementById('appSearch').addEventListener('input', function () {
+        const q = this.value.toLowerCase().trim();
+        document.querySelectorAll('#appPickList .app-pick-row').forEach(row => {
+            row.style.display = !q || row.dataset.appName.includes(q) ? '' : 'none';
+        });
+    });
+
+    function findRow(appId) { return document.querySelector(`.app-pick-row[data-app-id="${appId}"]`); }
+
+    function toggleList(evt, btn) {
+        evt.stopPropagation();
+        const row = btn.closest('.app-pick-row');
+        const id = row.dataset.appId;
+        const name = row.querySelector('.app-pick-name').textContent;
+        const idx = selectedListIds.indexOf(id);
+        if (idx >= 0) {
+            selectedListIds.splice(idx, 1);
+            btn.classList.remove('on'); row.classList.remove('sel-list');
+        } else {
+            if (selectedListIds.length >= 5) { showMsg('List is full (max 5) — remove one first.', true); return; }
+            selectedListIds.push(id);
+            btn.classList.add('on'); row.classList.add('sel-list');
+        }
+        renderPreview();
+    }
+
+    function toggleFeatured(evt, btn) {
+        evt.stopPropagation();
+        const row = btn.closest('.app-pick-row');
+        const id = row.dataset.appId;
+        if (selectedFeaturedId === id) {
+            selectedFeaturedId = null;
+            btn.classList.remove('on'); row.classList.remove('sel-featured');
+        } else {
+            document.querySelectorAll('.feat-chip.on').forEach(c => c.classList.remove('on'));
+            document.querySelectorAll('.sel-featured').forEach(r => r.classList.remove('sel-featured'));
+            selectedFeaturedId = id;
+            btn.classList.add('on'); row.classList.add('sel-featured');
+        }
+        renderPreview();
+    }
+
+    function quickAddToList(appId, rowEl) {
+        if (selectedListIds.includes(appId)) return;
+        if (selectedListIds.length >= 5) { showMsg('List is full (max 5) — remove one first.', true); return; }
+        selectedListIds.push(appId);
+        const liveRow = findRow(appId);
+        if (liveRow) { liveRow.classList.add('sel-list'); liveRow.querySelector('.list-chip')?.classList.add('on'); }
+        renderPreview();
+    }
+
+    function appNameFor(id) {
+        const row = findRow(id);
+        return row ? row.querySelector('.app-pick-name').textContent : 'App';
+    }
+    function appIconFor(id) {
+        const row = findRow(id);
+        const img = row?.querySelector('.app-pick-icon img');
+        return img ? img.src : null;
+    }
+
+    function buildPreviewRow(id, removeFn) {
+        const div = document.createElement('div');
+        div.className = 'preview-row';
+        const icon = appIconFor(id);
+        div.innerHTML = `
+            <div class="app-pick-icon">${icon ? `<img src="${icon}" alt=""/>` : '🖼'}</div>
+            <span class="preview-name">${appNameFor(id)}</span>
+            <span class="preview-price">FREE</span>
+            <button class="preview-remove" type="button">✕</button>`;
+        div.querySelector('.preview-remove').onclick = removeFn;
+        return div;
+    }
+
+    function renderPreview() {
+        const listWrap = document.getElementById('previewList');
+        listWrap.innerHTML = '';
+        if (selectedListIds.length === 0) {
+            listWrap.innerHTML = '<div class="preview-empty">No apps selected yet.</div>';
+        } else {
+            selectedListIds.forEach(id => {
+                const row = buildPreviewRow(id, () => {
+                    const liveRow = findRow(id);
+                    liveRow?.classList.remove('sel-list');
+                    liveRow?.querySelector('.list-chip')?.classList.remove('on');
+                    selectedListIds = selectedListIds.filter(x => x !== id);
+                    renderPreview();
+                });
+                listWrap.appendChild(row);
+            });
+        }
+
+        const featWrap = document.getElementById('previewFeatured');
+        featWrap.innerHTML = '';
+        if (!selectedFeaturedId) {
+            featWrap.innerHTML = '<div class="preview-empty">No featured app selected.</div>';
+        } else {
+            const row = buildPreviewRow(selectedFeaturedId, () => {
+                const liveRow = findRow(selectedFeaturedId);
+                liveRow?.classList.remove('sel-featured');
+                liveRow?.querySelector('.feat-chip')?.classList.remove('on');
+                selectedFeaturedId = null;
+                renderPreview();
+            });
+            featWrap.appendChild(row);
+        }
+    }
+
+    function showMsg(text, err) {
+        const el = document.getElementById('formMsg');
+        el.textContent = text;
+        el.style.color = err ? '#f87171' : 'var(--gray-300)';
+    }
+
+    async function submitSection() {
+        const title = document.getElementById('sectionTitle').value.trim();
+        const layout = document.getElementById('sectionLayout').value;
+        if (!title) { showMsg('Give the section a title.', true); return; }
+        if (selectedListIds.length === 0 && !selectedFeaturedId) {
+            showMsg('Pick at least one app.', true); return;
+        }
+
+        const btn = document.getElementById('addBtn');
+        btn.disabled = true; btn.textContent = 'Adding…';
+
+        const fd = new FormData();
+        fd.append('title', title);
+        fd.append('layout', layout);
+        selectedListIds.forEach(id => fd.append('listAppIds', id));
+        if (selectedFeaturedId) fd.append('featuredAppId', selectedFeaturedId);
+
+        try {
+            const r = await fetch('/admin/home-sections', { method: 'POST', body: fd });
+            const data = await r.json();
+            if (!r.ok || data.error) throw new Error(data.error || 'Could not add section');
+            showMsg('Section added — reloading…');
+            setTimeout(() => window.location.reload(), 600);
+        } catch (e) {
+            showMsg(e.message, true);
+            btn.disabled = false; btn.textContent = 'ADD';
+        }
+    }
+
+    async function deleteSection(id) {
+        if (!confirm('Delete this homepage section?')) return;
+        try {
+            await fetch(`/admin/home-sections/${id}/delete`, { method: 'POST' });
+            document.querySelector(`.section-row-admin[data-id="${id}"]`)?.remove();
+        } catch (e) { alert(e.message); }
+    }
+
+    // ── drag to reorder, persisted to DB on drop ────────────────────────────
+    (function initReorder() {
+        const list = document.getElementById('sectionsManagerList');
+        let dragEl = null;
+
+        list.querySelectorAll('.section-row-admin').forEach(row => {
+            row.addEventListener('dragstart', () => { dragEl = row; row.classList.add('dragging'); });
+            row.addEventListener('dragend', () => {
+                row.classList.remove('dragging');
+                persistOrder();
+            });
+            row.addEventListener('dragover', e => {
+                e.preventDefault();
+                if (!dragEl || dragEl === row) return;
+                const rows = [...list.querySelectorAll('.section-row-admin')];
+                const dragIdx = rows.indexOf(dragEl);
+                const overIdx = rows.indexOf(row);
+                if (dragIdx < overIdx) row.after(dragEl); else row.before(dragEl);
+            });
+        });
+
+        async function persistOrder() {
+            const ids = [...list.querySelectorAll('.section-row-admin')].map(r => r.dataset.id);
+            try {
+                await fetch('/admin/home-sections/reorder', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(ids)
+                });
+            } catch (e) { /* best effort */ }
+        }
+    })();
+
+    renderPreview();
+</script>
+
+</body>
+</html>

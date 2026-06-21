@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>Vibe — Apps for people by people</title>
-    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@100;200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@100;200;300;400;500;600;700;800&display=swap"
+          rel="stylesheet"/>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
@@ -504,16 +505,17 @@
 <!-- NAV -->
 <nav>
     <div class="nav-left">
-        <a th:href="@{/}" href="/" class="nav-logo">
-            <img th:src="@{/logo_sm.png}" src="/logo_sm.png" alt="Vibe logo" style="width:100%;height:100%;object-fit:cover; background:black;"/>
+        <a class="nav-logo" href="/" th:href="@{/}">
+            <img alt="Vibe logo" src="/logo_sm.png" style="width:100%;height:100%;object-fit:cover; background:black;"
+                 th:src="@{/logo_sm.png}"/>
         </a>
-        <a th:href="@{/submit}"  href="/submit"  class="nav-link">Submit</a>
-        <a th:href="@{/explore}" href="/explore" class="nav-link">Explore</a>
-        <a th:href="@{/apps}"    href="/apps"    class="nav-link">Wish an app</a>
+        <a class="nav-link" href="/submit" th:href="@{/submit}">Submit</a>
+        <a class="nav-link" href="/explore" th:href="@{/explore}">Explore</a>
+        <a class="nav-link" href="/apps" th:href="@{/apps}">Wish an app</a>
     </div>
     <div class="nav-right">
-        <a th:href="@{/login}"    href="/login"    class="btn-nav-ghost">Sign in</a>
-        <a th:href="@{/register}" href="/register" class="btn-nav-solid">Sign up</a>
+        <a class="btn-nav-ghost" href="/login" th:href="@{/login}">Sign in</a>
+        <a class="btn-nav-solid" href="/register" th:href="@{/register}">Sign up</a>
     </div>
 </nav>
 
@@ -530,16 +532,19 @@
                 <h1 class="hero-heading">Apps for people<br/>by people</h1>
                 <div class="hero-search-bar">
                     <span class="hero-search-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+                        <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"
+                             xmlns="http://www.w3.org/2000/svg"><circle cx="11" cy="11" r="7"/><path
+                                d="M21 21l-4.35-4.35"/></svg>
                     </span>
-                    <input class="hero-search-input" type="text" id="heroSearch" placeholder="Find an app…"/>
+                    <input class="hero-search-input" id="heroSearch" placeholder="Find an app…" type="text"/>
                 </div>
             </div>
 
             <!-- Wish card -->
             <div class="wish-card">
                 <div class="wish-card-label">Can't find the right app? No problem!</div>
-                <a th:href="@{/apps}" href="/apps" class="btn-wish">Wish an app</a>
+                <a class="btn-wish" href="/apps" th:href="@{/apps}">Wish an app</a>
+                <a class="nav-link" th:href="@{/admin/home-sections}">Edit homepage</a>
             </div>
         </div>
     </div>
@@ -548,7 +553,7 @@
     <div class="dev-bar-outer">
         <div class="dev-bar">
             <span class="dev-bar-label">Developer?</span>
-            <a th:href="@{/submit}" href="/submit" class="btn-submit-app">Submit your app</a>
+            <a class="btn-submit-app" href="/submit" th:href="@{/submit}">Submit your app</a>
         </div>
     </div>
 
@@ -560,7 +565,7 @@
             <div class="section-row row-2 upper" id="row-1">
 
                 <!-- Newest in Productivity — LEFT (bigger) -->
-                <div class="section-wrapper" id="sec-newest" data-section-id="newest">
+                <div class="section-wrapper" data-section-id="newest" id="sec-newest">
                     <!-- Title above the card -->
                     <div class="section-header">
                         <div class="section-title-row">
@@ -569,7 +574,8 @@
                                   th:if="${!#lists.isEmpty(newestApps)}"
                                   th:text="'(' + ${#lists.size(newestApps)} + ')'"></span>
                         </div>
-                        <div class="drag-dots"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+                        <div class="drag-dots">
+                            <span></span><span></span><span></span><span></span><span></span><span></span></div>
                     </div>
                     <!-- The card itself -->
                     <div class="home-section">
@@ -577,24 +583,28 @@
                             <div th:if="${!#lists.isEmpty(newestApps)}">
                                 <th:block th:each="app, st : ${newestApps}" th:if="${st.index < 5}">
                                     <a class="app-list-card"
-                                       th:href="@{/apps/{id}/manage(id=${app.id})}"
+                                       th:data-desc="${app.description != null ? app.description.toLowerCase() : ''}"
                                        th:data-name="${app.name.toLowerCase()}"
-                                       th:data-desc="${app.description != null ? app.description.toLowerCase() : ''}">
+                                       th:href="@{/apps/{id}/manage(id=${app.id})}">
                                         <div class="app-list-icon">
-                                            <img th:if="${app.iconUrl != null}" th:src="${app.iconUrl}" alt=""/>
+                                            <img alt="" th:if="${app.iconUrl != null}" th:src="${app.iconUrl}"/>
                                             <span th:if="${app.iconUrl == null}">🖼</span>
                                         </div>
                                         <div class="app-list-body">
                                             <div class="app-list-name" th:text="${app.name}">App Name</div>
-                                            <div class="app-list-desc" th:text="${app.description != null ? app.description : 'No description'}"></div>
+                                            <div class="app-list-desc"
+                                                 th:text="${app.description != null ? app.description : 'No description'}"></div>
                                         </div>
                                         <div class="app-list-right">
                                             <span class="price-tag free">FREE</span>
                                             <div class="rating-row">
                                                 <div class="stars-xs">
-                                                    <span th:each="i : ${#numbers.sequence(1,5)}" class="star-xs" th:classappend="${app.userRatingAvg >= i} ? ' lit' : ''">★</span>
+                                                    <span class="star-xs"
+                                                          th:classappend="${app.userRatingAvg >= i} ? ' lit' : ''"
+                                                          th:each="i : ${#numbers.sequence(1,5)}">★</span>
                                                 </div>
-                                                <span class="rating-num" th:text="${#numbers.formatDecimal(app.userRatingAvg,1,1)}">0.0</span>
+                                                <span class="rating-num"
+                                                      th:text="${#numbers.formatDecimal(app.userRatingAvg,1,1)}">0.0</span>
                                             </div>
                                         </div>
                                     </a>
@@ -603,49 +613,68 @@
 
                             <!-- FALLBACK static -->
                             <div th:remove="all">
-                                <a class="app-list-card" href="/apps/1" data-name="app name marketing claim" data-desc="a short description">
-                                    <div class="app-list-icon" style="background:#2a3a50;color:rgba(255,255,255,0.5);">▷</div>
+                                <a class="app-list-card" data-desc="a short description"
+                                   data-name="app name marketing claim"
+                                   href="/apps/1">
+                                    <div class="app-list-icon" style="background:#2a3a50;color:rgba(255,255,255,0.5);">
+                                        ▷
+                                    </div>
                                     <div class="app-list-body">
                                         <div class="app-list-name">App name – marketing claim</div>
-                                        <div class="app-list-desc">A short description of your app. One line within …</div>
+                                        <div class="app-list-desc">A short description of your app. One line within …
+                                        </div>
                                     </div>
                                     <div class="app-list-right">
                                         <span class="price-tag free">FREE</span>
                                         <div class="rating-row">
                                             <div class="stars-xs">
-                                                <span class="star-xs lit">★</span><span class="star-xs lit">★</span><span class="star-xs lit">★</span><span class="star-xs">★</span><span class="star-xs">★</span>
+                                                <span class="star-xs lit">★</span><span
+                                                    class="star-xs lit">★</span><span class="star-xs lit">★</span><span
+                                                    class="star-xs">★</span><span class="star-xs">★</span>
                                             </div>
                                             <span class="rating-num">3.7</span>
                                         </div>
                                     </div>
                                 </a>
-                                <a class="app-list-card" href="/apps/2" data-name="app name positioning statement" data-desc="a short description">
+                                <a class="app-list-card" data-desc="a short description"
+                                   data-name="app name positioning statement"
+                                   href="/apps/2">
                                     <div class="app-list-icon" style="background:#2d2d40;color:#f0c040;">🎩</div>
                                     <div class="app-list-body">
                                         <div class="app-list-name">App name – positioning statement</div>
-                                        <div class="app-list-desc">A short description of your app. One line within …</div>
+                                        <div class="app-list-desc">A short description of your app. One line within …
+                                        </div>
                                     </div>
                                     <div class="app-list-right">
                                         <span class="price-tag paid">24,99 €</span>
                                         <div class="rating-row">
                                             <div class="stars-xs">
-                                                <span class="star-xs lit">★</span><span class="star-xs lit">★</span><span class="star-xs lit">★</span><span class="star-xs">★</span><span class="star-xs">★</span>
+                                                <span class="star-xs lit">★</span><span
+                                                    class="star-xs lit">★</span><span class="star-xs lit">★</span><span
+                                                    class="star-xs">★</span><span class="star-xs">★</span>
                                             </div>
                                             <span class="rating-num">3.7</span>
                                         </div>
                                     </div>
                                 </a>
-                                <a class="app-list-card" href="/apps/3" data-name="app name feature tease" data-desc="a short description">
-                                    <div class="app-list-icon" style="background:linear-gradient(135deg,#e74c3c,#c0392b);color:white;">📊</div>
+                                <a class="app-list-card" data-desc="a short description"
+                                   data-name="app name feature tease"
+                                   href="/apps/3">
+                                    <div class="app-list-icon"
+                                         style="background:linear-gradient(135deg,#e74c3c,#c0392b);color:white;">📊
+                                    </div>
                                     <div class="app-list-body">
                                         <div class="app-list-name">App name – feature tease</div>
-                                        <div class="app-list-desc">A short description of your app. One line within …</div>
+                                        <div class="app-list-desc">A short description of your app. One line within …
+                                        </div>
                                     </div>
                                     <div class="app-list-right">
                                         <span class="price-tag paid2">11,99 €</span>
                                         <div class="rating-row">
                                             <div class="stars-xs">
-                                                <span class="star-xs lit">★</span><span class="star-xs lit">★</span><span class="star-xs lit">★</span><span class="star-xs">★</span><span class="star-xs">★</span>
+                                                <span class="star-xs lit">★</span><span
+                                                    class="star-xs lit">★</span><span class="star-xs lit">★</span><span
+                                                    class="star-xs">★</span><span class="star-xs">★</span>
                                             </div>
                                             <span class="rating-num">3.7</span>
                                         </div>
@@ -653,376 +682,455 @@
                                 </a>
                             </div>
 
-                            <div th:if="${#lists.isEmpty(newestApps)}" class="empty-state">No apps yet — be the first to submit one.</div>
+                            <div class="empty-state" th:if="${#lists.isEmpty(newestApps)}">No apps yet — be the first to
+                                submit one.
+                            </div>
                         </div>
-                        <a th:href="@{/explore}" href="/explore" class="section-more">More</a>
+                        <a class="section-more" href="/explore" th:href="@{/explore}">More</a>
                     </div>
                 </div>
 
                 <!-- Reviewed Today — RIGHT (smaller, dark) -->
-                <div class="section-wrapper" id="sec-reviewed" data-section-id="reviewed">
+                <div class="section-wrapper" data-section-id="reviewed" id="sec-reviewed">
                     <!-- Title above the card -->
                     <div class="section-header">
                         <div class="section-title-row">
                             <span class="section-title">Reviewed today</span>
                         </div>
-                        <div class="drag-dots"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+                        <div class="drag-dots">
+                            <span></span><span></span><span></span><span></span><span></span><span></span></div>
                     </div>
                     <!-- The card itself -->
                     <div class="home-section dark-right">
                         <div class="section-body">
                             <div th:if="${!#lists.isEmpty(reviewedApps)}" th:with="rev=${reviewedApps[0]}">
-                                    <div class="reviewed-header">
-                                        <div class="reviewed-icon">
-                                            <img th:if="${rev.iconUrl != null}" th:src="${rev.iconUrl}" alt=""/>
-                                            <span th:if="${rev.iconUrl == null}">⭐</span>
-                                        </div>
-                                        <div style="flex:1;min-width:0;">
-                                            <div class="reviewed-name" th:text="${rev.name}">App Name</div>
-                                            <div class="reviewed-stars">
-                                                <div class="stars-xs">
-                                                    <span th:each="i : ${#numbers.sequence(1,5)}" class="star-xs lit-blue">★</span>
-                                                </div>
-                                                <span class="rating-num" th:text="${#numbers.formatDecimal(rev.verifiedScore,1,1)} + '/5'">5.0/5</span>
-                                            </div>
-                                            <div class="reviewed-desc"
-                                                 th:text="${rev.description != null ? rev.description : ''}">
-                                            </div>
-                                        </div>
+                                <div class="reviewed-header">
+                                    <div class="reviewed-icon">
+                                        <img alt="" th:if="${rev.iconUrl != null}" th:src="${rev.iconUrl}"/>
+                                        <span th:if="${rev.iconUrl == null}">⭐</span>
                                     </div>
-                                    <div class="reviewed-summary" style="border-top:1px dotted rgba(255,255,255,0.25); border-bottom:1px dotted rgba(255,255,255,0.25); padding:0.5rem 0; margin-top:1rem;">Review short summary — awesome!</div>
-                                    <div class="feat-label">Top features:</div>
-                                    <div class="aow-chips" th:if="${!#maps.isEmpty(reviewedAppFeatures)}">
-                                        <th:block th:each="catEntry : ${reviewedAppFeatures}">
-                                            <span th:each="feat, st : ${catEntry.value}" th:if="${st.index < 2}"
-                                                  class="aow-chip" th:text="${feat.name.toUpperCase()}">FEATURE</span>
-                                        </th:block>
-                                    </div>
-                                    <div class="aow-chips" th:if="${#maps.isEmpty(reviewedAppFeatures)}">
-                                        <span class="aow-chip chip-more" style="opacity:0.4;">No features tagged yet</span>
+                                    <div style="flex:1;min-width:0;">
+                                        <div class="reviewed-name" th:text="${rev.name}">App Name</div>
+                                        <div class="reviewed-stars">
+                                            <div class="stars-xs">
+                                                <span class="star-xs lit-blue"
+                                                      th:each="i : ${#numbers.sequence(1,5)}">★</span>
+                                            </div>
+                                            <span class="rating-num"
+                                                  th:text="${#numbers.formatDecimal(rev.verifiedScore,1,1)} + '/5'">5.0/5</span>
+                                        </div>
+                                        <div class="reviewed-desc"
+                                             th:text="${rev.description != null ? rev.description : ''}">
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-
-                            <!-- FALLBACK static -->
-                            <div th:remove="all">
-                                <div class="reviewed-card">
-                                    <div class="reviewed-header">
-                                        <div class="reviewed-icon">⭐</div>
-                                        <div style="flex:1;min-width:0;">
-                                            <div class="reviewed-name">App name</div>
-                                            <div class="reviewed-stars">
-                                                <div class="stars-xs">
-                                                    <span class="star-xs lit">★</span><span class="star-xs lit">★</span><span class="star-xs lit">★</span><span class="star-xs lit">★</span><span class="star-xs">★</span>
-                                                </div>
-                                            </div>
-                                            <div class="reviewed-desc">A short description of your app.</div>
-                                        </div>
-                                    </div>
-                                    <div class="reviewed-summary">Review short summary – awesome!</div>
-                                    <div class="feat-label">Top features:</div>
-                                    <div class="aow-chips">
-                                        <span class="aow-chip">AI TRANSLATION</span>
-                                        <span class="aow-chip chip-teal">AI VOICE</span>
-                                        <span class="aow-chip chip-more">+2 More</span>
-                                    </div>
+                                <div class="reviewed-summary"
+                                     style="border-top:1px dotted rgba(255,255,255,0.25); border-bottom:1px dotted rgba(255,255,255,0.25); padding:0.5rem 0; margin-top:1rem;">
+                                    Review short summary — awesome!
+                                </div>
+                                <div class="feat-label">Top features:</div>
+                                <div class="aow-chips" th:if="${!#maps.isEmpty(reviewedAppFeatures)}">
+                                    <th:block th:each="catEntry : ${reviewedAppFeatures}">
+                                            <span class="aow-chip" th:each="feat, st : ${catEntry.value}"
+                                                  th:if="${st.index < 2}"
+                                                  th:text="${feat.name.toUpperCase()}">FEATURE</span>
+                                    </th:block>
+                                </div>
+                                <div class="aow-chips" th:if="${#maps.isEmpty(reviewedAppFeatures)}">
+                                    <span class="aow-chip chip-more" style="opacity:0.4;">No features tagged yet</span>
                                 </div>
                             </div>
-
-                            <div th:if="${#lists.isEmpty(reviewedApps)}" class="empty-state">No reviewed apps today.</div>
                         </div>
-                        <a th:href="@{/explore}" href="/explore" class="section-more">More</a>
-                    </div>
-                </div>
 
+                        <!-- FALLBACK static -->
+                        <div th:remove="all">
+                            <div class="reviewed-card">
+                                <div class="reviewed-header">
+                                    <div class="reviewed-icon">⭐</div>
+                                    <div style="flex:1;min-width:0;">
+                                        <div class="reviewed-name">App name</div>
+                                        <div class="reviewed-stars">
+                                            <div class="stars-xs">
+                                                <span class="star-xs lit">★</span><span
+                                                    class="star-xs lit">★</span><span class="star-xs lit">★</span><span
+                                                    class="star-xs lit">★</span><span class="star-xs">★</span>
+                                            </div>
+                                        </div>
+                                        <div class="reviewed-desc">A short description of your app.</div>
+                                    </div>
+                                </div>
+                                <div class="reviewed-summary">Review short summary – awesome!</div>
+                                <div class="feat-label">Top features:</div>
+                                <div class="aow-chips">
+                                    <span class="aow-chip">AI TRANSLATION</span>
+                                    <span class="aow-chip chip-teal">AI VOICE</span>
+                                    <span class="aow-chip chip-more">+2 More</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="empty-state" th:if="${#lists.isEmpty(reviewedApps)}">No reviewed apps today.</div>
+                    </div>
+                    <a class="section-more" href="/explore" th:href="@{/explore}">More</a>
+                </div>
             </div>
 
-            <!-- ROW 2: Most Popular Features -->
-            <div class="section-row row-1" id="row-2">
-                <div class="section-wrapper" id="sec-features" data-section-id="features">
-                    <!-- Title above the card -->
-                    <div class="section-header">
-                        <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
-                            <span class="section-title">Most popular features</span>
-                            <div style="display:flex;gap:0.4rem;">
-                                <button class="features-arrow-btn" id="featuresScrollLeft">‹</button>
-                                <button class="features-arrow-btn" id="featuresScrollRight">›</button>
-                            </div>
+        </div>
+
+        <!-- ROW 2: Most Popular Features -->
+        <div class="section-row row-1" id="row-2">
+            <div class="section-wrapper" data-section-id="features" id="sec-features">
+                <!-- Title above the card -->
+                <div class="section-header">
+                    <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
+                        <span class="section-title">Most popular features</span>
+                        <div style="display:flex;gap:0.4rem;">
+                            <button class="features-arrow-btn" id="featuresScrollLeft">‹</button>
+                            <button class="features-arrow-btn" id="featuresScrollRight">›</button>
                         </div>
-                        <div class="drag-dots" style="display:none;"><span></span><span></span><span></span><span></span><span></span><span></span></div>
                     </div>
-                    <!-- The card itself -->
-                    <div class="home-section" style="background: none;">
-                        <div class="features-wrap">
-                            <div class="features-strip-row" id="featuresStrip">
-                                <!-- THYMELEAF: real features -->
-                                <th:block th:if="${!#lists.isEmpty(popularFeatures)}">
-                                    <span th:each="feat : ${popularFeatures}"
-                                          class="feature-pill"
+                    <div class="drag-dots" style="display:none;">
+                        <span></span><span></span><span></span><span></span><span></span><span></span></div>
+                </div>
+                <!-- The card itself -->
+                <div class="home-section" style="background: none;">
+                    <div class="features-wrap">
+                        <div class="features-strip-row" id="featuresStrip">
+                            <!-- THYMELEAF: real features -->
+                            <th:block th:if="${!#lists.isEmpty(popularFeatures)}">
+                                    <span class="feature-pill"
+                                          th:each="feat : ${popularFeatures}"
                                           th:onclick="'window.location=\'/explore\''">
                                         <span class="pill-name" th:text="${feat.name.toUpperCase()}">FEATURE</span>
                                         <span class="pill-count"
                                               th:if="${entryAppCounts[feat.id] != null}"
                                               th:text="'(' + ${entryAppCounts[feat.id]} + ')'"></span>
                                     </span>
-                                </th:block>
+                            </th:block>
 
-                                <!-- FALLBACK static -->
-                                <th:block th:remove="all">
-                                    <span class="feature-pill"><span class="pill-name">AI Presentation Maker</span>&nbsp;<span class="pill-count">(112)</span></span>
-                                    <span class="feature-pill"><span class="pill-name">AI Translation</span>&nbsp;<span class="pill-count">(84)</span></span>
-                                    <span class="feature-pill"><span class="pill-name">AI Story Generator</span>&nbsp;<span class="pill-count">(73)</span></span>
-                                    <span class="feature-pill"><span class="pill-name">AI Image Generator</span>&nbsp;<span class="pill-count">(61)</span></span>
-                                    <span class="feature-pill"><span class="pill-name">AI Voice Cloning</span>&nbsp;<span class="pill-count">(55)</span></span>
-                                    <span class="feature-pill"><span class="pill-name">AI Video</span>&nbsp;<span class="pill-count">(49)</span></span>
-                                    <span class="feature-pill"><span class="pill-name">AI Code Assistant</span>&nbsp;<span class="pill-count">(44)</span></span>
-                                    <span class="feature-pill"><span class="pill-name">AI Writing</span>&nbsp;<span class="pill-count">(38)</span></span>
-                                    <span class="feature-pill"><span class="pill-name">AI Summarizer</span>&nbsp;<span class="pill-count">(31)</span></span>
-                                    <span class="feature-pill"><span class="pill-name">AI Chatbot</span>&nbsp;<span class="pill-count">(28)</span></span>
-                                </th:block>
-                            </div>
+                            <!-- FALLBACK static -->
+                            <th:block th:remove="all">
+                                <span class="feature-pill"><span
+                                        class="pill-name">AI Presentation Maker</span>&nbsp;<span class="pill-count">(112)</span></span>
+                                <span class="feature-pill"><span class="pill-name">AI Translation</span>&nbsp;<span
+                                        class="pill-count">(84)</span></span>
+                                <span class="feature-pill"><span class="pill-name">AI Story Generator</span>&nbsp;<span
+                                        class="pill-count">(73)</span></span>
+                                <span class="feature-pill"><span class="pill-name">AI Image Generator</span>&nbsp;<span
+                                        class="pill-count">(61)</span></span>
+                                <span class="feature-pill"><span class="pill-name">AI Voice Cloning</span>&nbsp;<span
+                                        class="pill-count">(55)</span></span>
+                                <span class="feature-pill"><span class="pill-name">AI Video</span>&nbsp;<span
+                                        class="pill-count">(49)</span></span>
+                                <span class="feature-pill"><span class="pill-name">AI Code Assistant</span>&nbsp;<span
+                                        class="pill-count">(44)</span></span>
+                                <span class="feature-pill"><span class="pill-name">AI Writing</span>&nbsp;<span
+                                        class="pill-count">(38)</span></span>
+                                <span class="feature-pill"><span class="pill-name">AI Summarizer</span>&nbsp;<span
+                                        class="pill-count">(31)</span></span>
+                                <span class="feature-pill"><span class="pill-name">AI Chatbot</span>&nbsp;<span
+                                        class="pill-count">(28)</span></span>
+                            </th:block>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- ROW 3: App of the Week + Top Paid Apps — lower row -->
-            <div class="section-row row-2 lower" id="row-3">
+        <!-- ROW 3: App of the Week + Top Paid Apps — lower row -->
+        <div class="section-row row-2 lower" id="row-3">
 
-                <!-- App of the Week — LEFT (smaller, dark) -->
-                <div class="section-wrapper" id="sec-aow" data-section-id="aow">
-                    <!-- Title above the card -->
-                    <div class="section-header">
-                        <div class="section-title-row">
-                            <span class="section-title">App of the week</span>
-                        </div>
-                        <div class="drag-dots"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+            <!-- App of the Week — LEFT (smaller, dark) -->
+            <div class="section-wrapper" data-section-id="aow" id="sec-aow">
+                <!-- Title above the card -->
+                <div class="section-header">
+                    <div class="section-title-row">
+                        <span class="section-title">App of the week</span>
                     </div>
-                    <!-- The card itself -->
-                    <div class="home-section dark-left">
-                        <div class="section-body">
-                            <div th:if="${appOfWeek != null}">
-                                <a class="aow-card" th:href="@{/apps/{id}/manage(id=${appOfWeek.id})}" style="display:flex;flex-direction:column;gap:0.5rem;text-decoration:none;color:inherit;">
+                    <div class="drag-dots">
+                        <span></span><span></span><span></span><span></span><span></span><span></span></div>
+                </div>
+                <!-- The card itself -->
+                <div class="home-section dark-left">
+                    <div class="section-body">
+                        <div th:if="${appOfWeek != null}">
+                            <a class="aow-card"
+                               style="display:flex;flex-direction:column;gap:0.5rem;text-decoration:none;color:inherit;"
+                               th:href="@{/apps/{id}/manage(id=${appOfWeek.id})}">
                                 <div class="aow-header">
                                     <div class="aow-icon">
-                                        <img th:if="${appOfWeek.iconUrl != null}" th:src="${appOfWeek.iconUrl}" alt=""/>
+                                        <img alt="" th:if="${appOfWeek.iconUrl != null}" th:src="${appOfWeek.iconUrl}"/>
                                         <span th:if="${appOfWeek.iconUrl == null}">⭐</span>
                                     </div>
                                     <div style="flex:1;min-width:0;">
                                         <div class="aow-name" th:text="${appOfWeek.name}">App Name</div>
-                                        <div class="aow-desc" th:text="${appOfWeek.description != null ? appOfWeek.description : ''}"></div>
+                                        <div class="aow-desc"
+                                             th:text="${appOfWeek.description != null ? appOfWeek.description : ''}"></div>
                                         <div class="aow-meta">
                                             <div class="stars-xs">
-                                                <span th:each="i : ${#numbers.sequence(1,5)}" class="star-xs"
-                                                      th:classappend="${appOfWeek.verifiedScore != null and appOfWeek.verifiedScore >= i} ? ' lit-blue' : (${appOfWeek.userRatingAvg >= i} ? ' lit' : '')">★</span>
+                                                <span class="star-xs"
+                                                      th:classappend="${appOfWeek.verifiedScore != null and appOfWeek.verifiedScore >= i} ? ' lit-blue' : (${appOfWeek.userRatingAvg >= i} ? ' lit' : '')"
+                                                      th:each="i : ${#numbers.sequence(1,5)}">★</span>
                                             </div>
-                                            <span class="price-tag free" style="font-size:0.62rem;padding:0.12rem 0.5rem;margin-left:0.3rem;">FREE</span>
+                                            <span class="price-tag free"
+                                                  style="font-size:0.62rem;padding:0.12rem 0.5rem;margin-left:0.3rem;">FREE</span>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="feat-label-aow">Top features:</div>
-                                    <div class="aow-chips" th:if="${!#maps.isEmpty(appOfWeekFeatures)}">
-                                        <th:block th:each="catEntry : ${appOfWeekFeatures}">
-        <span th:each="feat, st : ${catEntry.value}" th:if="${st.index < 2}"
-              class="aow-chip" th:text="${feat.name.toUpperCase()}">FEATURE</span>
-                                        </th:block>
-                                    </div>
-                                    <div class="aow-chips" th:if="${#maps.isEmpty(appOfWeekFeatures)}">
-                                        <span class="aow-chip chip-more" style="opacity:0.4;">No features tagged yet</span>
-                                    </div>
-                            </div>
-
-                            <!-- FALLBACK static -->
-                            <div th:remove="all" class="aow-card">
-                                <div class="aow-header">
-                                    <div class="aow-icon">⭐</div>
-                                    <div style="flex:1;min-width:0;">
-                                        <div class="aow-name">App name</div>
-                                        <div class="aow-desc">A short description of your app.</div>
-                                        <div class="aow-meta">
-                                            <div class="stars-xs">
-                                                <span class="star-xs lit">★</span><span class="star-xs lit">★</span><span class="star-xs lit">★</span><span class="star-xs lit">★</span><span class="star-xs">★</span>
-                                            </div>
-                                            <span class="price-tag free" style="font-size:0.62rem;padding:0.12rem 0.5rem;margin-left:0.3rem;">FREE</span>
-                                        </div>
-                                    </div>
+                                <div class="aow-chips" th:if="${!#maps.isEmpty(appOfWeekFeatures)}">
+                                    <th:block th:each="catEntry : ${appOfWeekFeatures}">
+        <span class="aow-chip" th:each="feat, st : ${catEntry.value}"
+              th:if="${st.index < 2}" th:text="${feat.name.toUpperCase()}">FEATURE</span>
+                                    </th:block>
                                 </div>
-                                <div class="feat-label-aow">Top features:</div>
-                                <div class="aow-chips">
-                                    <span class="aow-chip">AI Presentation Generator</span>
-                                    <span class="aow-chip chip-teal">AI Voice Cloning</span>
-                                    <span class="aow-chip chip-green">AI Video Generation</span>
-                                    <span class="aow-chip chip-purple">AI Voice Over</span>
-                                    <span class="aow-chip chip-more">+3 More</span>
+                                <div class="aow-chips" th:if="${#maps.isEmpty(appOfWeekFeatures)}">
+                                    <span class="aow-chip chip-more" style="opacity:0.4;">No features tagged yet</span>
                                 </div>
-                            </div>
-
-                            <div th:if="${appOfWeek == null}" class="empty-state">No app of the week yet.</div>
                         </div>
-                        <a th:href="@{/explore}" href="/explore" class="section-more">More</a>
+
+                        <!-- FALLBACK static -->
+                        <div class="aow-card" th:remove="all">
+                            <div class="aow-header">
+                                <div class="aow-icon">⭐</div>
+                                <div style="flex:1;min-width:0;">
+                                    <div class="aow-name">App name</div>
+                                    <div class="aow-desc">A short description of your app.</div>
+                                    <div class="aow-meta">
+                                        <div class="stars-xs">
+                                            <span class="star-xs lit">★</span><span class="star-xs lit">★</span><span
+                                                class="star-xs lit">★</span><span class="star-xs lit">★</span><span
+                                                class="star-xs">★</span>
+                                        </div>
+                                        <span class="price-tag free"
+                                              style="font-size:0.62rem;padding:0.12rem 0.5rem;margin-left:0.3rem;">FREE</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="feat-label-aow">Top features:</div>
+                            <div class="aow-chips">
+                                <span class="aow-chip">AI Presentation Generator</span>
+                                <span class="aow-chip chip-teal">AI Voice Cloning</span>
+                                <span class="aow-chip chip-green">AI Video Generation</span>
+                                <span class="aow-chip chip-purple">AI Voice Over</span>
+                                <span class="aow-chip chip-more">+3 More</span>
+                            </div>
+                        </div>
+
+                        <div class="empty-state" th:if="${appOfWeek == null}">No app of the week yet.</div>
                     </div>
+                    <a class="section-more" href="/explore" th:href="@{/explore}">More</a>
                 </div>
+            </div>
 
-                <!-- Top Paid Apps — RIGHT (bigger) -->
-                <div class="section-wrapper" id="sec-toprated" data-section-id="toprated">
-                    <!-- Title above the card -->
-                    <div class="section-header">
-                        <div class="section-title-row">
-                            <span class="section-title">Top paid apps</span>
-                        </div>
-                        <div class="drag-dots"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+            <!-- Top Paid Apps — RIGHT (bigger) -->
+            <div class="section-wrapper" data-section-id="toprated" id="sec-toprated">
+                <!-- Title above the card -->
+                <div class="section-header">
+                    <div class="section-title-row">
+                        <span class="section-title">Top paid apps</span>
                     </div>
-                    <!-- The card itself -->
-                    <div class="home-section">
-                        <div class="section-body">
-                            <div th:if="${!#lists.isEmpty(topRatedApps)}">
-                                <th:block th:each="app : ${topRatedApps}">
-                                    <a class="app-list-card"
-                                       th:href="@{/apps/{id}/manage(id=${app.id})}"
-                                       th:data-name="${app.name.toLowerCase()}"
-                                       th:data-desc="${app.description != null ? app.description.toLowerCase() : ''}">
-                                        <div class="app-list-icon">
-                                            <img th:if="${app.iconUrl != null}" th:src="${app.iconUrl}" alt=""/>
-                                            <span th:if="${app.iconUrl == null}">🖼</span>
-                                        </div>
-                                        <div class="app-list-body">
-                                            <div class="app-list-name" th:text="${app.name}">App Name</div>
-                                            <div class="app-list-desc" th:text="${app.description != null ? app.description : 'No description'}"></div>
-                                        </div>
-                                        <div class="app-list-right">
-                                            <span class="price-tag free">FREE</span>
-                                            <div class="rating-row">
-                                                <div class="stars-xs">
-                                                    <span th:each="i : ${#numbers.sequence(1,5)}" class="star-xs"
-                                                          th:classappend="${app.verifiedScore != null and app.verifiedScore >= i} ? ' lit-blue' : (${app.userRatingAvg >= i} ? ' lit' : '')">★</span>
-                                                </div>
-                                                <span class="rating-num" th:text="${#numbers.formatDecimal(app.userRatingAvg,1,1)}">0.0</span>
-                                            </div>
-                                        </div>
-                                    </a>
-                                </th:block>
-                            </div>
-
-                            <!-- FALLBACK static -->
-                            <div th:remove="all">
-                                <a class="app-list-card" href="/apps/1" data-name="app name marketing claim" data-desc="a short description">
-                                    <div class="app-list-icon" style="background:#2a3a50;color:rgba(255,255,255,0.5);">▷</div>
+                    <div class="drag-dots">
+                        <span></span><span></span><span></span><span></span><span></span><span></span></div>
+                </div>
+                <!-- The card itself -->
+                <div class="home-section">
+                    <div class="section-body">
+                        <div th:if="${!#lists.isEmpty(topRatedApps)}">
+                            <th:block th:each="app : ${topRatedApps}">
+                                <a class="app-list-card"
+                                   th:data-desc="${app.description != null ? app.description.toLowerCase() : ''}"
+                                   th:data-name="${app.name.toLowerCase()}"
+                                   th:href="@{/apps/{id}/manage(id=${app.id})}">
+                                    <div class="app-list-icon">
+                                        <img alt="" th:if="${app.iconUrl != null}" th:src="${app.iconUrl}"/>
+                                        <span th:if="${app.iconUrl == null}">🖼</span>
+                                    </div>
                                     <div class="app-list-body">
-                                        <div class="app-list-name">App name – marketing claim</div>
-                                        <div class="app-list-desc">A short description of your app. One line within …</div>
+                                        <div class="app-list-name" th:text="${app.name}">App Name</div>
+                                        <div class="app-list-desc"
+                                             th:text="${app.description != null ? app.description : 'No description'}"></div>
                                     </div>
                                     <div class="app-list-right">
                                         <span class="price-tag free">FREE</span>
                                         <div class="rating-row">
-                                            <div class="stars-xs"><span class="star-xs lit">★</span><span class="star-xs lit">★</span><span class="star-xs lit">★</span><span class="star-xs">★</span><span class="star-xs">★</span></div>
-                                            <span class="rating-num">3.7</span>
+                                            <div class="stars-xs">
+                                                    <span class="star-xs"
+                                                          th:classappend="${app.verifiedScore != null and app.verifiedScore >= i} ? ' lit-blue' : (${app.userRatingAvg >= i} ? ' lit' : '')"
+                                                          th:each="i : ${#numbers.sequence(1,5)}">★</span>
+                                            </div>
+                                            <span class="rating-num"
+                                                  th:text="${#numbers.formatDecimal(app.userRatingAvg,1,1)}">0.0</span>
                                         </div>
-                                    </div>
-                                </a>
-                                <a class="app-list-card" href="/apps/2" data-name="app name positioning" data-desc="a short description">
-                                    <div class="app-list-icon" style="background:#2d2d40;color:#f0c040;">🎩</div>
-                                    <div class="app-list-body">
-                                        <div class="app-list-name">App name – positioning statement</div>
-                                        <div class="app-list-desc">A short description of your app. One line within …</div>
-                                    </div>
-                                    <div class="app-list-right">
-                                        <span class="price-tag paid">24,99 €</span>
-                                        <div class="rating-row">
-                                            <div class="stars-xs"><span class="star-xs lit">★</span><span class="star-xs lit">★</span><span class="star-xs lit">★</span><span class="star-xs">★</span><span class="star-xs">★</span></div>
-                                            <span class="rating-num">3.7</span>
-                                        </div>
-                                    </div>
-                                </a>
-                                <a class="app-list-card" href="/apps/3" data-name="app name feature tease" data-desc="a short description">
-                                    <div class="app-list-icon" style="background:linear-gradient(135deg,#e74c3c,#c0392b);color:white;">📊</div>
-                                    <div class="app-list-body">
-                                        <div class="app-list-name">App name – feature tease</div>
-                                        <div class="app-list-desc">A short description of your app. One line within …</div>
-                                    </div>
-                                    <div class="app-list-right">
-                                        <span class="price-tag paid2">11,99 €</span>
-                                        <div class="rating-row">
-                                            <div class="stars-xs"><span class="star-xs lit">★</span><span class="star-xs lit">★</span><span class="star-xs lit">★</span><span class="star-xs">★</span><span class="star-xs">★</span></div>
-                                            <span class="rating-num">3.7</span>
-                                        </div>
-                                    </div>
-                                </a>
-                            </div>
-
-                            <div th:if="${#lists.isEmpty(topRatedApps)}" class="empty-state">No rated apps yet.</div>
-                        </div>
-                        <a th:href="@{/explore(tab='top-rated')}" href="/explore" class="section-more">More</a>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- ROW 4: Apps with a Different Vibe -->
-            <div class="section-row row-1" id="row-4">
-                <div class="section-wrapper" id="sec-vibe" data-section-id="vibe">
-                    <!-- Title above the card -->
-                    <div class="section-header">
-                        <div class="section-title-row">
-                            <span class="section-title" style="color:rgba(255,255,255,0.65);">Apps with a different vibe</span>
-                            <span class="section-count" th:text="'(' + ${#lists.size(vibeApps)} + ')'"></span>
-                        </div>
-                        <div class="drag-dots"><span></span><span></span><span></span><span></span><span></span><span></span></div>
-                    </div>
-                    <!-- The card itself -->
-                    <div class="home-section blue-vibe">
-                        <div class="vibe-grid" th:if="${!#lists.isEmpty(vibeApps)}">
-                            <th:block th:each="app : ${vibeApps}">
-                                <a class="grid-card"
-                                   th:href="@{/apps/{id}/manage(id=${app.id})}"
-                                   th:data-name="${app.name.toLowerCase()}"
-                                   th:data-desc="${app.description != null ? app.description.toLowerCase() : ''}">
-                                    <div class="grid-icon">
-                                        <img th:if="${app.iconUrl != null}" th:src="${app.iconUrl}" alt=""/>
-                                        <span th:if="${app.iconUrl == null}">🖼</span>
-                                    </div>
-                                    <div>
-                                        <div class="grid-name" th:text="${app.name}">App Name</div>
-                                        <div class="grid-desc" th:text="${app.description != null ? app.description : 'No description'}"></div>
                                     </div>
                                 </a>
                             </th:block>
                         </div>
 
                         <!-- FALLBACK static -->
-                        <div th:remove="all" class="vibe-grid">
-                            <a class="grid-card" href="/apps/1" data-name="app name marketing" data-desc="a short description">
-                                <div class="grid-icon" style="background:#2a3a50;color:rgba(255,255,255,0.5);">▷</div>
-                                <div><div class="grid-name">App name – marketing claim</div><div class="grid-desc">A short description of your app. One line within …</div></div>
+                        <div th:remove="all">
+                            <a class="app-list-card" data-desc="a short description"
+                               data-name="app name marketing claim"
+                               href="/apps/1">
+                                <div class="app-list-icon" style="background:#2a3a50;color:rgba(255,255,255,0.5);">▷
+                                </div>
+                                <div class="app-list-body">
+                                    <div class="app-list-name">App name – marketing claim</div>
+                                    <div class="app-list-desc">A short description of your app. One line within …</div>
+                                </div>
+                                <div class="app-list-right">
+                                    <span class="price-tag free">FREE</span>
+                                    <div class="rating-row">
+                                        <div class="stars-xs"><span class="star-xs lit">★</span><span
+                                                class="star-xs lit">★</span><span class="star-xs lit">★</span><span
+                                                class="star-xs">★</span><span class="star-xs">★</span></div>
+                                        <span class="rating-num">3.7</span>
+                                    </div>
+                                </div>
                             </a>
-                            <a class="grid-card" href="/apps/4" data-name="app name marketing" data-desc="a short description">
-                                <div class="grid-icon" style="background:#2a3a50;color:rgba(255,255,255,0.5);">▷</div>
-                                <div><div class="grid-name">App name – marketing claim</div><div class="grid-desc">A short description of your app. One line within …</div></div>
+                            <a class="app-list-card" data-desc="a short description" data-name="app name positioning"
+                               href="/apps/2">
+                                <div class="app-list-icon" style="background:#2d2d40;color:#f0c040;">🎩</div>
+                                <div class="app-list-body">
+                                    <div class="app-list-name">App name – positioning statement</div>
+                                    <div class="app-list-desc">A short description of your app. One line within …</div>
+                                </div>
+                                <div class="app-list-right">
+                                    <span class="price-tag paid">24,99 €</span>
+                                    <div class="rating-row">
+                                        <div class="stars-xs"><span class="star-xs lit">★</span><span
+                                                class="star-xs lit">★</span><span class="star-xs lit">★</span><span
+                                                class="star-xs">★</span><span class="star-xs">★</span></div>
+                                        <span class="rating-num">3.7</span>
+                                    </div>
+                                </div>
                             </a>
-                            <a class="grid-card" href="/apps/2" data-name="app name positioning" data-desc="a short description">
-                                <div class="grid-icon" style="background:#2d2d40;color:#f0c040;">🎩</div>
-                                <div><div class="grid-name">App name – positioning statement</div><div class="grid-desc">A short description of your app. One line within …</div></div>
-                            </a>
-                            <a class="grid-card" href="/apps/5" data-name="app name positioning" data-desc="a short description">
-                                <div class="grid-icon" style="background:#2d2d40;color:#f0c040;">🎩</div>
-                                <div><div class="grid-name">App name – positioning statement</div><div class="grid-desc">A short description of your app. One line within …</div></div>
-                            </a>
-                            <a class="grid-card" href="/apps/3" data-name="app name feature" data-desc="a short description">
-                                <div class="grid-icon" style="background:linear-gradient(135deg,#e74c3c,#c0392b);color:white;">📊</div>
-                                <div><div class="grid-name">App name – feature tease</div><div class="grid-desc">A short description of your app. One line within …</div></div>
-                            </a>
-                            <a class="grid-card" href="/apps/6" data-name="app name feature" data-desc="a short description">
-                                <div class="grid-icon" style="background:linear-gradient(135deg,#e74c3c,#c0392b);color:white;">📊</div>
-                                <div><div class="grid-name">App name – feature tease</div><div class="grid-desc">A short description of your app. One line within …</div></div>
+                            <a class="app-list-card" data-desc="a short description" data-name="app name feature tease"
+                               href="/apps/3">
+                                <div class="app-list-icon"
+                                     style="background:linear-gradient(135deg,#e74c3c,#c0392b);color:white;">📊
+                                </div>
+                                <div class="app-list-body">
+                                    <div class="app-list-name">App name – feature tease</div>
+                                    <div class="app-list-desc">A short description of your app. One line within …</div>
+                                </div>
+                                <div class="app-list-right">
+                                    <span class="price-tag paid2">11,99 €</span>
+                                    <div class="rating-row">
+                                        <div class="stars-xs"><span class="star-xs lit">★</span><span
+                                                class="star-xs lit">★</span><span class="star-xs lit">★</span><span
+                                                class="star-xs">★</span><span class="star-xs">★</span></div>
+                                        <span class="rating-num">3.7</span>
+                                    </div>
+                                </div>
                             </a>
                         </div>
 
-                        <div th:if="${#lists.isEmpty(vibeApps)}" class="empty-state">Submit apps to see them here.</div>
+                        <div class="empty-state" th:if="${#lists.isEmpty(topRatedApps)}">No rated apps yet.</div>
                     </div>
+                    <a class="section-more" href="/explore" th:href="@{/explore(tab='top-rated')}">More</a>
                 </div>
             </div>
 
         </div>
-    </main>
+
+        <!-- ROW 4: Apps with a Different Vibe -->
+        <div class="section-row row-1" id="row-4">
+            <div class="section-wrapper" data-section-id="vibe" id="sec-vibe">
+                <!-- Title above the card -->
+                <div class="section-header">
+                    <div class="section-title-row">
+                        <span class="section-title"
+                              style="color:rgba(255,255,255,0.65);">Apps with a different vibe</span>
+                        <span class="section-count" th:text="'(' + ${#lists.size(vibeApps)} + ')'"></span>
+                    </div>
+                    <div class="drag-dots">
+                        <span></span><span></span><span></span><span></span><span></span><span></span></div>
+                </div>
+                <!-- The card itself -->
+                <div class="home-section blue-vibe">
+                    <div class="vibe-grid" th:if="${!#lists.isEmpty(vibeApps)}">
+                        <th:block th:each="app : ${vibeApps}">
+                            <a class="grid-card"
+                               th:data-desc="${app.description != null ? app.description.toLowerCase() : ''}"
+                               th:data-name="${app.name.toLowerCase()}"
+                               th:href="@{/apps/{id}/manage(id=${app.id})}">
+                                <div class="grid-icon">
+                                    <img alt="" th:if="${app.iconUrl != null}" th:src="${app.iconUrl}"/>
+                                    <span th:if="${app.iconUrl == null}">🖼</span>
+                                </div>
+                                <div>
+                                    <div class="grid-name" th:text="${app.name}">App Name</div>
+                                    <div class="grid-desc"
+                                         th:text="${app.description != null ? app.description : 'No description'}"></div>
+                                </div>
+                            </a>
+                        </th:block>
+                    </div>
+
+                    <!-- FALLBACK static -->
+                    <div class="vibe-grid" th:remove="all">
+                        <a class="grid-card" data-desc="a short description" data-name="app name marketing"
+                           href="/apps/1">
+                            <div class="grid-icon" style="background:#2a3a50;color:rgba(255,255,255,0.5);">▷</div>
+                            <div>
+                                <div class="grid-name">App name – marketing claim</div>
+                                <div class="grid-desc">A short description of your app. One line within …</div>
+                            </div>
+                        </a>
+                        <a class="grid-card" data-desc="a short description" data-name="app name marketing"
+                           href="/apps/4">
+                            <div class="grid-icon" style="background:#2a3a50;color:rgba(255,255,255,0.5);">▷</div>
+                            <div>
+                                <div class="grid-name">App name – marketing claim</div>
+                                <div class="grid-desc">A short description of your app. One line within …</div>
+                            </div>
+                        </a>
+                        <a class="grid-card" data-desc="a short description" data-name="app name positioning"
+                           href="/apps/2">
+                            <div class="grid-icon" style="background:#2d2d40;color:#f0c040;">🎩</div>
+                            <div>
+                                <div class="grid-name">App name – positioning statement</div>
+                                <div class="grid-desc">A short description of your app. One line within …</div>
+                            </div>
+                        </a>
+                        <a class="grid-card" data-desc="a short description" data-name="app name positioning"
+                           href="/apps/5">
+                            <div class="grid-icon" style="background:#2d2d40;color:#f0c040;">🎩</div>
+                            <div>
+                                <div class="grid-name">App name – positioning statement</div>
+                                <div class="grid-desc">A short description of your app. One line within …</div>
+                            </div>
+                        </a>
+                        <a class="grid-card" data-desc="a short description" data-name="app name feature"
+                           href="/apps/3">
+                            <div class="grid-icon"
+                                 style="background:linear-gradient(135deg,#e74c3c,#c0392b);color:white;">📊
+                            </div>
+                            <div>
+                                <div class="grid-name">App name – feature tease</div>
+                                <div class="grid-desc">A short description of your app. One line within …</div>
+                            </div>
+                        </a>
+                        <a class="grid-card" data-desc="a short description" data-name="app name feature"
+                           href="/apps/6">
+                            <div class="grid-icon"
+                                 style="background:linear-gradient(135deg,#e74c3c,#c0392b);color:white;">📊
+                            </div>
+                            <div>
+                                <div class="grid-name">App name – feature tease</div>
+                                <div class="grid-desc">A short description of your app. One line within …</div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="empty-state" th:if="${#lists.isEmpty(vibeApps)}">Submit apps to see them here.</div>
+                </div>
+            </div>
+        </div>
+
+</div>
+</main>
 </div>
 
 <script>
@@ -1123,6 +1231,42 @@
             });
         });
     }
+    function saveSectionOrder() {
+    const ids = [...document.querySelectorAll('.section-wrapper')]
+        .map(s => s.dataset.sectionId)
+        .filter(Boolean);
+
+    // Built-in sections keep using the existing site-config endpoint.
+    fetch('/api/site-config/section-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order: JSON.stringify(ids) })
+    }).catch(() => {});
+
+    // Custom sections additionally get their own DB-backed order via
+    // /admin/home-sections/reorder (keeps the two concerns decoupled).
+    const customIds = ids
+        .filter(id => id.startsWith('custom-'))
+        .map(id => id.replace('custom-', ''));
+    if (customIds.length) {
+        fetch('/admin/home-sections/reorder', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(customIds)
+        }).catch(() => {});
+    }
+}
+
+async function saveCustomSectionTitle(el) {
+    const id = el.dataset.sectionId;
+    const title = el.textContent.trim();
+    if (!title) { el.textContent = el.dataset.original || 'Untitled section'; return; }
+    const fd = new FormData();
+    fd.append('title', title);
+    try {
+        await fetch(`/admin/home-sections/${id}`, { method: 'POST', body: fd });
+    } catch (e) { /* best effort */ }
+}
 
     initDraggableSections();
 </script>
