@@ -27,7 +27,8 @@
 
         .page-header { background: #5a5a5a; color: #fff; text-align: center; padding: 1.1rem 1.5rem; font-size: 1.3rem; font-weight: 600; }
 
-        .editor { display: grid; grid-template-columns: 230px 1fr; gap: 1.25rem; padding: 1.5rem; max-width: 1180px; margin: 0 auto; }
+        /* ── TOP AREA: left controls + right preview ─────────────── */
+        .editor-top { display: grid; grid-template-columns: 230px 1fr; gap: 1.25rem; padding: 1.5rem 1.5rem 0.75rem; max-width: 1180px; margin: 0 auto; }
 
         /* ── left controls ─────────────────────────────────────── */
         .controls-col { display: flex; flex-direction: column; gap: 1rem; }
@@ -54,19 +55,83 @@
         .btn-add:hover { opacity: 0.9; }
         .btn-add:disabled { opacity: 0.4; cursor: not-allowed; }
 
-        /* ── content panel ─────────────────────────────────────── */
-        .content-panel { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem; }
-        .panel-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.6rem; }
-        .panel-title { font-size: 0.66rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray-300); }
-        .search-box { display: flex; align-items: center; gap: 0.4rem; background: var(--panel2); border: 1.5px solid var(--border); border-radius: var(--radius-pill); padding: 0.3rem 0.8rem; min-width: 200px; }
-        .search-box input { background: transparent; border: none; outline: none; color: #fff; font-size: 0.78rem; width: 100%; font-family: var(--font); }
+        /* ── PREVIEW: two cards side by side, each with its own title ──── */
+        .preview-col { display: flex; flex-direction: column; gap: 0.5rem; }
+        .preview-cards { display: grid; gap: 0.85rem; }
+        .preview-cards.layout-5-1 { grid-template-columns: 60fr 40fr; }
+        .preview-cards.layout-6-grid { grid-template-columns: 1fr; }
 
-        .picker-layout { display: grid; grid-template-columns: 190px 1fr; gap: 1rem; }
+        .preview-card-col { display: flex; flex-direction: column; gap: 0.4rem; min-width: 0; }
+        .preview-title-input {
+            background: transparent; border: none; border-bottom: 1.5px dashed var(--border);
+            color: var(--gray-200); font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.08em; padding: 0.2rem 0.1rem; font-family: var(--font); outline: none; width: 100%;
+        }
+        .preview-title-input:focus { border-bottom-color: var(--blue); color: #fff; }
+        .preview-title-input::placeholder { color: var(--gray-300); opacity: 0.7; text-transform: none; font-weight: 500; letter-spacing: 0; }
+
+        .preview-card {
+            background: radial-gradient(77.26% 147.49% at 63.01% 100%, #475b72 0%, #233141 100%);
+            border-radius: var(--radius-lg); padding: 0.85rem; min-height: 160px;
+            display: flex; flex-direction: column; gap: 0.3rem;
+        }
+        .preview-card.featured-style { background: linear-gradient(179.39deg, #131F2A 0.57%, #162634 99.53%); }
+        .preview-card.grid-style { background: radial-gradient(81.22% 106.36% at 28.19% 30.97%, #163a70 0%, #4b91f4 100%); }
+
+        /* LIST preview rows — with X on hover */
+        .preview-row {
+            display: flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0.4rem;
+            border-radius: 7px; position: relative; transition: background 0.1s;
+        }
+        .preview-row:hover { background: rgba(255,255,255,0.06); }
+        .preview-app-icon { width: 26px; height: 26px; border-radius: 6px; background: var(--panel2); flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: var(--gray-300); }
+        .preview-app-icon img { width: 100%; height: 100%; object-fit: cover; }
+        .preview-name { flex: 1; min-width: 0; font-size: 0.74rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .preview-remove {
+            width: 16px; height: 16px; border-radius: 50%; background: var(--danger); color: #fff;
+            border: none; font-size: 0.55rem; cursor: pointer;
+            display: none; align-items: center; justify-content: center;
+            flex-shrink: 0; font-family: var(--font); line-height: 1;
+        }
+        .preview-row:hover .preview-remove { display: flex; }
+        .preview-empty { font-size: 0.7rem; color: var(--gray-300); padding: 0.3rem 0; opacity: 0.6; }
+
+        /* Featured preview */
+        .featured-preview-wrap { display: flex; align-items: center; gap: 0.5rem; }
+        .featured-preview-icon { width: 40px; height: 40px; border-radius: 9px; background: var(--panel2); overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: var(--gray-300); flex-shrink: 0; position: relative; }
+        .featured-preview-icon img { width: 100%; height: 100%; object-fit: cover; }
+        .featured-preview-remove {
+            position: absolute; top: -5px; right: -5px; width: 14px; height: 14px;
+            border-radius: 50%; background: var(--danger); color: #fff; border: none;
+            font-size: 0.5rem; cursor: pointer; display: none;
+            align-items: center; justify-content: center; font-family: var(--font);
+        }
+        .featured-preview-wrap:hover .featured-preview-remove { display: flex; }
+
+        /* GRID preview (six-grid layout) */
+        .grid-preview { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.3rem; }
+        .grid-preview-slot {
+            display: flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.4rem;
+            border-radius: 7px; position: relative; transition: background 0.1s; min-height: 36px;
+        }
+        .grid-preview-slot:hover { background: rgba(255,255,255,0.06); }
+        .grid-preview-slot .preview-name { font-size: 0.7rem; }
+
+        /* ── BOTTOM: full-width filter sidebar + app picker (like Explore) ── */
+        .picker-section { max-width: 1180px; margin: 0.75rem auto 0; padding: 0 1.5rem; }
+        .content-panel { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem; }
+        .panel-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.6rem; flex-wrap: wrap; gap: 0.5rem; }
+        .panel-title { font-size: 0.66rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray-300); }
+        .search-box { display: flex; align-items: center; gap: 0.4rem; background: var(--panel2); border: 1.5px solid var(--border); border-radius: var(--radius-pill); padding: 0.3rem 0.8rem; min-width: 220px; }
+        .search-box input { background: transparent; border: none; outline: none; color: #fff; font-size: 0.78rem; width: 100%; font-family: var(--font); }
+        .search-box svg { flex-shrink: 0; color: #888; }
+
+        .picker-layout { display: grid; grid-template-columns: 210px 1fr; gap: 1rem; }
 
         /* ── FILTER SIDEBAR ─────────────────────────────────────── */
         .picker-sidebar {
             border-right: 1px solid var(--border); padding-right: 0.75rem;
-            max-height: 460px; overflow-y: auto;
+            max-height: 480px; overflow-y: auto;
         }
         .picker-sidebar::-webkit-scrollbar { width: 3px; }
         .picker-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
@@ -87,7 +152,7 @@
         .filter-item-count { margin-left: auto; font-size: 0.6rem; color: var(--gray-300); }
 
         /* ── APP PICK LIST ───────────────────────────────────────── */
-        .app-pick-list { max-height: 460px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.3rem; }
+        .app-pick-list { max-height: 480px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.3rem; }
         .app-pick-list::-webkit-scrollbar { width: 3px; }
         .app-pick-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
 
@@ -114,47 +179,7 @@
         }
         .pick-chip.list-chip.on { background: var(--blue); border-color: var(--blue); color: #fff; }
         .pick-chip.feat-chip.on { background: var(--gold); border-color: var(--gold); color: #1a1306; }
-
-        /* ── PREVIEW PANEL ───────────────────────────────────────── */
-        .preview-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
-        .preview-card {
-            background: #1a2332; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 0.85rem;
-        }
-        .preview-section-label {
-            font-size: 0.6rem; font-weight: 800; text-transform: uppercase;
-            letter-spacing: 0.08em; color: var(--gray-300); margin-bottom: 0.5rem;
-        }
-
-        /* LIST preview rows — with X on hover */
-        .preview-row {
-            display: flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0.4rem;
-            border-radius: 7px; position: relative; transition: background 0.1s;
-        }
-        .preview-row:hover { background: rgba(255,255,255,0.04); }
-        .preview-app-icon { width: 26px; height: 26px; border-radius: 6px; background: var(--panel2); flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: var(--gray-300); }
-        .preview-app-icon img { width: 100%; height: 100%; object-fit: cover; }
-        .preview-name { flex: 1; min-width: 0; font-size: 0.74rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .preview-remove {
-            width: 16px; height: 16px; border-radius: 50%; background: var(--danger); color: #fff;
-            border: none; font-size: 0.55rem; cursor: pointer;
-            display: none; align-items: center; justify-content: center;
-            flex-shrink: 0; font-family: var(--font); line-height: 1;
-        }
-        .preview-row:hover .preview-remove { display: flex; }
-        .preview-empty { font-size: 0.7rem; color: var(--gray-300); padding: 0.3rem 0; opacity: 0.6; }
-
-        /* Featured preview */
-        .featured-preview { display: flex; flex-direction: column; gap: 0.5rem; }
-        .featured-preview-icon { width: 40px; height: 40px; border-radius: 9px; background: var(--panel2); overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: var(--gray-300); flex-shrink: 0; position: relative; }
-        .featured-preview-icon img { width: 100%; height: 100%; object-fit: cover; }
-        .featured-preview-remove {
-            position: absolute; top: -5px; right: -5px; width: 14px; height: 14px;
-            border-radius: 50%; background: var(--danger); color: #fff; border: none;
-            font-size: 0.5rem; cursor: pointer; display: none;
-            align-items: center; justify-content: center; font-family: var(--font);
-        }
-        .featured-preview-wrap:hover .featured-preview-remove { display: flex; }
-        .featured-preview-wrap { display: flex; align-items: center; gap: 0.5rem; }
+        .pick-chip[disabled] { opacity: 0.3; cursor: not-allowed; }
 
         /* ── EXISTING SECTIONS MANAGER ──────────────────────────── */
         .manager { max-width: 1180px; margin: 1.5rem auto 3rem; padding: 0 1.5rem; }
@@ -172,9 +197,10 @@
         .btn-row-delete:hover { color: var(--danger); }
 
         @media (max-width: 900px) {
-            .editor { grid-template-columns: 1fr; }
+            .editor-top { grid-template-columns: 1fr; }
+            .preview-cards.layout-5-1 { grid-template-columns: 1fr; }
             .picker-layout { grid-template-columns: 1fr; }
-            .preview-col { grid-template-columns: 1fr; }
+            .grid-preview { grid-template-columns: 1fr 1fr; }
         }
     </style>
 </head>
@@ -193,19 +219,16 @@
 
 <div class="page-header">Add/Edit home section</div>
 
-<div class="editor">
+<!-- ── TOP: left controls + right live preview ──────────────────── -->
+<div class="editor-top">
 
     <!-- ── LEFT: controls ──────────────────────────────────────── -->
     <div class="controls-col">
         <div class="control-block">
-            <div class="control-label">Title</div>
-            <input class="title-input" id="sectionTitle" type="text" placeholder="e.g. Newest in Productivity" maxlength="60"/>
-        </div>
-
-        <div class="control-block">
             <div class="control-label">Layout</div>
-            <select id="sectionLayout">
+            <select id="sectionLayout" onchange="onLayoutChange()">
                 <option value="FIVE_PLUS_ONE">5 + 1</option>
+                <option value="SIX_GRID">6</option>
             </select>
         </div>
 
@@ -219,133 +242,150 @@
         </div>
 
         <button class="btn-add" id="addBtn" onclick="submitSection()">ADD</button>
-        <div id="formMsg" style="font-size:0.72rem;color:var(--gray-300);margin-top:0.25rem;min-height:1.2em;"></div>
+        <div id="formMsg" style="font-size:0.72rem;color:var(--gray-300);min-height:1.2em;"></div>
     </div>
 
-    <!-- ── RIGHT: picker + preview ─────────────────────────────── -->
-    <div style="display:flex;flex-direction:column;gap:1rem;">
+    <!-- ── RIGHT: live preview, mirrors the homepage card(s) ──────── -->
+    <div class="preview-col">
 
-        <!-- APP PICKER PANEL -->
-        <div class="content-panel">
-
-            <!-- FILTERS tab -->
-            <div id="tab-filters">
-                <div class="panel-title-row">
-                    <span class="panel-title">Pick apps — filter or search</span>
-                    <div class="search-box">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;color:#888;">
-                            <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/>
-                        </svg>
-                        <input id="appSearch" placeholder="Find an app..." type="text"/>
-                    </div>
-                </div>
-                <div class="picker-layout">
-                    <!-- SIDEBAR: filter entries by category -->
-                    <aside class="picker-sidebar">
-                        <th:block th:each="cat, catStat : ${filterEntries.entrySet()}">
-                            <div class="filter-group">
-                                <div class="filter-group-header" th:text="${cat.key.name.toUpperCase()}">CATEGORY</div>
-                                <div th:each="entry : ${cat.value}"
-                                     class="filter-item"
-                                     th:data-entry-id="${entry.id}"
-                                     th:data-entry-name="${entry.name}"
-                                     onclick="toggleEntryFilter(this)">
-                                    <img th:if="${entry.iconUrl != null}" th:src="${entry.iconUrl}"
-                                         th:alt="${entry.name}" class="filter-item-icon"/>
-                                    <span th:text="${entry.name}">Entry</span>
-                                </div>
-                            </div>
-                        </th:block>
-                        <div th:if="${#maps.isEmpty(filterEntries)}" style="color:var(--gray-300);font-size:0.72rem;padding:0.5rem 0;">
-                            No filter categories yet.
-                        </div>
-                    </aside>
-
-                    <!-- APP LIST -->
-                    <div class="app-pick-list" id="appPickList">
-                        <th:block th:each="app : ${allApps}">
-                            <div class="app-pick-row"
-                                 th:id="'pick-' + ${app.id}"
-                                 th:data-app-id="${app.id}"
-                                 th:data-app-name="${app.name.toLowerCase()}">
-                                <div class="app-pick-icon">
-                                    <img th:if="${app.iconUrl != null}" th:src="${app.iconUrl}" alt=""/>
-                                    <span th:if="${app.iconUrl == null}">🖼</span>
-                                </div>
-                                <span class="app-pick-name" th:text="${app.name}">App name</span>
-                                <div class="app-pick-actions">
-                                    <button type="button" class="pick-chip list-chip" onclick="toggleList(event, this)">+ list</button>
-                                    <button type="button" class="pick-chip feat-chip" onclick="toggleFeatured(event, this)">★ feat</button>
-                                </div>
-                            </div>
-                        </th:block>
-                        <div th:if="${#lists.isEmpty(allApps)}" style="color:var(--gray-300);font-size:0.78rem;padding:1rem 0;">No apps yet.</div>
+        <!-- 5+1 preview: two cards, two separate inline titles -->
+        <div class="preview-cards layout-5-1" id="previewCards51">
+            <div class="preview-card-col">
+                <input class="preview-title-input" id="listTitleInput" type="text"
+                       placeholder="e.g. Newest in Productivity" maxlength="60"/>
+                <div class="preview-card">
+                    <div id="previewList">
+                        <div class="preview-empty">No apps selected yet.</div>
                     </div>
                 </div>
             </div>
-
-            <!-- TOP RATED tab -->
-            <div id="tab-toprated" style="display:none;">
-                <div class="panel-title" style="margin-bottom:0.75rem;">Top user rated — click to quick-add to list</div>
-                <div class="app-pick-list">
-                    <th:block th:each="app : ${topUserRated}">
-                        <div class="app-pick-row"
-                             th:data-app-id="${app.id}"
-                             onclick="quickAddToList(this.dataset.appId, this)">
-                            <div class="app-pick-icon">
-                                <img th:if="${app.iconUrl != null}" th:src="${app.iconUrl}" alt=""/>
-                                <span th:if="${app.iconUrl == null}">🖼</span>
-                            </div>
-                            <span class="app-pick-name" th:text="${app.name}">App name</span>
-                            <span style="font-size:0.65rem;color:var(--gray-300);flex-shrink:0;"
-                                  th:text="${#numbers.formatDecimal(app.userRatingAvg,1,1)} + ' (' + ${app.userRatingCount} + ')'"></span>
-                        </div>
-                    </th:block>
-                    <div th:if="${#lists.isEmpty(topUserRated)}" style="color:var(--gray-300);font-size:0.78rem;">No rated apps yet.</div>
-                </div>
-            </div>
-
-            <!-- VERIFIED tab -->
-            <div id="tab-verified" style="display:none;">
-                <div class="panel-title" style="margin-bottom:0.75rem;">Top verified — click to quick-add to list</div>
-                <div class="app-pick-list">
-                    <th:block th:each="app : ${topVerified}">
-                        <div class="app-pick-row"
-                             th:data-app-id="${app.id}"
-                             onclick="quickAddToList(this.dataset.appId, this)">
-                            <div class="app-pick-icon">
-                                <img th:if="${app.iconUrl != null}" th:src="${app.iconUrl}" alt=""/>
-                                <span th:if="${app.iconUrl == null}">🖼</span>
-                            </div>
-                            <span class="app-pick-name" th:text="${app.name}">App name</span>
-                            <span style="font-size:0.65rem;color:var(--gray-300);flex-shrink:0;"
-                                  th:text="${#numbers.formatDecimal(app.verifiedScore,1,1)}"></span>
-                        </div>
-                    </th:block>
-                    <div th:if="${#lists.isEmpty(topVerified)}" style="color:var(--gray-300);font-size:0.78rem;">No verified apps yet.</div>
+            <div class="preview-card-col">
+                <input class="preview-title-input" id="featuredTitleInput" type="text"
+                       placeholder="e.g. Reviewed today" maxlength="60"/>
+                <div class="preview-card featured-style">
+                    <div id="previewFeatured">
+                        <div class="preview-empty">No featured app selected.</div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- LIVE PREVIEW: two cards side by side (mirrors homepage 5+1 layout) -->
-        <div class="preview-col">
-
-            <!-- Left: list preview -->
-            <div class="preview-card">
-                <div class="preview-section-label">List apps (max 5) — hover to remove</div>
-                <div id="previewList">
-                    <div class="preview-empty">No apps selected yet.</div>
+        <!-- 6-grid preview: one card, one title, six slots -->
+        <div class="preview-cards layout-6-grid" id="previewCards6" style="display:none;">
+            <div class="preview-card-col">
+                <input class="preview-title-input" id="gridTitleInput" type="text"
+                       placeholder="e.g. Apps with a different vibe" maxlength="60"/>
+                <div class="preview-card grid-style">
+                    <div class="grid-preview" id="previewGrid">
+                        <div class="preview-empty">No apps selected yet.</div>
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Right: featured preview -->
-            <div class="preview-card">
-                <div class="preview-section-label">Featured app (1) — hover to remove</div>
-                <div id="previewFeatured">
-                    <div class="preview-empty">No featured app selected.</div>
+    </div>
+</div>
+
+<!-- ── BOTTOM: full-width filter sidebar + app picker (pick apps here) ── -->
+<div class="picker-section">
+    <div class="content-panel">
+
+        <!-- FILTERS tab -->
+        <div id="tab-filters">
+            <div class="panel-title-row">
+                <span class="panel-title">Pick apps — filter or search</span>
+                <div class="search-box">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/>
+                    </svg>
+                    <input id="appSearch" placeholder="Find an app..." type="text"/>
                 </div>
             </div>
+            <div class="picker-layout">
+                <!-- SIDEBAR: filter entries by category -->
+                <aside class="picker-sidebar">
+                    <th:block th:each="cat, catStat : ${filterEntries.entrySet()}">
+                        <div class="filter-group">
+                            <div class="filter-group-header" th:text="${cat.key.name.toUpperCase()}">CATEGORY</div>
+                            <div th:each="entry : ${cat.value}"
+                                 class="filter-item"
+                                 th:data-entry-id="${entry.id}"
+                                 th:data-entry-name="${entry.name}"
+                                 onclick="toggleEntryFilter(this)">
+                                <img th:if="${entry.iconUrl != null}" th:src="${entry.iconUrl}"
+                                     th:alt="${entry.name}" class="filter-item-icon"/>
+                                <span th:text="${entry.name}">Entry</span>
+                            </div>
+                        </div>
+                    </th:block>
+                    <div th:if="${#maps.isEmpty(filterEntries)}" style="color:var(--gray-300);font-size:0.72rem;padding:0.5rem 0;">
+                        No filter categories yet.
+                    </div>
+                </aside>
 
+                <!-- APP LIST -->
+                <div class="app-pick-list" id="appPickList">
+                    <th:block th:each="app : ${allApps}">
+                        <div class="app-pick-row"
+                             th:id="'pick-' + ${app.id}"
+                             th:data-app-id="${app.id}"
+                             th:data-app-name="${app.name.toLowerCase()}">
+                            <div class="app-pick-icon">
+                                <img th:if="${app.iconUrl != null}" th:src="${app.iconUrl}" alt=""/>
+                                <span th:if="${app.iconUrl == null}">🖼</span>
+                            </div>
+                            <span class="app-pick-name" th:text="${app.name}">App name</span>
+                            <div class="app-pick-actions">
+                                <button type="button" class="pick-chip list-chip" onclick="toggleList(event, this)">+ list</button>
+                                <button type="button" class="pick-chip feat-chip" onclick="toggleFeatured(event, this)">★ feat</button>
+                            </div>
+                        </div>
+                    </th:block>
+                    <div th:if="${#lists.isEmpty(allApps)}" style="color:var(--gray-300);font-size:0.78rem;padding:1rem 0;">No apps yet.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TOP RATED tab -->
+        <div id="tab-toprated" style="display:none;">
+            <div class="panel-title" style="margin-bottom:0.75rem;">Top user rated — click to quick-add to list</div>
+            <div class="app-pick-list">
+                <th:block th:each="app : ${topUserRated}">
+                    <div class="app-pick-row"
+                         th:data-app-id="${app.id}"
+                         onclick="quickAddToList(this.dataset.appId, this)">
+                        <div class="app-pick-icon">
+                            <img th:if="${app.iconUrl != null}" th:src="${app.iconUrl}" alt=""/>
+                            <span th:if="${app.iconUrl == null}">🖼</span>
+                        </div>
+                        <span class="app-pick-name" th:text="${app.name}">App name</span>
+                        <span style="font-size:0.65rem;color:var(--gray-300);flex-shrink:0;"
+                              th:text="${#numbers.formatDecimal(app.userRatingAvg,1,1)} + ' (' + ${app.userRatingCount} + ')'"></span>
+                    </div>
+                </th:block>
+                <div th:if="${#lists.isEmpty(topUserRated)}" style="color:var(--gray-300);font-size:0.78rem;">No rated apps yet.</div>
+            </div>
+        </div>
+
+        <!-- VERIFIED tab -->
+        <div id="tab-verified" style="display:none;">
+            <div class="panel-title" style="margin-bottom:0.75rem;">Top verified — click to quick-add to list</div>
+            <div class="app-pick-list">
+                <th:block th:each="app : ${topVerified}">
+                    <div class="app-pick-row"
+                         th:data-app-id="${app.id}"
+                         onclick="quickAddToList(this.dataset.appId, this)">
+                        <div class="app-pick-icon">
+                            <img th:if="${app.iconUrl != null}" th:src="${app.iconUrl}" alt=""/>
+                            <span th:if="${app.iconUrl == null}">🖼</span>
+                        </div>
+                        <span class="app-pick-name" th:text="${app.name}">App name</span>
+                        <span style="font-size:0.65rem;color:var(--gray-300);flex-shrink:0;"
+                              th:text="${#numbers.formatDecimal(app.verifiedScore,1,1)}"></span>
+                    </div>
+                </th:block>
+                <div th:if="${#lists.isEmpty(topVerified)}" style="color:var(--gray-300);font-size:0.78rem;">No verified apps yet.</div>
+            </div>
         </div>
     </div>
 </div>
@@ -360,7 +400,8 @@
                 <span class="section-row-name" th:text="${section.title}">Section title</span>
                 <span class="section-row-meta"
                       th:text="${#lists.size(sectionListApps.get(section.id) ?: {})} + ' list'
-                                + (${sectionFeatured.get(section.id) != null} ? ' · 1 featured' : '')"></span>
+                                + (${sectionFeatured.get(section.id) != null} ? ' · 1 featured' : '')
+                                + ' · ' + (${section.layout.name() == 'SIX_GRID'} ? '6-grid' : '5+1')"></span>
                 <button class="btn-row-delete" th:data-id="${section.id}" onclick="deleteSection(this.dataset.id)">✕ Delete</button>
             </div>
         </th:block>
@@ -372,13 +413,52 @@
 
 <script th:inline="javascript">
     /* ── State ──────────────────────────────────────────────────────────── */
-    let selectedListIds   = [];     // up to 5, ordered
+    let currentLayout      = 'FIVE_PLUS_ONE'; // or 'SIX_GRID'
+    let selectedListIds    = [];     // up to 5 (or 6 for SIX_GRID), ordered
     let selectedFeaturedId = null;
+
     let activeEntryFilters = new Set(); // entry IDs currently active in sidebar
 
-    // Build entry → app membership map from allApps data (lightweight)
-    // For proper filter-by-entry we rely on the backend having set data-entry-ids
-    // on each pick row; simpler: we just filter by name search in this admin page.
+    function maxListSize() {
+        return currentLayout === 'SIX_GRID' ? 6 : 5;
+    }
+
+    /* ── Layout switching ──────────────────────────────────────────────── */
+    function onLayoutChange() {
+        currentLayout = document.getElementById('sectionLayout').value;
+        const is6 = currentLayout === 'SIX_GRID';
+
+        document.getElementById('previewCards51').style.display = is6 ? 'none' : '';
+        document.getElementById('previewCards6').style.display  = is6 ? '' : 'none';
+
+        // Switching to 6-grid drops any featured selection (no featured slot there)
+        if (is6 && selectedFeaturedId) {
+            const prev = findRow(selectedFeaturedId);
+            prev?.classList.remove('sel-featured');
+            prev?.querySelector('.feat-chip')?.classList.remove('on');
+            selectedFeaturedId = null;
+        }
+
+        // Trim list selection down if it now exceeds the new max
+        const max = maxListSize();
+        if (selectedListIds.length > max) {
+            selectedListIds.slice(max).forEach(id => {
+                const r = findRow(id);
+                r?.classList.remove('sel-list');
+                r?.querySelector('.list-chip')?.classList.remove('on');
+            });
+            selectedListIds = selectedListIds.slice(0, max);
+        }
+
+        updateFeaturedChipAvailability();
+        renderPreview();
+    }
+
+    function updateFeaturedChipAvailability() {
+        document.querySelectorAll('.feat-chip').forEach(btn => {
+            btn.disabled = currentLayout === 'SIX_GRID';
+        });
+    }
 
     /* ── Tab switching ─────────────────────────────────────────────────── */
     function switchTab(tab, btn) {
@@ -406,8 +486,8 @@
         const searchQ = document.getElementById('appSearch').value.toLowerCase().trim();
         document.querySelectorAll('#appPickList .app-pick-row').forEach(row => {
             const nameMatch = !searchQ || row.dataset.appName.includes(searchQ);
-            // If we have active filters, we can't filter by entry on the client easily
-            // without server data. Show all that match the name search.
+            // Filters currently narrow by name search only — entry-based filtering
+            // would need server-supplied app→entry membership data per row.
             row.style.display = nameMatch ? '' : 'none';
         });
     }
@@ -435,7 +515,7 @@
             btn.classList.remove('on');
             row.classList.remove('sel-list');
         } else {
-            if (selectedListIds.length >= 5) { showMsg('List is full (max 5).', true); return; }
+            if (selectedListIds.length >= maxListSize()) { showMsg(`List is full (max ${maxListSize()}).`, true); return; }
             selectedListIds.push(id);
             btn.classList.add('on');
             row.classList.add('sel-list');
@@ -445,6 +525,7 @@
 
     function toggleFeatured(evt, btn) {
         evt.stopPropagation();
+        if (currentLayout === 'SIX_GRID') return; // no featured slot on this layout
         const row = btn.closest('.app-pick-row');
         const id  = row.dataset.appId;
         if (selectedFeaturedId === id) {
@@ -467,7 +548,7 @@
 
     function quickAddToList(appId, rowEl) {
         if (selectedListIds.includes(appId)) return;
-        if (selectedListIds.length >= 5) { showMsg('List is full (max 5).', true); return; }
+        if (selectedListIds.length >= maxListSize()) { showMsg(`List is full (max ${maxListSize()}).`, true); return; }
         selectedListIds.push(appId);
         const liveRow = findRow(appId);
         if (liveRow) { liveRow.classList.add('sel-list'); liveRow.querySelector('.list-chip')?.classList.add('on'); }
@@ -488,7 +569,12 @@
     }
 
     function renderPreview() {
-        /* LIST */
+        if (currentLayout === 'SIX_GRID') {
+            renderGridPreview();
+            return;
+        }
+
+        /* LIST (left card) */
         const listWrap = document.getElementById('previewList');
         listWrap.innerHTML = '';
         if (selectedListIds.length === 0) {
@@ -505,7 +591,7 @@
             });
         }
 
-        /* FEATURED */
+        /* FEATURED (right card) */
         const featWrap = document.getElementById('previewFeatured');
         featWrap.innerHTML = '';
         if (!selectedFeaturedId) {
@@ -528,11 +614,34 @@
                 selectedFeaturedId = null;
                 renderPreview();
             };
-            // show X button on hover
-            wrap.addEventListener('mouseenter', () => { wrap.querySelector('.featured-preview-remove').style.display = 'flex'; });
-            wrap.addEventListener('mouseleave', () => { wrap.querySelector('.featured-preview-remove').style.display = 'none'; });
             featWrap.appendChild(wrap);
         }
+    }
+
+    function renderGridPreview() {
+        const gridWrap = document.getElementById('previewGrid');
+        gridWrap.innerHTML = '';
+        if (selectedListIds.length === 0) {
+            gridWrap.innerHTML = '<div class="preview-empty">No apps selected yet.</div>';
+            return;
+        }
+        selectedListIds.forEach(id => {
+            const div  = document.createElement('div');
+            div.className = 'grid-preview-slot';
+            const icon = appIconFor(id);
+            div.innerHTML = `
+                <div class="preview-app-icon">${icon ? `<img src="${icon}" alt=""/>` : '🖼'}</div>
+                <span class="preview-name">${escHtml(appNameFor(id))}</span>
+                <button class="preview-remove" type="button" title="Remove">✕</button>`;
+            div.querySelector('.preview-remove').onclick = () => {
+                const r = findRow(id);
+                r?.classList.remove('sel-list');
+                r?.querySelector('.list-chip')?.classList.remove('on');
+                selectedListIds = selectedListIds.filter(x => x !== id);
+                renderPreview();
+            };
+            gridWrap.appendChild(div);
+        });
     }
 
     /* ── Misc ──────────────────────────────────────────────────────────── */
@@ -548,8 +657,10 @@
 
     /* ── Submit new section ────────────────────────────────────────────── */
     async function submitSection() {
-        const title  = document.getElementById('sectionTitle').value.trim();
-        const layout = document.getElementById('sectionLayout').value;
+        const is6 = currentLayout === 'SIX_GRID';
+        const title         = (is6 ? document.getElementById('gridTitleInput') : document.getElementById('listTitleInput')).value.trim();
+        const featuredTitle = is6 ? '' : document.getElementById('featuredTitleInput').value.trim();
+
         if (!title) { showMsg('Please give the section a title.', true); return; }
         if (selectedListIds.length === 0 && !selectedFeaturedId) {
             showMsg('Pick at least one app.', true); return;
@@ -559,9 +670,10 @@
 
         const fd = new FormData();
         fd.append('title', title);
-        fd.append('layout', layout);
+        if (!is6 && featuredTitle) fd.append('featuredTitle', featuredTitle);
+        fd.append('layout', currentLayout);
         selectedListIds.forEach(id => fd.append('listAppIds', id));
-        if (selectedFeaturedId) fd.append('featuredAppId', selectedFeaturedId);
+        if (!is6 && selectedFeaturedId) fd.append('featuredAppId', selectedFeaturedId);
 
         try {
             const r    = await fetch('/admin/home-sections', { method: 'POST', body: fd });
@@ -617,7 +729,8 @@
         }
     })();
 
-    // Init preview
+    // Init
+    updateFeaturedChipAvailability();
     renderPreview();
 </script>
 </body>

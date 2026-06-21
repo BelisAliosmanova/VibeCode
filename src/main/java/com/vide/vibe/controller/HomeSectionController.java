@@ -21,7 +21,8 @@ import java.util.UUID;
 /**
  * Admin page for building/editing the manual homepage sections shown in the
  * "Add/Edit home section" screen — pick a layout, pick apps (via the same
- * category filters used on /explore), give it a title, and add it.
+ * category filters used on /explore), give it a title (or two, for the
+ * 5+1 layout), and add it.
  *
  * No auth gate for now — every visitor can manage these, matching the rest
  * of the app's current "no security yet" state.
@@ -82,11 +83,12 @@ public class HomeSectionController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> create(
             @RequestParam String title,
+            @RequestParam(required = false) String featuredTitle,
             @RequestParam(defaultValue = "FIVE_PLUS_ONE") HomeSection.Layout layout,
             @RequestParam(required = false) List<UUID> listAppIds,
             @RequestParam(required = false) UUID featuredAppId) {
         try {
-            HomeSection saved = homeSectionService.create(title, layout, listAppIds, featuredAppId);
+            HomeSection saved = homeSectionService.create(title, featuredTitle, layout, listAppIds, featuredAppId);
             return ResponseEntity.ok(Map.of("ok", true, "id", saved.getId().toString()));
         } catch (Exception e) {
             return ResponseEntity.status(500)
@@ -99,11 +101,32 @@ public class HomeSectionController {
     public ResponseEntity<Map<String, Object>> update(
             @PathVariable UUID id,
             @RequestParam(required = false) String title,
+            @RequestParam(required = false) String featuredTitle,
             @RequestParam(required = false) HomeSection.Layout layout,
             @RequestParam(required = false) List<UUID> listAppIds,
             @RequestParam(required = false) UUID featuredAppId) {
         try {
-            homeSectionService.update(id, title, layout, listAppIds, featuredAppId);
+            homeSectionService.update(id, title, featuredTitle, layout, listAppIds, featuredAppId);
+            return ResponseEntity.ok(Map.of("ok", true));
+        } catch (Exception e) {
+            return ResponseEntity.status(500)
+                    .body(Map.of("error", e.getMessage() != null ? e.getMessage() : "Error"));
+        }
+    }
+
+    /**
+     * Lightweight endpoint used by the homepage's inline contenteditable
+     * titles — saves whichever of the two titles are supplied without
+     * touching layout or app selections.
+     */
+    @PostMapping("/{id}/titles")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> updateTitles(
+            @PathVariable UUID id,
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String featuredTitle) {
+        try {
+            homeSectionService.updateTitles(id, title, featuredTitle);
             return ResponseEntity.ok(Map.of("ok", true));
         } catch (Exception e) {
             return ResponseEntity.status(500)

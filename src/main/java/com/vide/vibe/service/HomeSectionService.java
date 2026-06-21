@@ -32,7 +32,7 @@ public class HomeSectionService {
                 .orElseThrow(() -> new RuntimeException("Home section not found: " + id));
     }
 
-    /** apps in LIST slot, in order (max 5 enforced on the way in). */
+    /** apps in LIST slot, in order (max enforced on the way in: 5 for FIVE_PLUS_ONE, 6 for SIX_GRID). */
     public List<App> findListApps(UUID sectionId) {
         return homeSectionAppRepository.findAllByHomeSectionIdOrderByPositionAsc(sectionId)
                 .stream()
@@ -68,13 +68,15 @@ public class HomeSectionService {
     }
 
     @Transactional
-    public HomeSection create(String title, HomeSection.Layout layout,
+    public HomeSection create(String title, String featuredTitle, HomeSection.Layout layout,
                               List<UUID> listAppIds, UUID featuredAppId) {
         List<HomeSection> existing = findAllOrdered();
+        HomeSection.Layout resolvedLayout = layout != null ? layout : HomeSection.Layout.FIVE_PLUS_ONE;
 
         HomeSection section = HomeSection.builder()
                 .title(title)
-                .layout(layout != null ? layout : HomeSection.Layout.FIVE_PLUS_ONE)
+                .featuredTitle(resolvedLayout == HomeSection.Layout.FIVE_PLUS_ONE ? featuredTitle : null)
+                .layout(resolvedLayout)
                 .position(existing.size())
                 .build();
         section = homeSectionRepository.save(section);
@@ -84,15 +86,37 @@ public class HomeSectionService {
     }
 
     @Transactional
-    public HomeSection update(UUID id, String title, HomeSection.Layout layout,
+    public HomeSection update(UUID id, String title, String featuredTitle, HomeSection.Layout layout,
                               List<UUID> listAppIds, UUID featuredAppId) {
         HomeSection section = findById(id);
         if (title != null && !title.isBlank()) section.setTitle(title.trim());
         if (layout != null) section.setLayout(layout);
+
+        if (section.getLayout() == HomeSection.Layout.SIX_GRID) {
+            // No featured slot on this layout — keep the field clear.
+            section.setFeaturedTitle(null);
+        } else if (featuredTitle != null) {
+            section.setFeaturedTitle(featuredTitle.trim());
+        }
+
         homeSectionRepository.save(section);
 
-        saveAppSelections(id, listAppIds, featuredAppId);
+        saveAppSelections(id, listAppIds, section.getLayout() == HomeSection.Layout.SIX_GRID ? null : featuredAppId);
         return section;
+    }
+
+    /**
+     * Persist just the title fields — used by the homepage's inline-edit-on-blur
+     * for the list title and (when present) the featured title independently.
+     */
+    @Transactional
+    public HomeSection updateTitles(UUID id, String title, String featuredTitle) {
+        HomeSection section = findById(id);
+        if (title != null && !title.isBlank()) section.setTitle(title.trim());
+        if (section.getLayout() == HomeSection.Layout.FIVE_PLUS_ONE && featuredTitle != null) {
+            section.setFeaturedTitle(featuredTitle.trim());
+        }
+        return homeSectionRepository.save(section);
     }
 
     @Transactional
@@ -100,8 +124,10 @@ public class HomeSectionService {
         HomeSection section = findById(sectionId);
         homeSectionAppRepository.deleteAllByHomeSectionId(sectionId);
 
-        List<UUID> ids = listAppIds != null ? listAppIds : new ArrayList<>();
-        if (ids.size() > 5) ids = ids.subList(0, 5);
+        int maxList = section.getLayout() == HomeSection.Layout.SIX_GRID ? 6 : 5;
+
+        List<UUID> ids = listAppIds != null ? new ArrayList<>(listAppIds) : new ArrayList<>();
+        if (ids.size() > maxList) ids = ids.subList(0, maxList);
 
         int pos = 0;
         for (UUID appId : ids) {
@@ -114,7 +140,8 @@ public class HomeSectionService {
                     .build());
         }
 
-        if (featuredAppId != null) {
+        // SIX_GRID has no featured slot at all.
+        if (section.getLayout() != HomeSection.Layout.SIX_GRID && featuredAppId != null) {
             App featured = appService.findById(featuredAppId);
             homeSectionAppRepository.save(HomeSectionApp.builder()
                     .homeSection(section)

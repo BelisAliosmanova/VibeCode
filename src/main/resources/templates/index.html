@@ -160,6 +160,9 @@
         .section-pair.layout-5-1 {
             grid-template-columns: 60fr 40fr;
         }
+        .section-pair.layout-6-grid {
+            grid-template-columns: 1fr;
+        }
 
         /* ── SECTION WRAPPER ─────────────────────────────────────── */
         .section-wrapper {
@@ -275,8 +278,8 @@
         .feature-pill .pill-name { color: var(--accent-green); }
         .feature-pill .pill-count { color: var(--gray-200); font-weight: 500; }
 
-        /* ── VIBE GRID ──────────────────────────────────────────── */
-        .vibe-grid { display: grid; grid-template-columns: 1fr 1fr; }
+        /* ── VIBE GRID (also used by SIX_GRID dynamic sections) ──── */
+        .vibe-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; }
         .grid-card {
             display: flex; align-items: center; gap: 0.65rem; padding: 0.75rem 1.4rem;
             cursor: pointer; transition: background 0.1s;
@@ -368,11 +371,20 @@
 
             <!-- ── DYNAMIC HOME SECTIONS ──────────────────────────── -->
             <!--
-              Each HomeSection is a "pair": 5 list apps on the left + 1 featured on the right.
-              Both cards share one section-pair div so they drag together.
+              Each HomeSection is either:
+                FIVE_PLUS_ONE — a "pair": up to 5 list apps on the left + 1
+                                featured app on the right, each side with its
+                                own independently editable title.
+                SIX_GRID      — a single full-width card with up to 6 apps
+                                laid out in a grid, one title.
+              All variants share one section-pair div per section so they
+              drag together as a unit.
             -->
             <th:block th:each="section : ${sections}">
-                <div class="section-pair layout-5-1"
+
+                <!-- ═══════════ FIVE_PLUS_ONE layout ═══════════ -->
+                <div th:if="${section.layout.name() == 'FIVE_PLUS_ONE'}"
+                     class="section-pair layout-5-1"
                      draggable="false"
                      th:data-section-id="${section.id}"
                      th:id="'pair-' + ${section.id}">
@@ -384,6 +396,7 @@
                                 <span class="section-title"
                                       contenteditable="true"
                                       th:data-section-id="${section.id}"
+                                      th:data-title-field="title"
                                       th:data-original="${section.title}"
                                       th:text="${section.title}"
                                       onblur="saveSectionTitle(this)"
@@ -434,11 +447,18 @@
                         </div>
                     </div>
 
-                    <!-- RIGHT: featured app -->
+                    <!-- RIGHT: featured app, with its own independently editable title -->
                     <div class="section-wrapper">
                         <div class="section-header">
                             <div class="section-title-row">
-                                <span class="section-title" style="opacity:0.3;">Featured</span>
+                                <span class="section-title"
+                                      contenteditable="true"
+                                      th:data-section-id="${section.id}"
+                                      th:data-title-field="featuredTitle"
+                                      th:data-original="${section.featuredTitle != null ? section.featuredTitle : 'Featured'}"
+                                      th:text="${section.featuredTitle != null ? section.featuredTitle : 'Featured'}"
+                                      onblur="saveSectionTitle(this)"
+                                      onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"></span>
                             </div>
                         </div>
                         <div class="home-section dark-card">
@@ -467,6 +487,56 @@
                     </div>
 
                 </div>
+
+                <!-- ═══════════ SIX_GRID layout ═══════════ -->
+                <div th:if="${section.layout.name() == 'SIX_GRID'}"
+                     class="section-pair layout-6-grid section-row-full"
+                     draggable="false"
+                     th:data-section-id="${section.id}"
+                     th:id="'pair-' + ${section.id}">
+                    <div class="section-wrapper">
+                        <div class="section-header">
+                            <div class="section-title-row">
+                                <span class="section-title"
+                                      contenteditable="true"
+                                      th:data-section-id="${section.id}"
+                                      th:data-title-field="title"
+                                      th:data-original="${section.title}"
+                                      th:text="${section.title}"
+                                      onblur="saveSectionTitle(this)"
+                                      onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"></span>
+                            </div>
+                            <div class="drag-dots">
+                                <span></span><span></span><span></span><span></span><span></span><span></span>
+                            </div>
+                        </div>
+                        <div class="home-section blue-vibe">
+                            <th:block th:with="listApps=${sectionListApps.get(section.id)}">
+                                <div class="vibe-grid" th:if="${listApps != null and !#lists.isEmpty(listApps)}">
+                                    <a class="grid-card"
+                                       th:each="app : ${listApps}"
+                                       th:href="@{/p/{slug}(slug=${app.slug})}"
+                                       th:data-name="${app.name.toLowerCase()}"
+                                       th:data-desc="${app.description != null ? app.description.toLowerCase() : ''}">
+                                        <div class="grid-icon">
+                                            <img alt="" th:if="${app.iconUrl != null}" th:src="${app.iconUrl}"/>
+                                            <span th:if="${app.iconUrl == null}">🖼</span>
+                                        </div>
+                                        <div>
+                                            <div class="grid-name" th:text="${app.name}">App Name</div>
+                                            <div class="grid-desc"
+                                                 th:text="${app.description != null ? app.description : 'No description'}"></div>
+                                        </div>
+                                    </a>
+                                </div>
+                                <div th:if="${listApps == null or #lists.isEmpty(listApps)}" class="empty-state">
+                                    No apps in this section yet.
+                                </div>
+                            </th:block>
+                        </div>
+                    </div>
+                </div>
+
             </th:block>
 
             <!-- ── EMPTY STATE when no sections yet ─────────────── -->
@@ -505,35 +575,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- ── APPS WITH A DIFFERENT VIBE (always shown) ─────── -->
-            <div class="section-row-full" th:if="${!#lists.isEmpty(vibeApps)}">
-                <div class="section-wrapper">
-                    <div class="section-header" style="cursor:default;">
-                        <span class="section-title" style="color:rgba(255,255,255,0.65);">Apps with a different vibe</span>
-                    </div>
-                    <div class="home-section blue-vibe">
-                        <div class="vibe-grid">
-                            <a class="grid-card"
-                               th:each="app : ${vibeApps}"
-                               th:href="@{/p/{slug}(slug=${app.slug})}"
-                               th:data-name="${app.name.toLowerCase()}"
-                               th:data-desc="${app.description != null ? app.description.toLowerCase() : ''}">
-                                <div class="grid-icon">
-                                    <img alt="" th:if="${app.iconUrl != null}" th:src="${app.iconUrl}"/>
-                                    <span th:if="${app.iconUrl == null}">🖼</span>
-                                </div>
-                                <div>
-                                    <div class="grid-name" th:text="${app.name}">App Name</div>
-                                    <div class="grid-desc"
-                                         th:text="${app.description != null ? app.description : 'No description'}"></div>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
         </div>
     </main>
 </div>
@@ -559,17 +600,19 @@
         strip?.scrollBy({ left: -200, behavior: 'smooth' });
     });
 
-    /* ── Inline section title save ───────────────────────────────── */
+    /* ── Inline section title save (works for both list & featured titles) ── */
     async function saveSectionTitle(el) {
-        const id = el.dataset.sectionId;
-        const title = el.textContent.trim();
-        if (!title) { el.textContent = el.dataset.original || 'Untitled section'; return; }
-        if (title === el.dataset.original) return;
+        const id    = el.dataset.sectionId;
+        const field = el.dataset.titleField || 'title'; // 'title' or 'featuredTitle'
+        const value = el.textContent.trim();
+        if (!value) { el.textContent = el.dataset.original || 'Untitled'; return; }
+        if (value === el.dataset.original) return;
+
         const fd = new FormData();
-        fd.append('title', title);
+        fd.append(field, value);
         try {
-            const r = await fetch(`/admin/home-sections/${id}`, { method: 'POST', body: fd });
-            if (r.ok) { el.dataset.original = title; }
+            const r = await fetch(`/admin/home-sections/${id}/titles`, { method: 'POST', body: fd });
+            if (r.ok) { el.dataset.original = value; }
         } catch (e) { /* best effort */ }
     }
 
