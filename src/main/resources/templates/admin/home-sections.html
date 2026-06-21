@@ -62,40 +62,101 @@
         .search-box input { background: transparent; border: none; outline: none; color: #fff; font-size: 0.78rem; width: 100%; font-family: var(--font); }
 
         .picker-layout { display: grid; grid-template-columns: 190px 1fr; gap: 1rem; }
-        .picker-sidebar { border-right: 1px solid var(--border); padding-right: 0.75rem; max-height: 420px; overflow-y: auto; }
-        .filter-group { margin-bottom: 0.9rem; }
-        .filter-group-header { font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gray-300); margin-bottom: 0.3rem; }
-        .filter-item { display: flex; align-items: center; gap: 0.35rem; padding: 0.22rem 0.3rem; border-radius: 6px; cursor: pointer; font-size: 0.74rem; color: var(--gray-200); }
-        .filter-item:hover { background: var(--panel2); }
-        .filter-item.active { background: var(--panel2); color: #fff; font-weight: 600; }
 
-        .app-pick-list { max-height: 420px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.35rem; }
-        .app-pick-row { display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 0.5rem; border-radius: 8px; cursor: pointer; border: 1.5px solid transparent; }
+        /* ── FILTER SIDEBAR ─────────────────────────────────────── */
+        .picker-sidebar {
+            border-right: 1px solid var(--border); padding-right: 0.75rem;
+            max-height: 460px; overflow-y: auto;
+        }
+        .picker-sidebar::-webkit-scrollbar { width: 3px; }
+        .picker-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+
+        .filter-group { margin-bottom: 1rem; }
+        .filter-group-header {
+            font-size: 0.6rem; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 0.08em; color: var(--gray-300); margin-bottom: 0.35rem;
+        }
+        .filter-item {
+            display: flex; align-items: center; gap: 0.35rem; padding: 0.22rem 0.3rem;
+            border-radius: 6px; cursor: pointer; font-size: 0.74rem; color: var(--gray-200);
+            transition: background 0.1s;
+        }
+        .filter-item:hover { background: var(--panel2); color: #fff; }
+        .filter-item.active { background: var(--panel2); color: #fff; font-weight: 600; }
+        .filter-item-icon { width: 13px; height: 13px; border-radius: 3px; object-fit: contain; flex-shrink: 0; }
+        .filter-item-count { margin-left: auto; font-size: 0.6rem; color: var(--gray-300); }
+
+        /* ── APP PICK LIST ───────────────────────────────────────── */
+        .app-pick-list { max-height: 460px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.3rem; }
+        .app-pick-list::-webkit-scrollbar { width: 3px; }
+        .app-pick-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+
+        .app-pick-row {
+            display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 0.5rem;
+            border-radius: 8px; cursor: pointer; border: 1.5px solid transparent;
+            transition: background 0.1s, border-color 0.1s;
+        }
         .app-pick-row:hover { background: var(--panel2); }
         .app-pick-row.sel-list { border-color: var(--blue); background: rgba(37,99,235,0.12); }
         .app-pick-row.sel-featured { border-color: var(--gold); background: rgba(244,161,24,0.12); }
-        .app-pick-icon { width: 28px; height: 28px; border-radius: 7px; background: var(--panel2); flex-shrink: 0; overflow: hidden; display:flex;align-items:center;justify-content:center;font-size:0.7rem;color:var(--gray-300); }
+        .app-pick-icon {
+            width: 28px; height: 28px; border-radius: 7px; background: var(--panel2); flex-shrink: 0;
+            overflow: hidden; display: flex; align-items: center; justify-content: center;
+            font-size: 0.7rem; color: var(--gray-300);
+        }
         .app-pick-icon img { width: 100%; height: 100%; object-fit: cover; }
         .app-pick-name { flex: 1; min-width: 0; font-size: 0.78rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .app-pick-actions { display: flex; gap: 0.3rem; flex-shrink: 0; }
-        .pick-chip { font-size: 0.62rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: var(--radius-pill); border: 1.5px solid var(--border); color: var(--gray-300); cursor: pointer; background: transparent; font-family: var(--font); }
+        .pick-chip {
+            font-size: 0.62rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: var(--radius-pill);
+            border: 1.5px solid var(--border); color: var(--gray-300); cursor: pointer;
+            background: transparent; font-family: var(--font); transition: all 0.1s;
+        }
         .pick-chip.list-chip.on { background: var(--blue); border-color: var(--blue); color: #fff; }
         .pick-chip.feat-chip.on { background: var(--gold); border-color: var(--gold); color: #1a1306; }
 
-        /* live preview, mirrors the screenshot's right-hand card */
-        .preview-col { display: flex; flex-direction: column; gap: 0.5rem; }
-        .preview-card { background: #1a2332; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 0.75rem; }
-        .preview-row { display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 0; position: relative; }
-        .preview-row .app-pick-icon { width: 32px; height: 32px; }
-        .preview-name { font-size: 0.76rem; font-weight: 700; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .preview-price { font-size: 0.65rem; font-weight: 700; padding: 0.12rem 0.5rem; border-radius: var(--radius-pill); background: var(--blue); }
-        .preview-remove { display: none; width: 16px; height: 16px; border-radius: 50%; background: var(--danger); color: #fff; border: none; font-size: 0.6rem; cursor: pointer; align-items: center; justify-content: center; }
-        .preview-row:hover .preview-remove { display: flex; }
-        .preview-hint { font-size: 0.66rem; color: var(--gray-300); margin-top: 0.3rem; }
-        .preview-empty { font-size: 0.72rem; color: var(--gray-300); padding: 0.5rem 0; }
-        .preview-section-label { font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gray-300); margin: 0.6rem 0 0.3rem; }
+        /* ── PREVIEW PANEL ───────────────────────────────────────── */
+        .preview-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+        .preview-card {
+            background: #1a2332; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 0.85rem;
+        }
+        .preview-section-label {
+            font-size: 0.6rem; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 0.08em; color: var(--gray-300); margin-bottom: 0.5rem;
+        }
 
-        /* ── existing sections manager (drag to reorder) ─────────── */
+        /* LIST preview rows — with X on hover */
+        .preview-row {
+            display: flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0.4rem;
+            border-radius: 7px; position: relative; transition: background 0.1s;
+        }
+        .preview-row:hover { background: rgba(255,255,255,0.04); }
+        .preview-app-icon { width: 26px; height: 26px; border-radius: 6px; background: var(--panel2); flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: var(--gray-300); }
+        .preview-app-icon img { width: 100%; height: 100%; object-fit: cover; }
+        .preview-name { flex: 1; min-width: 0; font-size: 0.74rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .preview-remove {
+            width: 16px; height: 16px; border-radius: 50%; background: var(--danger); color: #fff;
+            border: none; font-size: 0.55rem; cursor: pointer;
+            display: none; align-items: center; justify-content: center;
+            flex-shrink: 0; font-family: var(--font); line-height: 1;
+        }
+        .preview-row:hover .preview-remove { display: flex; }
+        .preview-empty { font-size: 0.7rem; color: var(--gray-300); padding: 0.3rem 0; opacity: 0.6; }
+
+        /* Featured preview */
+        .featured-preview { display: flex; flex-direction: column; gap: 0.5rem; }
+        .featured-preview-icon { width: 40px; height: 40px; border-radius: 9px; background: var(--panel2); overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: var(--gray-300); flex-shrink: 0; position: relative; }
+        .featured-preview-icon img { width: 100%; height: 100%; object-fit: cover; }
+        .featured-preview-remove {
+            position: absolute; top: -5px; right: -5px; width: 14px; height: 14px;
+            border-radius: 50%; background: var(--danger); color: #fff; border: none;
+            font-size: 0.5rem; cursor: pointer; display: none;
+            align-items: center; justify-content: center; font-family: var(--font);
+        }
+        .featured-preview-wrap:hover .featured-preview-remove { display: flex; }
+        .featured-preview-wrap { display: flex; align-items: center; gap: 0.5rem; }
+
+        /* ── EXISTING SECTIONS MANAGER ──────────────────────────── */
         .manager { max-width: 1180px; margin: 1.5rem auto 3rem; padding: 0 1.5rem; }
         .manager-title { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.75rem; }
         .section-row-admin {
@@ -107,12 +168,13 @@
         .drag-handle { color: var(--gray-300); font-size: 0.9rem; }
         .section-row-name { flex: 1; font-size: 0.82rem; font-weight: 700; }
         .section-row-meta { font-size: 0.68rem; color: var(--gray-300); }
-        .btn-row-delete { background: none; border: none; color: var(--gray-300); cursor: pointer; font-size: 0.85rem; }
+        .btn-row-delete { background: none; border: none; color: var(--gray-300); cursor: pointer; font-size: 0.85rem; transition: color 0.1s; }
         .btn-row-delete:hover { color: var(--danger); }
 
         @media (max-width: 900px) {
             .editor { grid-template-columns: 1fr; }
             .picker-layout { grid-template-columns: 1fr; }
+            .preview-col { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -133,7 +195,7 @@
 
 <div class="editor">
 
-    <!-- ── LEFT: layout / content / add ─────────────────────────── -->
+    <!-- ── LEFT: controls ──────────────────────────────────────── -->
     <div class="controls-col">
         <div class="control-block">
             <div class="control-label">Title</div>
@@ -148,21 +210,22 @@
         </div>
 
         <div class="control-block">
-            <div class="control-label">Content</div>
+            <div class="control-label">Content source</div>
             <div class="tab-list">
-                <button class="tab-btn active" data-tab="filters" onclick="switchTab('filters', this)">Filters</button>
+                <button class="tab-btn active" data-tab="filters" onclick="switchTab('filters', this)">Manual / Filters</button>
                 <button class="tab-btn" data-tab="toprated" onclick="switchTab('toprated', this)">Top rated</button>
                 <button class="tab-btn" data-tab="verified" onclick="switchTab('verified', this)">Verified</button>
             </div>
         </div>
 
         <button class="btn-add" id="addBtn" onclick="submitSection()">ADD</button>
-        <div id="formMsg" style="font-size:0.72rem;color:var(--gray-300);"></div>
+        <div id="formMsg" style="font-size:0.72rem;color:var(--gray-300);margin-top:0.25rem;min-height:1.2em;"></div>
     </div>
 
-    <!-- ── RIGHT: app picker + live preview ─────────────────────── -->
-    <div style="display:flex; flex-direction:column; gap:1rem;">
+    <!-- ── RIGHT: picker + preview ─────────────────────────────── -->
+    <div style="display:flex;flex-direction:column;gap:1rem;">
 
+        <!-- APP PICKER PANEL -->
         <div class="content-panel">
 
             <!-- FILTERS tab -->
@@ -170,25 +233,35 @@
                 <div class="panel-title-row">
                     <span class="panel-title">Pick apps — filter or search</span>
                     <div class="search-box">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;color:#888;">
+                            <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/>
+                        </svg>
                         <input id="appSearch" placeholder="Find an app..." type="text"/>
                     </div>
                 </div>
                 <div class="picker-layout">
+                    <!-- SIDEBAR: filter entries by category -->
                     <aside class="picker-sidebar">
-                        <th:block th:each="cat : ${filterEntries.entrySet()}">
+                        <th:block th:each="cat, catStat : ${filterEntries.entrySet()}">
                             <div class="filter-group">
                                 <div class="filter-group-header" th:text="${cat.key.name.toUpperCase()}">CATEGORY</div>
                                 <div th:each="entry : ${cat.value}"
                                      class="filter-item"
                                      th:data-entry-id="${entry.id}"
+                                     th:data-entry-name="${entry.name}"
                                      onclick="toggleEntryFilter(this)">
+                                    <img th:if="${entry.iconUrl != null}" th:src="${entry.iconUrl}"
+                                         th:alt="${entry.name}" class="filter-item-icon"/>
                                     <span th:text="${entry.name}">Entry</span>
                                 </div>
                             </div>
                         </th:block>
-                        <div th:if="${#maps.isEmpty(filterEntries)}" style="color:var(--gray-300);font-size:0.72rem;">No filters configured.</div>
+                        <div th:if="${#maps.isEmpty(filterEntries)}" style="color:var(--gray-300);font-size:0.72rem;padding:0.5rem 0;">
+                            No filter categories yet.
+                        </div>
                     </aside>
 
+                    <!-- APP LIST -->
                     <div class="app-pick-list" id="appPickList">
                         <th:block th:each="app : ${allApps}">
                             <div class="app-pick-row"
@@ -202,63 +275,82 @@
                                 <span class="app-pick-name" th:text="${app.name}">App name</span>
                                 <div class="app-pick-actions">
                                     <button type="button" class="pick-chip list-chip" onclick="toggleList(event, this)">+ list</button>
-                                    <button type="button" class="pick-chip feat-chip" onclick="toggleFeatured(event, this)">★ featured</button>
+                                    <button type="button" class="pick-chip feat-chip" onclick="toggleFeatured(event, this)">★ feat</button>
                                 </div>
                             </div>
                         </th:block>
-                        <div th:if="${#lists.isEmpty(allApps)}" style="color:var(--gray-300);font-size:0.78rem;">No apps yet.</div>
+                        <div th:if="${#lists.isEmpty(allApps)}" style="color:var(--gray-300);font-size:0.78rem;padding:1rem 0;">No apps yet.</div>
                     </div>
                 </div>
             </div>
 
-            <!-- TOP RATED tab (quick-add reference list) -->
+            <!-- TOP RATED tab -->
             <div id="tab-toprated" style="display:none;">
-                <div class="panel-title">Top user rated apps — click to add to list</div>
+                <div class="panel-title" style="margin-bottom:0.75rem;">Top user rated — click to quick-add to list</div>
                 <div class="app-pick-list">
                     <th:block th:each="app : ${topUserRated}">
-                        <div class="app-pick-row" th:data-app-id="${app.id}" onclick="quickAddToList('${app.id}', this)">
+                        <div class="app-pick-row"
+                             th:data-app-id="${app.id}"
+                             onclick="quickAddToList(this.dataset.appId, this)">
                             <div class="app-pick-icon">
                                 <img th:if="${app.iconUrl != null}" th:src="${app.iconUrl}" alt=""/>
                                 <span th:if="${app.iconUrl == null}">🖼</span>
                             </div>
                             <span class="app-pick-name" th:text="${app.name}">App name</span>
-                            <span style="font-size:0.65rem;color:var(--gray-300);"
+                            <span style="font-size:0.65rem;color:var(--gray-300);flex-shrink:0;"
                                   th:text="${#numbers.formatDecimal(app.userRatingAvg,1,1)} + ' (' + ${app.userRatingCount} + ')'"></span>
                         </div>
                     </th:block>
+                    <div th:if="${#lists.isEmpty(topUserRated)}" style="color:var(--gray-300);font-size:0.78rem;">No rated apps yet.</div>
                 </div>
             </div>
 
             <!-- VERIFIED tab -->
             <div id="tab-verified" style="display:none;">
-                <div class="panel-title">Top verified apps — click to add to list</div>
+                <div class="panel-title" style="margin-bottom:0.75rem;">Top verified — click to quick-add to list</div>
                 <div class="app-pick-list">
                     <th:block th:each="app : ${topVerified}">
-                        <div class="app-pick-row" th:data-app-id="${app.id}" onclick="quickAddToList('${app.id}', this)">
+                        <div class="app-pick-row"
+                             th:data-app-id="${app.id}"
+                             onclick="quickAddToList(this.dataset.appId, this)">
                             <div class="app-pick-icon">
                                 <img th:if="${app.iconUrl != null}" th:src="${app.iconUrl}" alt=""/>
                                 <span th:if="${app.iconUrl == null}">🖼</span>
                             </div>
                             <span class="app-pick-name" th:text="${app.name}">App name</span>
-                            <span style="font-size:0.65rem;color:var(--gray-300);"
+                            <span style="font-size:0.65rem;color:var(--gray-300);flex-shrink:0;"
                                   th:text="${#numbers.formatDecimal(app.verifiedScore,1,1)}"></span>
                         </div>
                     </th:block>
+                    <div th:if="${#lists.isEmpty(topVerified)}" style="color:var(--gray-300);font-size:0.78rem;">No verified apps yet.</div>
                 </div>
             </div>
         </div>
 
-        <!-- live preview, like the "Reviewed today" card in the mock -->
-        <div class="preview-card">
-            <div class="preview-section-label">List (max 5) — hover, click ✕ to remove</div>
-            <div id="previewList"><div class="preview-empty">No apps selected yet.</div></div>
-            <div class="preview-section-label">Featured (1)</div>
-            <div id="previewFeatured"><div class="preview-empty">No featured app selected.</div></div>
+        <!-- LIVE PREVIEW: two cards side by side (mirrors homepage 5+1 layout) -->
+        <div class="preview-col">
+
+            <!-- Left: list preview -->
+            <div class="preview-card">
+                <div class="preview-section-label">List apps (max 5) — hover to remove</div>
+                <div id="previewList">
+                    <div class="preview-empty">No apps selected yet.</div>
+                </div>
+            </div>
+
+            <!-- Right: featured preview -->
+            <div class="preview-card">
+                <div class="preview-section-label">Featured app (1) — hover to remove</div>
+                <div id="previewFeatured">
+                    <div class="preview-empty">No featured app selected.</div>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
 
-<!-- ── existing sections — drag to reorder, persisted to DB ───────── -->
+<!-- ── EXISTING SECTIONS MANAGER ────────────────────────────────── -->
 <div class="manager">
     <div class="manager-title">Homepage sections (drag to reorder)</div>
     <div id="sectionsManagerList">
@@ -267,59 +359,86 @@
                 <span class="drag-handle">⠿⠿</span>
                 <span class="section-row-name" th:text="${section.title}">Section title</span>
                 <span class="section-row-meta"
-                      th:text="${#lists.size(sectionListApps.get(section.id) ?: {})} + ' list apps'
+                      th:text="${#lists.size(sectionListApps.get(section.id) ?: {})} + ' list'
                                 + (${sectionFeatured.get(section.id) != null} ? ' · 1 featured' : '')"></span>
                 <button class="btn-row-delete" th:data-id="${section.id}" onclick="deleteSection(this.dataset.id)">✕ Delete</button>
             </div>
         </th:block>
-        <div th:if="${#lists.isEmpty(sections)}" style="color:var(--gray-300);font-size:0.78rem;">No custom sections yet — build one above.</div>
+        <div th:if="${#lists.isEmpty(sections)}" style="color:var(--gray-300);font-size:0.78rem;padding:1rem 0;">
+            No custom sections yet — build one above.
+        </div>
     </div>
 </div>
 
 <script th:inline="javascript">
-    let selectedListIds = [];       // ordered, max 5
+    /* ── State ──────────────────────────────────────────────────────────── */
+    let selectedListIds   = [];     // up to 5, ordered
     let selectedFeaturedId = null;
-    let activeEntryFilters = new Set();
+    let activeEntryFilters = new Set(); // entry IDs currently active in sidebar
 
+    // Build entry → app membership map from allApps data (lightweight)
+    // For proper filter-by-entry we rely on the backend having set data-entry-ids
+    // on each pick row; simpler: we just filter by name search in this admin page.
+
+    /* ── Tab switching ─────────────────────────────────────────────────── */
     function switchTab(tab, btn) {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        ['filters', 'toprated', 'verified'].forEach(t => {
+        ['filters','toprated','verified'].forEach(t => {
             document.getElementById('tab-' + t).style.display = (t === tab) ? '' : 'none';
         });
     }
 
+    /* ── Filter sidebar ────────────────────────────────────────────────── */
     function toggleEntryFilter(el) {
         const id = el.dataset.entryId;
-        if (activeEntryFilters.has(id)) { activeEntryFilters.delete(id); el.classList.remove('active'); }
-        else { activeEntryFilters.add(id); el.classList.add('active'); }
-        // NOTE: app→entry membership isn't sent to this page (keeps payload light);
-        // filtering here is by name search only. Category clicks just highlight —
-        // hook up entryAppCounts/data-entry-ids here if you need true filtering.
+        if (activeEntryFilters.has(id)) {
+            activeEntryFilters.delete(id);
+            el.classList.remove('active');
+        } else {
+            activeEntryFilters.add(id);
+            el.classList.add('active');
+        }
+        applyFilters();
     }
 
-    document.getElementById('appSearch').addEventListener('input', function () {
-        const q = this.value.toLowerCase().trim();
+    function applyFilters() {
+        const searchQ = document.getElementById('appSearch').value.toLowerCase().trim();
         document.querySelectorAll('#appPickList .app-pick-row').forEach(row => {
-            row.style.display = !q || row.dataset.appName.includes(q) ? '' : 'none';
+            const nameMatch = !searchQ || row.dataset.appName.includes(searchQ);
+            // If we have active filters, we can't filter by entry on the client easily
+            // without server data. Show all that match the name search.
+            row.style.display = nameMatch ? '' : 'none';
         });
-    });
+    }
 
-    function findRow(appId) { return document.querySelector(`.app-pick-row[data-app-id="${appId}"]`); }
+    document.getElementById('appSearch').addEventListener('input', applyFilters);
+
+    /* ── Pick row helpers ──────────────────────────────────────────────── */
+    function findRow(appId) {
+        return document.querySelector(`#appPickList .app-pick-row[data-app-id="${appId}"]`);
+    }
+    function appNameFor(id) {
+        return findRow(id)?.querySelector('.app-pick-name')?.textContent || 'App';
+    }
+    function appIconFor(id) {
+        return findRow(id)?.querySelector('.app-pick-icon img')?.src || null;
+    }
 
     function toggleList(evt, btn) {
         evt.stopPropagation();
         const row = btn.closest('.app-pick-row');
-        const id = row.dataset.appId;
-        const name = row.querySelector('.app-pick-name').textContent;
+        const id  = row.dataset.appId;
         const idx = selectedListIds.indexOf(id);
         if (idx >= 0) {
             selectedListIds.splice(idx, 1);
-            btn.classList.remove('on'); row.classList.remove('sel-list');
+            btn.classList.remove('on');
+            row.classList.remove('sel-list');
         } else {
-            if (selectedListIds.length >= 5) { showMsg('List is full (max 5) — remove one first.', true); return; }
+            if (selectedListIds.length >= 5) { showMsg('List is full (max 5).', true); return; }
             selectedListIds.push(id);
-            btn.classList.add('on'); row.classList.add('sel-list');
+            btn.classList.add('on');
+            row.classList.add('sel-list');
         }
         renderPreview();
     }
@@ -327,99 +446,114 @@
     function toggleFeatured(evt, btn) {
         evt.stopPropagation();
         const row = btn.closest('.app-pick-row');
-        const id = row.dataset.appId;
+        const id  = row.dataset.appId;
         if (selectedFeaturedId === id) {
             selectedFeaturedId = null;
-            btn.classList.remove('on'); row.classList.remove('sel-featured');
+            btn.classList.remove('on');
+            row.classList.remove('sel-featured');
         } else {
-            document.querySelectorAll('.feat-chip.on').forEach(c => c.classList.remove('on'));
-            document.querySelectorAll('.sel-featured').forEach(r => r.classList.remove('sel-featured'));
+            // deselect previous
+            if (selectedFeaturedId) {
+                const prev = findRow(selectedFeaturedId);
+                prev?.classList.remove('sel-featured');
+                prev?.querySelector('.feat-chip')?.classList.remove('on');
+            }
             selectedFeaturedId = id;
-            btn.classList.add('on'); row.classList.add('sel-featured');
+            btn.classList.add('on');
+            row.classList.add('sel-featured');
         }
         renderPreview();
     }
 
     function quickAddToList(appId, rowEl) {
         if (selectedListIds.includes(appId)) return;
-        if (selectedListIds.length >= 5) { showMsg('List is full (max 5) — remove one first.', true); return; }
+        if (selectedListIds.length >= 5) { showMsg('List is full (max 5).', true); return; }
         selectedListIds.push(appId);
         const liveRow = findRow(appId);
         if (liveRow) { liveRow.classList.add('sel-list'); liveRow.querySelector('.list-chip')?.classList.add('on'); }
         renderPreview();
     }
 
-    function appNameFor(id) {
-        const row = findRow(id);
-        return row ? row.querySelector('.app-pick-name').textContent : 'App';
-    }
-    function appIconFor(id) {
-        const row = findRow(id);
-        const img = row?.querySelector('.app-pick-icon img');
-        return img ? img.src : null;
-    }
-
-    function buildPreviewRow(id, removeFn) {
-        const div = document.createElement('div');
+    /* ── Preview render ────────────────────────────────────────────────── */
+    function buildPreviewRow(id, onRemove) {
+        const div  = document.createElement('div');
         div.className = 'preview-row';
         const icon = appIconFor(id);
         div.innerHTML = `
-            <div class="app-pick-icon">${icon ? `<img src="${icon}" alt=""/>` : '🖼'}</div>
-            <span class="preview-name">${appNameFor(id)}</span>
-            <span class="preview-price">FREE</span>
-            <button class="preview-remove" type="button">✕</button>`;
-        div.querySelector('.preview-remove').onclick = removeFn;
+            <div class="preview-app-icon">${icon ? `<img src="${icon}" alt=""/>` : '🖼'}</div>
+            <span class="preview-name">${escHtml(appNameFor(id))}</span>
+            <button class="preview-remove" type="button" title="Remove">✕</button>`;
+        div.querySelector('.preview-remove').onclick = onRemove;
         return div;
     }
 
     function renderPreview() {
+        /* LIST */
         const listWrap = document.getElementById('previewList');
         listWrap.innerHTML = '';
         if (selectedListIds.length === 0) {
             listWrap.innerHTML = '<div class="preview-empty">No apps selected yet.</div>';
         } else {
             selectedListIds.forEach(id => {
-                const row = buildPreviewRow(id, () => {
-                    const liveRow = findRow(id);
-                    liveRow?.classList.remove('sel-list');
-                    liveRow?.querySelector('.list-chip')?.classList.remove('on');
+                listWrap.appendChild(buildPreviewRow(id, () => {
+                    const r = findRow(id);
+                    r?.classList.remove('sel-list');
+                    r?.querySelector('.list-chip')?.classList.remove('on');
                     selectedListIds = selectedListIds.filter(x => x !== id);
                     renderPreview();
-                });
-                listWrap.appendChild(row);
+                }));
             });
         }
 
+        /* FEATURED */
         const featWrap = document.getElementById('previewFeatured');
         featWrap.innerHTML = '';
         if (!selectedFeaturedId) {
             featWrap.innerHTML = '<div class="preview-empty">No featured app selected.</div>';
         } else {
-            const row = buildPreviewRow(selectedFeaturedId, () => {
-                const liveRow = findRow(selectedFeaturedId);
-                liveRow?.classList.remove('sel-featured');
-                liveRow?.querySelector('.feat-chip')?.classList.remove('on');
+            const id   = selectedFeaturedId;
+            const icon = appIconFor(id);
+            const wrap = document.createElement('div');
+            wrap.className = 'featured-preview-wrap';
+            wrap.innerHTML = `
+                <div class="featured-preview-icon" style="position:relative;">
+                    ${icon ? `<img src="${icon}" alt=""/>` : '🖼'}
+                    <button class="featured-preview-remove" type="button" title="Remove">✕</button>
+                </div>
+                <span style="font-size:0.78rem;font-weight:600;">${escHtml(appNameFor(id))}</span>`;
+            wrap.querySelector('.featured-preview-remove').onclick = () => {
+                const r = findRow(id);
+                r?.classList.remove('sel-featured');
+                r?.querySelector('.feat-chip')?.classList.remove('on');
                 selectedFeaturedId = null;
                 renderPreview();
-            });
-            featWrap.appendChild(row);
+            };
+            // show X button on hover
+            wrap.addEventListener('mouseenter', () => { wrap.querySelector('.featured-preview-remove').style.display = 'flex'; });
+            wrap.addEventListener('mouseleave', () => { wrap.querySelector('.featured-preview-remove').style.display = 'none'; });
+            featWrap.appendChild(wrap);
         }
     }
 
+    /* ── Misc ──────────────────────────────────────────────────────────── */
     function showMsg(text, err) {
         const el = document.getElementById('formMsg');
         el.textContent = text;
         el.style.color = err ? '#f87171' : 'var(--gray-300)';
     }
 
+    function escHtml(s) {
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    /* ── Submit new section ────────────────────────────────────────────── */
     async function submitSection() {
-        const title = document.getElementById('sectionTitle').value.trim();
+        const title  = document.getElementById('sectionTitle').value.trim();
         const layout = document.getElementById('sectionLayout').value;
-        if (!title) { showMsg('Give the section a title.', true); return; }
+        if (!title) { showMsg('Please give the section a title.', true); return; }
         if (selectedListIds.length === 0 && !selectedFeaturedId) {
             showMsg('Pick at least one app.', true); return;
         }
-
         const btn = document.getElementById('addBtn');
         btn.disabled = true; btn.textContent = 'Adding…';
 
@@ -430,7 +564,7 @@
         if (selectedFeaturedId) fd.append('featuredAppId', selectedFeaturedId);
 
         try {
-            const r = await fetch('/admin/home-sections', { method: 'POST', body: fd });
+            const r    = await fetch('/admin/home-sections', { method: 'POST', body: fd });
             const data = await r.json();
             if (!r.ok || data.error) throw new Error(data.error || 'Could not add section');
             showMsg('Section added — reloading…');
@@ -441,6 +575,7 @@
         }
     }
 
+    /* ── Delete section ────────────────────────────────────────────────── */
     async function deleteSection(id) {
         if (!confirm('Delete this homepage section?')) return;
         try {
@@ -449,7 +584,7 @@
         } catch (e) { alert(e.message); }
     }
 
-    // ── drag to reorder, persisted to DB on drop ────────────────────────────
+    /* ── Drag to reorder existing sections ─────────────────────────────── */
     (function initReorder() {
         const list = document.getElementById('sectionsManagerList');
         let dragEl = null;
@@ -463,7 +598,7 @@
             row.addEventListener('dragover', e => {
                 e.preventDefault();
                 if (!dragEl || dragEl === row) return;
-                const rows = [...list.querySelectorAll('.section-row-admin')];
+                const rows    = [...list.querySelectorAll('.section-row-admin')];
                 const dragIdx = rows.indexOf(dragEl);
                 const overIdx = rows.indexOf(row);
                 if (dragIdx < overIdx) row.after(dragEl); else row.before(dragEl);
@@ -478,12 +613,12 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(ids)
                 });
-            } catch (e) { /* best effort */ }
+            } catch (_) { /* best effort */ }
         }
     })();
 
+    // Init preview
     renderPreview();
 </script>
-
 </body>
 </html>

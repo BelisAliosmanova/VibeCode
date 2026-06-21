@@ -25,6 +25,7 @@
             --gold:         #f59e0b;
             --green:        #22c55e;
             --orange:       #f97316;
+            --accent-green: rgba(143,230,4,1);
             --radius-sm:    6px;
             --radius-md:    10px;
             --radius-lg:    14px;
@@ -33,9 +34,7 @@
             --font: 'Sora', sans-serif;
             --nav-h:        52px;
         }
-        * {
-            font-family: 'Sora', sans-serif;
-        }
+        * { font-family: 'Sora', sans-serif; }
         html { scroll-behavior: smooth; }
         body {
             font-family: var(--font);
@@ -63,15 +62,13 @@
             background: #fff; display: flex; align-items: center; justify-content: center;
             flex-shrink: 0; overflow: hidden;
         }
-        .nav-logo svg { width: 18px; height: 18px; }
         .nav-link  { color: rgba(255,255,255,0.75); font-size: 0.85rem; font-weight: 500; transition: color 0.12s; }
         .nav-link:hover { color: var(--white); }
         .nav-right { display: flex; align-items: center; gap: 0.75rem; }
         .btn-nav-ghost {
             background: transparent; border: none;
             color: rgba(255,255,255,0.75); font-size: 0.83rem; font-weight: 500;
-            padding: 0.3rem 0.75rem; border-radius: var(--radius-pill);
-            transition: color 0.12s;
+            padding: 0.3rem 0.75rem; border-radius: var(--radius-pill); transition: color 0.12s;
         }
         .btn-nav-ghost:hover { color: var(--white); }
         .btn-nav-solid {
@@ -84,260 +81,153 @@
 
         /* ── HERO ──────────────────────────────────────────────── */
         .hero {
-            position: relative;
-            height: 380px;
-            overflow: hidden;
-            background: #0d1520;
+            position: relative; height: 380px; overflow: hidden; background: #0d1520;
         }
         .hero-bg {
-            position: absolute;
-            inset: 0;
-            z-index: 1;
+            position: absolute; inset: 0; z-index: 1;
             background-image: url(HOME-hero3.png);
-            background-size: 50%;
-            background-position: center right;
-            background-repeat: no-repeat;
-            opacity: 0.9;
+            background-size: 50%; background-position: center right; background-repeat: no-repeat; opacity: 0.9;
         }
         .hero-overlay {
             position: absolute; inset: 0;
-            background: linear-gradient(
-                to right,
-                rgba(13,21,32,0.88) 0%,
-                rgba(13,21,32,0.65) 35%,
-                rgba(13,21,32,0.15) 65%,
-                transparent 100%
-            );
+            background: linear-gradient(to right, rgba(13,21,32,0.88) 0%, rgba(13,21,32,0.65) 35%, rgba(13,21,32,0.15) 65%, transparent 100%);
         }
         .hero-fade {
-            position: absolute; bottom: 0; left: 0; right: 0;
-            height: 45%;
-            background: linear-gradient(to bottom, transparent, #1a2332);
-            pointer-events: none;
+            position: absolute; bottom: 0; left: 0; right: 0; height: 45%;
+            background: linear-gradient(to bottom, transparent, #1a2332); pointer-events: none;
         }
         .hero-inner {
-            position: relative;
-            height: 100%;
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 0 2rem;
+            position: relative; height: 100%; max-width: 1100px; margin: 0 auto; padding: 0 2rem;
         }
         .hero-content {
-            position: relative;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding-top: calc(var(--nav-h) + 0.5rem);
-            max-width: 560px;
+            position: relative; height: 100%; display: flex; flex-direction: column;
+            justify-content: center; padding-top: calc(var(--nav-h) + 0.5rem); max-width: 560px;
         }
         .hero-heading {
-            font-size: 3rem;
-            font-weight: 700;
-            color: var(--white);
-            line-height: 1.05;
-            letter-spacing: 0.5px;
-            margin-bottom: 1.6rem;
+            font-size: 3rem; font-weight: 700; color: var(--white);
+            line-height: 1.05; letter-spacing: 0.5px; margin-bottom: 1.6rem;
         }
         .hero-search-bar {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: rgb(0 192 255);
-            border: 1.5px solid rgb(0 112 255);
-            border-radius: var(--radius-pill);
-            padding: 0.45rem 0.45rem 0.45rem 1rem;
-            z-index: 1;
-            max-width: 400px;
-            backdrop-filter: blur(8px);
+            display: flex; align-items: center; gap: 0.5rem;
+            background: rgb(0 192 255); border: 1.5px solid rgb(0 112 255);
+            border-radius: var(--radius-pill); padding: 0.45rem 0.45rem 0.45rem 1rem;
+            z-index: 1; max-width: 400px; backdrop-filter: blur(8px);
         }
-
-        .hero-search-icon { color: rgb(255 255 255 / 100%); display: flex; align-items: center; margin-right: 0.2rem; }
+        .hero-search-icon { color: rgb(255 255 255); display: flex; align-items: center; margin-right: 0.2rem; }
         .hero-search-icon svg { width: 14px; height: 14px; }
         .hero-search-input {
-            flex: 1;
-            border: none;
-            outline: none;
-            background: transparent;
-            font-family: var(--font);
-            z-index: 1;
-            color: white;
+            flex: 1; border: none; outline: none; background: transparent;
+            font-family: var(--font); z-index: 1; color: white;
         }
+        .hero-search-input::placeholder { color: rgba(255,255,255,0.9); }
 
-        .hero-search-input::placeholder {
-            color: rgba(255, 255, 255, 0.9);
+        .wish-card {
+            position: absolute; z-index: 2; right: 2rem; top: 50%; transform: translateY(-20%);
+            background: rgb(20 30 48 / 75%); border: 1px solid rgba(255,255,255,0.12);
+            border-radius: var(--radius-xl); padding: 1.7rem 1.7rem; width: 200px;
+            backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(20px);
         }
-
-        /* Wish card */
-.wish-card {
-            position: absolute;
-            z-index: 2;
-            right: 2rem;
-            top: 50%;
-            transform: translateY(-20%);
-            background: rgb(20 30 48 / 75%);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: var(--radius-xl);
-            padding: 1.7rem 1.7rem;
-            width: 200px;
-            backdrop-filter: blur(2px);
-            -webkit-backdrop-filter: blur(20px);
-        }
-
-        .wish-card-label {
-            font-size: 0.75rem; color: rgba(255,255,255,0.8);
-            margin-bottom: 0.75rem; line-height: 1.4; font-weight: 500;
-        }
+        .wish-card-label { font-size: 0.75rem; color: rgba(255,255,255,0.8); margin-bottom: 0.75rem; line-height: 1.4; font-weight: 500; }
         .btn-wish {
-            display: block; width: 100%; text-align: center;
-            background: transparent;
-            border: 1.5px solid rgba(255, 75, 114, 1);
-            color: var(--white);
-            border-radius: var(--radius-pill);
-            font-size: 0.78rem; font-weight: 700; padding: 0.42rem 0.75rem;
-            transition: background 0.12s;
+            display: block; width: 100%; text-align: center; background: transparent;
+            border: 1.5px solid rgba(255,75,114,1); color: var(--white);
+            border-radius: var(--radius-pill); font-size: 0.78rem; font-weight: 700;
+            padding: 0.42rem 0.75rem; transition: background 0.12s;
         }
         .btn-wish:hover { background: rgba(255,255,255,0.1); }
 
-        /* Developer bar */
+        /* ── DEV BAR ───────────────────────────────────────────── */
         .dev-bar-outer { background: #233141; }
-        .dev-bar {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 2rem 2rem 0rem;
-            display: flex; align-items: center; gap: 1rem;
-        }
+        .dev-bar { max-width: 1100px; margin: 0 auto; padding: 2rem 2rem 0; display: flex; align-items: center; gap: 1rem; }
         .dev-bar-label { font-size: 0.78rem; color: var(--gray-200); font-weight: 400; }
         .btn-submit-app {
-            background: transparent;
-            border: 1.5px solid rgba(143, 230, 4, 1);
-            color: var(--white); font-size: 0.75rem; font-weight: 700;
-            padding: 0.28rem 1rem; border-radius: var(--radius-pill);
+            background: transparent; border: 1.5px solid var(--accent-green); color: var(--white);
+            font-size: 0.75rem; font-weight: 700; padding: 0.28rem 1rem; border-radius: var(--radius-pill);
             transition: background 0.12s;
         }
         .btn-submit-app:hover { background: rgba(255,255,255,0.08); }
 
         /* ── CONTENT ────────────────────────────────────────────── */
-        .content { padding: 0rem 2rem 5rem; max-width: 1100px; margin: 0 auto; background: #233141; }
-        .sections-container { display: flex; flex-direction: column; gap: 1.75rem; padding-top: 2rem;}
+        .content { padding: 0 2rem 5rem; max-width: 1100px; margin: 0 auto; background: #233141; }
+        .sections-container { display: flex; flex-direction: column; gap: 0; padding-top: 2rem; }
 
-        /* ── SECTION WRAPPER — title above card, moves together ──── */
-        .section-wrapper {
-            display: flex;
-            flex-direction: column;
-            gap: 0;
-            min-width: 0;
+        /* ── PAIRED ROW (two section-wrappers side by side) ─────── */
+        .section-pair {
+            display: grid;
+            gap: 1.25rem;
             padding-top: 2rem;
         }
+        .section-pair.layout-5-1 {
+            grid-template-columns: 60fr 40fr;
+        }
 
-        /* ── SECTION HEADER (title bar, now outside the card) ─────── */
+        /* ── SECTION WRAPPER ─────────────────────────────────────── */
+        .section-wrapper {
+            display: flex; flex-direction: column; gap: 0; min-width: 0;
+        }
+
+        /* ── SECTION HEADER ──────────────────────────────────────── */
         .section-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 0.4rem 0.5rem 0.4rem;
-            cursor: grab;
-            user-select: none;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 0.4rem 0.5rem 0.4rem; cursor: grab; user-select: none;
         }
         .section-header:active { cursor: grabbing; }
         .section-title-row { display: flex; align-items: center; gap: 0.5rem; }
         .section-title {
-            color: rgba(255, 255, 255, 0.6);
-            font-family: Sora;
-            font-weight: 300;
-            font-size: 16px;
-            line-height: 100%;
-            margin-bottom: 10px;
-            letter-spacing: 0%;
-            text-transform: uppercase;
+            color: rgba(255,255,255,0.6); font-family: Sora; font-weight: 300; font-size: 16px;
+            line-height: 100%; margin-bottom: 10px; text-transform: uppercase;
+            outline: none; border-bottom: 1px solid transparent; transition: border-color 0.15s;
         }
-        .section-count { font-size: 0.62rem; color: rgba(255,255,255,0.35); font-weight: 500; }
+        .section-title[contenteditable="true"]:hover { border-bottom-color: rgba(255,255,255,0.2); }
+        .section-title[contenteditable="true"]:focus { border-bottom-color: rgba(255,255,255,0.5); }
         .drag-dots { display: flex; gap: 2px; opacity: 0.2; transition: opacity 0.15s; }
         .drag-dots span { display: block; width: 3px; height: 3px; background: rgba(255,255,255,0.8); border-radius: 50%; }
-        .section-wrapper:hover .drag-dots { opacity: 0.5; }
-
-        /* ── SECTION ROW ─────────────────────────────────────────── */
-        .section-row { display: grid; gap: 0; }
-        .section-row.row-1 { grid-template-columns: 1fr; gap: 1.25rem; }
-
-        /* Upper row-2: left bigger (60%), right smaller (40%) */
-        .section-row.row-2.upper { grid-template-columns: 60fr 40fr; }
-
-        /* Lower row-2: left smaller (40%) darker, right bigger (60%) */
-        .section-row.row-2.lower { grid-template-columns: 40fr 60fr; padding-top: 2rem;}
+        .section-pair:hover .drag-dots { opacity: 0.5; }
 
         /* ── SECTION CARD ───────────────────────────────────────── */
         .home-section {
-            background: #1e2a3a;
             background: radial-gradient(77.26% 147.49% at 63.01% 100%, #475b72 0%, #233141 100%);
-            border-radius: var(--radius-xl);
-            overflow: hidden;
-            display: flex; flex-direction: column;
-            transition: opacity 0.2s, box-shadow 0.2s, transform 0.15s;
-            flex: 1;
+            border-radius: var(--radius-xl); overflow: hidden; display: flex; flex-direction: column;
+            transition: opacity 0.2s, box-shadow 0.2s, transform 0.15s; flex: 1;
         }
-
-        .home-section.dark-right {
-            background: linear-gradient(179.39deg, #131F2A 0.57%, #162634 99.53%);
-        }
-        .home-section.dark-left {
+        .home-section.dark-card {
             background: linear-gradient(179.39deg, #131F2A 0.57%, #162634 99.53%);
         }
         .home-section.blue-vibe {
             background: radial-gradient(81.22% 106.36% at 28.19% 30.97%, #163a70 0%, #4b91f4 100%);
         }
 
-        .section-wrapper.dragging .home-section {
-            opacity: 0.85;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-            transform: scale(1.01);
-        }
-        .section-wrapper.dragging {
-            z-index: 10;
-            position: relative;
-        }
-        .section-wrapper.drag-over .home-section {
-            outline: 2px dashed rgba(255,255,255,0.3);
-            outline-offset: -2px;
-        }
+        .section-pair.dragging-pair { opacity: 0.8; }
+        .section-pair.drag-over-pair { outline: 2px dashed rgba(255,255,255,0.3); outline-offset: 4px; border-radius: var(--radius-xl); }
 
-        .section-body { padding: 2rem 1rem 1rem 1rem; }
+        .section-body { padding: 2rem 1rem 1rem; }
 
         /* ── MORE BUTTON ─────────────────────────────────────────── */
         .section-more {
-            display: block;
-            font-size: 0.72rem; color: rgba(255,255,255,0.6); font-weight: 600;
-            padding: 0.55rem 1.4rem 0.9rem;
-            text-align: right;
+            display: block; font-size: 0.72rem; color: rgba(255,255,255,0.6); font-weight: 600;
+            padding: 0.55rem 1.4rem 0.9rem; text-align: right;
             transition: color 0.12s, opacity 0.12s;
             background: linear-gradient(49deg, #233141 0%, #233141 67%, #17212F 80%, #000000 100%);
-            border-radius: 0px 0px 20px 0px;
-            margin-top: auto;
+            border-radius: 0px 0px 20px 0px; margin-top: auto;
         }
-        .section-more:hover { color: rgba(255,255,255,0.9); opacity: 0.9; }
+        .section-more:hover { color: rgba(255,255,255,0.9); }
 
         /* ── APP LIST CARD ──────────────────────────────────────── */
         .app-list-card {
             display: flex; align-items: center; gap: 0.8rem;
-            padding: 0.55rem 0;
-            cursor: pointer; transition: opacity 0.1s;
+            padding: 0.55rem 0; cursor: pointer; transition: opacity 0.1s;
         }
-        .app-list-card:last-child { border-bottom: none; }
         .app-list-card:hover { opacity: 0.8; }
-
         .app-list-icon {
             width: 42px; height: 42px; border-radius: var(--radius-md);
-            background: rgba(255,255,255,0.08);
-            flex-shrink: 0; overflow: hidden;
+            background: rgba(255,255,255,0.08); flex-shrink: 0; overflow: hidden;
             display: flex; align-items: center; justify-content: center;
             font-size: 0.9rem; color: var(--gray-300);
         }
         .app-list-icon img { width: 100%; height: 100%; object-fit: cover; }
-
         .app-list-body { flex: 1; min-width: 0; }
         .app-list-name { font-size: 0.8rem; font-weight: 700; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 0.08rem; }
         .app-list-desc { font-size: 0.67rem; color: var(--gray-200); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.65; }
-
         .app-list-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.3rem; flex-shrink: 0; }
         .stars-xs { display: flex; gap: 1px; }
         .star-xs { font-size: 0.58rem; color: var(--gray-400); }
@@ -345,133 +235,53 @@
         .star-xs.lit-blue { color: var(--blue); }
         .rating-row { display: flex; align-items: center; gap: 0.3rem; }
         .rating-num { font-size: 0.6rem; color: var(--gray-200); opacity: 0.8; font-weight: 500; }
-        .zero-rating { font-size: 0.6rem; color: var(--gray-300); }
-
-        .price-tag {
-            font-size: 0.7rem; font-weight: 700;
-            border-radius: var(--radius-md);
-            padding: 0.2rem 0.6rem;
-        }
+        .price-tag { font-size: 0.7rem; font-weight: 700; border-radius: var(--radius-md); padding: 0.2rem 0.6rem; }
         .price-tag.free { background: var(--blue); color: var(--white); }
-        .price-tag.paid { background: #ff6b35; color: var(--white); }
-        .price-tag.paid2 { background: #e67e22; color: var(--white); }
 
-        /* ── REVIEWED TODAY ─────────────────────────────────────── */
-        .reviewed-card {
-            border-radius: var(--radius-lg);
-            padding: 1rem;
+        /* ── FEATURED CARD (right side of 5+1) ────────────────── */
+        .featured-card-inner { padding: 1rem; height: 100%; display: flex; flex-direction: column; }
+        .featured-icon {
+            width: 52px; height: 52px; border-radius: var(--radius-lg);
+            background: rgba(255,255,255,0.08); flex-shrink: 0; overflow: hidden;
+            display: flex; align-items: center; justify-content: center; font-size: 1.3rem; margin-bottom: 0.75rem;
         }
-        .reviewed-header { display: flex; align-items: flex-start; gap: 0.75rem; margin-bottom: 0.7rem; }
-        .reviewed-icon {
-            width: 44px; height: 44px; border-radius: var(--radius-lg);
-            background: #1a1a1a; flex-shrink: 0; overflow: hidden;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.1rem;
-        }
-        .reviewed-icon img { width: 100%; height: 100%; object-fit: cover; }
-        .reviewed-name { font-size: 0.85rem; font-weight: 800; color: var(--white); margin-bottom: 0.12rem; }
-        .reviewed-stars { display: flex; align-items: center; gap: 0.25rem; margin-bottom: 0.1rem; }
-        .reviewed-desc {
-            font-size: 0.67rem;
-            color: var(--gray-200);
-            line-height: 1.4;
-            opacity: 0.7;
-        }
-        .reviewed-summary { font-size: 0.75rem; font-weight: 700; color: var(--white); margin-bottom: 0.6rem; }
-        .feat-label { font-size: 0.62rem; color: var(--gray-300); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; margin-bottom: 0.4rem; }
-        .feat-chips { display: flex; flex-wrap: wrap; gap: 0.3rem; }
-
-        /* ── FEAT-CHIPS ─────────────────────────────────────────── */
-        .feat-chip {
-            display: inline-flex; align-items: center;
-            padding: 0.35rem 0.85rem;
-            background: rgb(0, 0, 0);
-            border-radius: 6px;
-            font-size: 0.6rem; font-weight: 800;
-            text-transform: uppercase; letter-spacing: 0.06em;
-            color: rgba(143, 230, 4, 1);
-            white-space: nowrap;
-        }
-        .feat-chip.chip-green { color: rgba(143, 230, 4, 1); }
-        .feat-chip.chip-teal  { color: #00d4ff; }
-        .feat-chip.chip-more  { color: var(--gray-200); }
+        .featured-icon img { width: 100%; height: 100%; object-fit: cover; }
+        .featured-name { font-size: 0.9rem; font-weight: 800; color: var(--white); margin-bottom: 0.25rem; }
+        .featured-desc { font-size: 0.7rem; color: var(--gray-200); line-height: 1.5; opacity: 0.75; flex: 1; }
 
         /* ── FEATURES STRIP ─────────────────────────────────────── */
-        .features-wrap {
-            overflow: hidden;
-            position: relative;
-        }
+        .features-wrap { overflow: hidden; position: relative; }
         .features-strip-row {
             display: flex; align-items: center; gap: 0.5rem;
-            overflow-x: auto;
-            scroll-behavior: smooth;
-            padding-bottom: 4px;
+            overflow-x: auto; scroll-behavior: smooth; padding-bottom: 4px;
         }
         .features-strip-row::-webkit-scrollbar { display: none; }
-
         .features-arrow-btn {
             width: 28px; height: 28px; border-radius: 50%;
-            border: 1px solid rgba(255,255,255,0.2);
-            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.07);
             display: flex; align-items: center; justify-content: center;
             color: var(--white); flex-shrink: 0; cursor: pointer; font-size: 1rem;
-            transition: background 0.12s;
-            line-height: 1;
+            transition: background 0.12s; line-height: 1;
         }
         .features-arrow-btn:hover { background: rgba(255,255,255,0.14); }
-
         .feature-pill {
             display: inline-flex; align-items: center; gap: 0.3rem;
-            padding: 0.35rem 0.85rem;
-            background: rgb(0 0 0);
-            border-radius: 6px;
-            font-size: 0.67rem; font-weight: 800; text-transform: uppercase;
-            letter-spacing: 0.06em; color: rgba(255,255,255,0.9);
-            white-space: nowrap; cursor: pointer; flex-shrink: 0;
+            padding: 0.35rem 0.85rem; background: rgb(0 0 0); border-radius: 6px;
+            font-size: 0.67rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;
+            color: rgba(255,255,255,0.9); white-space: nowrap; cursor: pointer; flex-shrink: 0;
             transition: background 0.12s;
         }
         .feature-pill:hover { background: rgba(0,0,0,0.5); }
-        .feature-pill .pill-name { color: rgba(143, 230, 4, 1); }
+        .feature-pill .pill-name { color: var(--accent-green); }
         .feature-pill .pill-count { color: var(--gray-200); font-weight: 500; }
-
-        /* ── APP OF THE WEEK ────────────────────────────────────── */
-        .aow-card { display: flex; flex-direction: column; gap: 0.5rem; }
-        .aow-header { display: flex; align-items: flex-start; gap: 0.8rem; }
-        .aow-icon {
-            width: 52px; height: 52px; border-radius: var(--radius-lg);
-            background: #1a1a1a; flex-shrink: 0; overflow: hidden;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.3rem;
-        }
-        .aow-icon img { width: 100%; height: 100%; object-fit: cover; }
-        .aow-name { font-size: 0.9rem; font-weight: 800; color: var(--white); margin-bottom: 0.08rem; }
-        .aow-desc { font-size: 0.67rem; color: var(--gray-200); line-height: 1.4; opacity: 0.65; }
-        .aow-meta { display: flex; align-items: center; gap: 0.4rem; margin-top: 0.25rem; }
-        .feat-label-aow { font-size: 0.62rem; color: var(--gray-300); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; margin: 0.6rem 0 0.3rem; }
-        .aow-chips { display: flex; flex-wrap: wrap; gap: 0.3rem; }
-        .aow-chip {
-            display: inline-flex; align-items: center;
-            padding: 0.35rem 0.85rem;
-            background: rgb(0, 0, 0);
-            border-radius: 6px;
-            font-size: 0.6rem; font-weight: 800;
-            text-transform: uppercase; letter-spacing: 0.05em;
-            color: rgba(143, 230, 4, 1);
-        }
-        .aow-chip.chip-teal   { color: #00d4ff; }
-        .aow-chip.chip-green  { color: rgba(143, 230, 4, 1); }
-        .aow-chip.chip-purple { color: #a78bfa; }
-        .aow-chip.chip-more   { color: var(--gray-200); }
 
         /* ── VIBE GRID ──────────────────────────────────────────── */
         .vibe-grid { display: grid; grid-template-columns: 1fr 1fr; }
         .grid-card {
-            display: flex; align-items: center; gap: 0.65rem;
-            padding: 0.75rem 1.4rem;
+            display: flex; align-items: center; gap: 0.65rem; padding: 0.75rem 1.4rem;
             cursor: pointer; transition: background 0.1s;
         }
         .grid-card:hover { background: rgba(255,255,255,0.04); }
-        .grid-card:nth-last-child(-n+2) { border-bottom: none; }
         .grid-icon {
             width: 36px; height: 36px; border-radius: var(--radius-md);
             background: rgba(255,255,255,0.08); flex-shrink: 0; overflow: hidden;
@@ -484,29 +294,27 @@
 
         .empty-state { text-align: center; padding: 2rem; color: var(--gray-300); font-size: 0.78rem; opacity: 0.5; }
 
+        /* ── VIBE SECTION (full-width row) ──────────────────────── */
+        .section-row-full { padding-top: 2rem; }
+
         /* ── RESPONSIVE ─────────────────────────────────────────── */
         @media (max-width: 768px) {
             .hero { height: 280px; }
-            .hero-inner { padding: 0 1.5rem; }
             .hero-content { max-width: 100%; }
             .hero-heading { font-size: 2rem; }
             .wish-card { display: none; }
-            .dev-bar { padding: 2rem 1.5rem 0; }
-            .section-row.row-2.upper,
-            .section-row.row-2.lower { grid-template-columns: 1fr; }
+            .section-pair.layout-5-1 { grid-template-columns: 1fr; }
             .vibe-grid { grid-template-columns: 1fr; }
-            .grid-card:nth-child(odd) { border-right: none; }
             .content { padding: 2rem 1rem 3rem; }
         }
     </style>
 </head>
 <body>
 
-<!-- NAV -->
 <nav>
     <div class="nav-left">
         <a class="nav-logo" href="/" th:href="@{/}">
-            <img alt="Vibe logo" src="/logo_sm.png" style="width:100%;height:100%;object-fit:cover; background:black;"
+            <img alt="Vibe logo" src="/logo_sm.png" style="width:100%;height:100%;object-fit:cover;background:black;"
                  th:src="@{/logo_sm.png}"/>
         </a>
         <a class="nav-link" href="/submit" th:href="@{/submit}">Submit</a>
@@ -526,25 +334,22 @@
         <div class="hero-bg"></div>
         <div class="hero-overlay"></div>
         <div class="hero-fade"></div>
-
         <div class="hero-inner">
             <div class="hero-content">
                 <h1 class="hero-heading">Apps for people<br/>by people</h1>
                 <div class="hero-search-bar">
                     <span class="hero-search-icon">
-                        <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"
-                             xmlns="http://www.w3.org/2000/svg"><circle cx="11" cy="11" r="7"/><path
-                                d="M21 21l-4.35-4.35"/></svg>
+                        <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/>
+                        </svg>
                     </span>
                     <input class="hero-search-input" id="heroSearch" placeholder="Find an app…" type="text"/>
                 </div>
             </div>
-
-            <!-- Wish card -->
             <div class="wish-card">
                 <div class="wish-card-label">Can't find the right app? No problem!</div>
                 <a class="btn-wish" href="/apps" th:href="@{/apps}">Wish an app</a>
-                <a class="nav-link" th:href="@{/admin/home-sections}">Edit homepage</a>
+                <a class="nav-link" style="font-size:0.72rem;margin-top:0.5rem;display:block;opacity:0.6;" th:href="@{/admin/home-sections}">Edit homepage</a>
             </div>
         </div>
     </div>
@@ -561,500 +366,159 @@
     <main class="content" id="mainContent">
         <div class="sections-container" id="sectionsContainer">
 
-            <!-- ROW 1: Newest in Productivity + Reviewed Today — upper row -->
-            <div class="section-row row-2 upper" id="row-1">
+            <!-- ── DYNAMIC HOME SECTIONS ──────────────────────────── -->
+            <!--
+              Each HomeSection is a "pair": 5 list apps on the left + 1 featured on the right.
+              Both cards share one section-pair div so they drag together.
+            -->
+            <th:block th:each="section : ${sections}">
+                <div class="section-pair layout-5-1"
+                     draggable="false"
+                     th:data-section-id="${section.id}"
+                     th:id="'pair-' + ${section.id}">
 
-                <!-- Newest in Productivity — LEFT (bigger) -->
-                <div class="section-wrapper" data-section-id="newest" id="sec-newest">
-                    <!-- Title above the card -->
-                    <div class="section-header">
-                        <div class="section-title-row">
-                            <span class="section-title">Newest in Productivity</span>
-                            <span class="section-count"
-                                  th:if="${!#lists.isEmpty(newestApps)}"
-                                  th:text="'(' + ${#lists.size(newestApps)} + ')'"></span>
+                    <!-- LEFT: list of up to 5 apps -->
+                    <div class="section-wrapper">
+                        <div class="section-header">
+                            <div class="section-title-row">
+                                <span class="section-title"
+                                      contenteditable="true"
+                                      th:data-section-id="${section.id}"
+                                      th:data-original="${section.title}"
+                                      th:text="${section.title}"
+                                      onblur="saveSectionTitle(this)"
+                                      onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"></span>
+                            </div>
+                            <div class="drag-dots">
+                                <span></span><span></span><span></span><span></span><span></span><span></span>
+                            </div>
                         </div>
-                        <div class="drag-dots">
-                            <span></span><span></span><span></span><span></span><span></span><span></span></div>
-                    </div>
-                    <!-- The card itself -->
-                    <div class="home-section">
-                        <div class="section-body">
-                            <div th:if="${!#lists.isEmpty(newestApps)}">
-                                <th:block th:each="app, st : ${newestApps}" th:if="${st.index < 5}">
-                                    <a class="app-list-card"
-                                       th:data-desc="${app.description != null ? app.description.toLowerCase() : ''}"
-                                       th:data-name="${app.name.toLowerCase()}"
-                                       th:href="@{/apps/{id}/manage(id=${app.id})}">
-                                        <div class="app-list-icon">
-                                            <img alt="" th:if="${app.iconUrl != null}" th:src="${app.iconUrl}"/>
-                                            <span th:if="${app.iconUrl == null}">🖼</span>
-                                        </div>
-                                        <div class="app-list-body">
-                                            <div class="app-list-name" th:text="${app.name}">App Name</div>
-                                            <div class="app-list-desc"
-                                                 th:text="${app.description != null ? app.description : 'No description'}"></div>
-                                        </div>
-                                        <div class="app-list-right">
-                                            <span class="price-tag free">FREE</span>
-                                            <div class="rating-row">
-                                                <div class="stars-xs">
-                                                    <span class="star-xs"
-                                                          th:classappend="${app.userRatingAvg >= i} ? ' lit' : ''"
-                                                          th:each="i : ${#numbers.sequence(1,5)}">★</span>
+                        <div class="home-section">
+                            <div class="section-body">
+                                <th:block th:with="listApps=${sectionListApps.get(section.id)}">
+                                    <th:block th:if="${listApps != null and !#lists.isEmpty(listApps)}">
+                                        <th:block th:each="app : ${listApps}">
+                                            <a class="app-list-card"
+                                               th:href="@{/p/{slug}(slug=${app.slug})}"
+                                               th:data-name="${app.name.toLowerCase()}"
+                                               th:data-desc="${app.description != null ? app.description.toLowerCase() : ''}">
+                                                <div class="app-list-icon">
+                                                    <img alt="" th:if="${app.iconUrl != null}" th:src="${app.iconUrl}"/>
+                                                    <span th:if="${app.iconUrl == null}">🖼</span>
                                                 </div>
-                                                <span class="rating-num"
-                                                      th:text="${#numbers.formatDecimal(app.userRatingAvg,1,1)}">0.0</span>
-                                            </div>
-                                        </div>
-                                    </a>
+                                                <div class="app-list-body">
+                                                    <div class="app-list-name" th:text="${app.name}">App Name</div>
+                                                    <div class="app-list-desc"
+                                                         th:text="${app.description != null ? app.description : 'No description'}"></div>
+                                                </div>
+                                                <div class="app-list-right">
+                                                    <span class="price-tag free">FREE</span>
+                                                    <div class="rating-row">
+                                                        <div class="stars-xs">
+                                                            <span th:each="i : ${#numbers.sequence(1,5)}" class="star-xs"
+                                                                  th:classappend="${app.userRatingAvg >= i} ? ' lit' : ''">★</span>
+                                                        </div>
+                                                        <span class="rating-num"
+                                                              th:text="${#numbers.formatDecimal(app.userRatingAvg,1,1)}">0.0</span>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        </th:block>
+                                    </th:block>
+                                    <div th:if="${listApps == null or #lists.isEmpty(listApps)}" class="empty-state">
+                                        No apps in this section yet.
+                                    </div>
                                 </th:block>
                             </div>
-
-                            <!-- FALLBACK static -->
-                            <div th:remove="all">
-                                <a class="app-list-card" data-desc="a short description"
-                                   data-name="app name marketing claim"
-                                   href="/apps/1">
-                                    <div class="app-list-icon" style="background:#2a3a50;color:rgba(255,255,255,0.5);">
-                                        ▷
-                                    </div>
-                                    <div class="app-list-body">
-                                        <div class="app-list-name">App name – marketing claim</div>
-                                        <div class="app-list-desc">A short description of your app. One line within …
-                                        </div>
-                                    </div>
-                                    <div class="app-list-right">
-                                        <span class="price-tag free">FREE</span>
-                                        <div class="rating-row">
-                                            <div class="stars-xs">
-                                                <span class="star-xs lit">★</span><span
-                                                    class="star-xs lit">★</span><span class="star-xs lit">★</span><span
-                                                    class="star-xs">★</span><span class="star-xs">★</span>
-                                            </div>
-                                            <span class="rating-num">3.7</span>
-                                        </div>
-                                    </div>
-                                </a>
-                                <a class="app-list-card" data-desc="a short description"
-                                   data-name="app name positioning statement"
-                                   href="/apps/2">
-                                    <div class="app-list-icon" style="background:#2d2d40;color:#f0c040;">🎩</div>
-                                    <div class="app-list-body">
-                                        <div class="app-list-name">App name – positioning statement</div>
-                                        <div class="app-list-desc">A short description of your app. One line within …
-                                        </div>
-                                    </div>
-                                    <div class="app-list-right">
-                                        <span class="price-tag paid">24,99 €</span>
-                                        <div class="rating-row">
-                                            <div class="stars-xs">
-                                                <span class="star-xs lit">★</span><span
-                                                    class="star-xs lit">★</span><span class="star-xs lit">★</span><span
-                                                    class="star-xs">★</span><span class="star-xs">★</span>
-                                            </div>
-                                            <span class="rating-num">3.7</span>
-                                        </div>
-                                    </div>
-                                </a>
-                                <a class="app-list-card" data-desc="a short description"
-                                   data-name="app name feature tease"
-                                   href="/apps/3">
-                                    <div class="app-list-icon"
-                                         style="background:linear-gradient(135deg,#e74c3c,#c0392b);color:white;">📊
-                                    </div>
-                                    <div class="app-list-body">
-                                        <div class="app-list-name">App name – feature tease</div>
-                                        <div class="app-list-desc">A short description of your app. One line within …
-                                        </div>
-                                    </div>
-                                    <div class="app-list-right">
-                                        <span class="price-tag paid2">11,99 €</span>
-                                        <div class="rating-row">
-                                            <div class="stars-xs">
-                                                <span class="star-xs lit">★</span><span
-                                                    class="star-xs lit">★</span><span class="star-xs lit">★</span><span
-                                                    class="star-xs">★</span><span class="star-xs">★</span>
-                                            </div>
-                                            <span class="rating-num">3.7</span>
-                                        </div>
-                                    </div>
-                                </a>
-                            </div>
-
-                            <div class="empty-state" th:if="${#lists.isEmpty(newestApps)}">No apps yet — be the first to
-                                submit one.
-                            </div>
-                        </div>
-                        <a class="section-more" href="/explore" th:href="@{/explore}">More</a>
-                    </div>
-                </div>
-
-                <!-- Reviewed Today — RIGHT (smaller, dark) -->
-                <div class="section-wrapper" data-section-id="reviewed" id="sec-reviewed">
-                    <!-- Title above the card -->
-                    <div class="section-header">
-                        <div class="section-title-row">
-                            <span class="section-title">Reviewed today</span>
-                        </div>
-                        <div class="drag-dots">
-                            <span></span><span></span><span></span><span></span><span></span><span></span></div>
-                    </div>
-                    <!-- The card itself -->
-                    <div class="home-section dark-right">
-                        <div class="section-body">
-                            <div th:if="${!#lists.isEmpty(reviewedApps)}" th:with="rev=${reviewedApps[0]}">
-                                <div class="reviewed-header">
-                                    <div class="reviewed-icon">
-                                        <img alt="" th:if="${rev.iconUrl != null}" th:src="${rev.iconUrl}"/>
-                                        <span th:if="${rev.iconUrl == null}">⭐</span>
-                                    </div>
-                                    <div style="flex:1;min-width:0;">
-                                        <div class="reviewed-name" th:text="${rev.name}">App Name</div>
-                                        <div class="reviewed-stars">
-                                            <div class="stars-xs">
-                                                <span class="star-xs lit-blue"
-                                                      th:each="i : ${#numbers.sequence(1,5)}">★</span>
-                                            </div>
-                                            <span class="rating-num"
-                                                  th:text="${#numbers.formatDecimal(rev.verifiedScore,1,1)} + '/5'">5.0/5</span>
-                                        </div>
-                                        <div class="reviewed-desc"
-                                             th:text="${rev.description != null ? rev.description : ''}">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="reviewed-summary"
-                                     style="border-top:1px dotted rgba(255,255,255,0.25); border-bottom:1px dotted rgba(255,255,255,0.25); padding:0.5rem 0; margin-top:1rem;">
-                                    Review short summary — awesome!
-                                </div>
-                                <div class="feat-label">Top features:</div>
-                                <div class="aow-chips" th:if="${!#maps.isEmpty(reviewedAppFeatures)}">
-                                    <th:block th:each="catEntry : ${reviewedAppFeatures}">
-                                            <span class="aow-chip" th:each="feat, st : ${catEntry.value}"
-                                                  th:if="${st.index < 2}"
-                                                  th:text="${feat.name.toUpperCase()}">FEATURE</span>
-                                    </th:block>
-                                </div>
-                                <div class="aow-chips" th:if="${#maps.isEmpty(reviewedAppFeatures)}">
-                                    <span class="aow-chip chip-more" style="opacity:0.4;">No features tagged yet</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- FALLBACK static -->
-                        <div th:remove="all">
-                            <div class="reviewed-card">
-                                <div class="reviewed-header">
-                                    <div class="reviewed-icon">⭐</div>
-                                    <div style="flex:1;min-width:0;">
-                                        <div class="reviewed-name">App name</div>
-                                        <div class="reviewed-stars">
-                                            <div class="stars-xs">
-                                                <span class="star-xs lit">★</span><span
-                                                    class="star-xs lit">★</span><span class="star-xs lit">★</span><span
-                                                    class="star-xs lit">★</span><span class="star-xs">★</span>
-                                            </div>
-                                        </div>
-                                        <div class="reviewed-desc">A short description of your app.</div>
-                                    </div>
-                                </div>
-                                <div class="reviewed-summary">Review short summary – awesome!</div>
-                                <div class="feat-label">Top features:</div>
-                                <div class="aow-chips">
-                                    <span class="aow-chip">AI TRANSLATION</span>
-                                    <span class="aow-chip chip-teal">AI VOICE</span>
-                                    <span class="aow-chip chip-more">+2 More</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="empty-state" th:if="${#lists.isEmpty(reviewedApps)}">No reviewed apps today.</div>
-                    </div>
-                    <a class="section-more" href="/explore" th:href="@{/explore}">More</a>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- ROW 2: Most Popular Features -->
-        <div class="section-row row-1" id="row-2">
-            <div class="section-wrapper" data-section-id="features" id="sec-features">
-                <!-- Title above the card -->
-                <div class="section-header">
-                    <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
-                        <span class="section-title">Most popular features</span>
-                        <div style="display:flex;gap:0.4rem;">
-                            <button class="features-arrow-btn" id="featuresScrollLeft">‹</button>
-                            <button class="features-arrow-btn" id="featuresScrollRight">›</button>
+                            <a class="section-more" href="/explore" th:href="@{/explore}">More</a>
                         </div>
                     </div>
-                    <div class="drag-dots" style="display:none;">
-                        <span></span><span></span><span></span><span></span><span></span><span></span></div>
-                </div>
-                <!-- The card itself -->
-                <div class="home-section" style="background: none;">
-                    <div class="features-wrap">
-                        <div class="features-strip-row" id="featuresStrip">
-                            <!-- THYMELEAF: real features -->
-                            <th:block th:if="${!#lists.isEmpty(popularFeatures)}">
-                                    <span class="feature-pill"
-                                          th:each="feat : ${popularFeatures}"
-                                          th:onclick="'window.location=\'/explore\''">
-                                        <span class="pill-name" th:text="${feat.name.toUpperCase()}">FEATURE</span>
-                                        <span class="pill-count"
-                                              th:if="${entryAppCounts[feat.id] != null}"
-                                              th:text="'(' + ${entryAppCounts[feat.id]} + ')'"></span>
-                                    </span>
+
+                    <!-- RIGHT: featured app -->
+                    <div class="section-wrapper">
+                        <div class="section-header">
+                            <div class="section-title-row">
+                                <span class="section-title" style="opacity:0.3;">Featured</span>
+                            </div>
+                        </div>
+                        <div class="home-section dark-card">
+                            <th:block th:with="feat=${sectionFeatured.get(section.id)}">
+                                <div th:if="${feat != null}" class="featured-card-inner">
+                                    <a th:href="@{/p/{slug}(slug=${feat.slug})}" style="text-decoration:none;color:inherit;">
+                                        <div class="featured-icon">
+                                            <img alt="" th:if="${feat.iconUrl != null}" th:src="${feat.iconUrl}"/>
+                                            <span th:if="${feat.iconUrl == null}">⭐</span>
+                                        </div>
+                                        <div class="featured-name" th:text="${feat.name}">App Name</div>
+                                        <div class="featured-desc" th:text="${feat.description != null ? feat.description : ''}"></div>
+                                        <div class="rating-row" style="margin-top:0.75rem;">
+                                            <div class="stars-xs">
+                                                <span th:each="i : ${#numbers.sequence(1,5)}" class="star-xs"
+                                                      th:classappend="${feat.verifiedScore != null and feat.verifiedScore >= i} ? ' lit-blue' : (${feat.userRatingAvg >= i} ? ' lit' : '')">★</span>
+                                            </div>
+                                            <span class="price-tag free" style="font-size:0.62rem;padding:0.12rem 0.5rem;margin-left:0.4rem;">FREE</span>
+                                        </div>
+                                    </a>
+                                </div>
+                                <div th:if="${feat == null}" class="empty-state">No featured app.</div>
                             </th:block>
-
-                            <!-- FALLBACK static -->
-                            <th:block th:remove="all">
-                                <span class="feature-pill"><span
-                                        class="pill-name">AI Presentation Maker</span>&nbsp;<span class="pill-count">(112)</span></span>
-                                <span class="feature-pill"><span class="pill-name">AI Translation</span>&nbsp;<span
-                                        class="pill-count">(84)</span></span>
-                                <span class="feature-pill"><span class="pill-name">AI Story Generator</span>&nbsp;<span
-                                        class="pill-count">(73)</span></span>
-                                <span class="feature-pill"><span class="pill-name">AI Image Generator</span>&nbsp;<span
-                                        class="pill-count">(61)</span></span>
-                                <span class="feature-pill"><span class="pill-name">AI Voice Cloning</span>&nbsp;<span
-                                        class="pill-count">(55)</span></span>
-                                <span class="feature-pill"><span class="pill-name">AI Video</span>&nbsp;<span
-                                        class="pill-count">(49)</span></span>
-                                <span class="feature-pill"><span class="pill-name">AI Code Assistant</span>&nbsp;<span
-                                        class="pill-count">(44)</span></span>
-                                <span class="feature-pill"><span class="pill-name">AI Writing</span>&nbsp;<span
-                                        class="pill-count">(38)</span></span>
-                                <span class="feature-pill"><span class="pill-name">AI Summarizer</span>&nbsp;<span
-                                        class="pill-count">(31)</span></span>
-                                <span class="feature-pill"><span class="pill-name">AI Chatbot</span>&nbsp;<span
-                                        class="pill-count">(28)</span></span>
-                            </th:block>
+                            <a class="section-more" href="/explore" th:href="@{/explore}">More</a>
                         </div>
                     </div>
+
                 </div>
+            </th:block>
+
+            <!-- ── EMPTY STATE when no sections yet ─────────────── -->
+            <div th:if="${#lists.isEmpty(sections)}"
+                 style="text-align:center;padding:4rem 2rem;color:var(--gray-300);font-size:0.88rem;line-height:1.7;">
+                No homepage sections yet.<br/>
+                <a th:href="@{/admin/home-sections}"
+                   style="color:var(--accent-green);font-weight:700;text-decoration:underline;">Add your first section →</a>
             </div>
-        </div>
 
-        <!-- ROW 3: App of the Week + Top Paid Apps — lower row -->
-        <div class="section-row row-2 lower" id="row-3">
-
-            <!-- App of the Week — LEFT (smaller, dark) -->
-            <div class="section-wrapper" data-section-id="aow" id="sec-aow">
-                <!-- Title above the card -->
-                <div class="section-header">
-                    <div class="section-title-row">
-                        <span class="section-title">App of the week</span>
-                    </div>
-                    <div class="drag-dots">
-                        <span></span><span></span><span></span><span></span><span></span><span></span></div>
-                </div>
-                <!-- The card itself -->
-                <div class="home-section dark-left">
-                    <div class="section-body">
-                        <div th:if="${appOfWeek != null}">
-                            <a class="aow-card"
-                               style="display:flex;flex-direction:column;gap:0.5rem;text-decoration:none;color:inherit;"
-                               th:href="@{/apps/{id}/manage(id=${appOfWeek.id})}">
-                                <div class="aow-header">
-                                    <div class="aow-icon">
-                                        <img alt="" th:if="${appOfWeek.iconUrl != null}" th:src="${appOfWeek.iconUrl}"/>
-                                        <span th:if="${appOfWeek.iconUrl == null}">⭐</span>
-                                    </div>
-                                    <div style="flex:1;min-width:0;">
-                                        <div class="aow-name" th:text="${appOfWeek.name}">App Name</div>
-                                        <div class="aow-desc"
-                                             th:text="${appOfWeek.description != null ? appOfWeek.description : ''}"></div>
-                                        <div class="aow-meta">
-                                            <div class="stars-xs">
-                                                <span class="star-xs"
-                                                      th:classappend="${appOfWeek.verifiedScore != null and appOfWeek.verifiedScore >= i} ? ' lit-blue' : (${appOfWeek.userRatingAvg >= i} ? ' lit' : '')"
-                                                      th:each="i : ${#numbers.sequence(1,5)}">★</span>
-                                            </div>
-                                            <span class="price-tag free"
-                                                  style="font-size:0.62rem;padding:0.12rem 0.5rem;margin-left:0.3rem;">FREE</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="feat-label-aow">Top features:</div>
-                                <div class="aow-chips" th:if="${!#maps.isEmpty(appOfWeekFeatures)}">
-                                    <th:block th:each="catEntry : ${appOfWeekFeatures}">
-        <span class="aow-chip" th:each="feat, st : ${catEntry.value}"
-              th:if="${st.index < 2}" th:text="${feat.name.toUpperCase()}">FEATURE</span>
-                                    </th:block>
-                                </div>
-                                <div class="aow-chips" th:if="${#maps.isEmpty(appOfWeekFeatures)}">
-                                    <span class="aow-chip chip-more" style="opacity:0.4;">No features tagged yet</span>
-                                </div>
-                        </div>
-
-                        <!-- FALLBACK static -->
-                        <div class="aow-card" th:remove="all">
-                            <div class="aow-header">
-                                <div class="aow-icon">⭐</div>
-                                <div style="flex:1;min-width:0;">
-                                    <div class="aow-name">App name</div>
-                                    <div class="aow-desc">A short description of your app.</div>
-                                    <div class="aow-meta">
-                                        <div class="stars-xs">
-                                            <span class="star-xs lit">★</span><span class="star-xs lit">★</span><span
-                                                class="star-xs lit">★</span><span class="star-xs lit">★</span><span
-                                                class="star-xs">★</span>
-                                        </div>
-                                        <span class="price-tag free"
-                                              style="font-size:0.62rem;padding:0.12rem 0.5rem;margin-left:0.3rem;">FREE</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="feat-label-aow">Top features:</div>
-                            <div class="aow-chips">
-                                <span class="aow-chip">AI Presentation Generator</span>
-                                <span class="aow-chip chip-teal">AI Voice Cloning</span>
-                                <span class="aow-chip chip-green">AI Video Generation</span>
-                                <span class="aow-chip chip-purple">AI Voice Over</span>
-                                <span class="aow-chip chip-more">+3 More</span>
+            <!-- ── MOST POPULAR FEATURES (always shown) ──────────── -->
+            <div class="section-row-full" th:if="${!#lists.isEmpty(popularFeatures)}">
+                <div class="section-wrapper">
+                    <div class="section-header" style="cursor:default;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+                            <span class="section-title">Most popular features</span>
+                            <div style="display:flex;gap:0.4rem;">
+                                <button class="features-arrow-btn" id="featuresScrollLeft">‹</button>
+                                <button class="features-arrow-btn" id="featuresScrollRight">›</button>
                             </div>
                         </div>
-
-                        <div class="empty-state" th:if="${appOfWeek == null}">No app of the week yet.</div>
                     </div>
-                    <a class="section-more" href="/explore" th:href="@{/explore}">More</a>
+                    <div class="home-section" style="background:none;">
+                        <div class="features-wrap">
+                            <div class="features-strip-row" id="featuresStrip">
+                                <span class="feature-pill"
+                                      th:each="feat : ${popularFeatures}"
+                                      onclick="window.location='/explore'">
+                                    <span class="pill-name" th:text="${feat.name.toUpperCase()}">FEATURE</span>
+                                    <span class="pill-count"
+                                          th:if="${entryAppCounts[feat.id] != null}"
+                                          th:text="'(' + ${entryAppCounts[feat.id]} + ')'"></span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Top Paid Apps — RIGHT (bigger) -->
-            <div class="section-wrapper" data-section-id="toprated" id="sec-toprated">
-                <!-- Title above the card -->
-                <div class="section-header">
-                    <div class="section-title-row">
-                        <span class="section-title">Top paid apps</span>
+            <!-- ── APPS WITH A DIFFERENT VIBE (always shown) ─────── -->
+            <div class="section-row-full" th:if="${!#lists.isEmpty(vibeApps)}">
+                <div class="section-wrapper">
+                    <div class="section-header" style="cursor:default;">
+                        <span class="section-title" style="color:rgba(255,255,255,0.65);">Apps with a different vibe</span>
                     </div>
-                    <div class="drag-dots">
-                        <span></span><span></span><span></span><span></span><span></span><span></span></div>
-                </div>
-                <!-- The card itself -->
-                <div class="home-section">
-                    <div class="section-body">
-                        <div th:if="${!#lists.isEmpty(topRatedApps)}">
-                            <th:block th:each="app : ${topRatedApps}">
-                                <a class="app-list-card"
-                                   th:data-desc="${app.description != null ? app.description.toLowerCase() : ''}"
-                                   th:data-name="${app.name.toLowerCase()}"
-                                   th:href="@{/apps/{id}/manage(id=${app.id})}">
-                                    <div class="app-list-icon">
-                                        <img alt="" th:if="${app.iconUrl != null}" th:src="${app.iconUrl}"/>
-                                        <span th:if="${app.iconUrl == null}">🖼</span>
-                                    </div>
-                                    <div class="app-list-body">
-                                        <div class="app-list-name" th:text="${app.name}">App Name</div>
-                                        <div class="app-list-desc"
-                                             th:text="${app.description != null ? app.description : 'No description'}"></div>
-                                    </div>
-                                    <div class="app-list-right">
-                                        <span class="price-tag free">FREE</span>
-                                        <div class="rating-row">
-                                            <div class="stars-xs">
-                                                    <span class="star-xs"
-                                                          th:classappend="${app.verifiedScore != null and app.verifiedScore >= i} ? ' lit-blue' : (${app.userRatingAvg >= i} ? ' lit' : '')"
-                                                          th:each="i : ${#numbers.sequence(1,5)}">★</span>
-                                            </div>
-                                            <span class="rating-num"
-                                                  th:text="${#numbers.formatDecimal(app.userRatingAvg,1,1)}">0.0</span>
-                                        </div>
-                                    </div>
-                                </a>
-                            </th:block>
-                        </div>
-
-                        <!-- FALLBACK static -->
-                        <div th:remove="all">
-                            <a class="app-list-card" data-desc="a short description"
-                               data-name="app name marketing claim"
-                               href="/apps/1">
-                                <div class="app-list-icon" style="background:#2a3a50;color:rgba(255,255,255,0.5);">▷
-                                </div>
-                                <div class="app-list-body">
-                                    <div class="app-list-name">App name – marketing claim</div>
-                                    <div class="app-list-desc">A short description of your app. One line within …</div>
-                                </div>
-                                <div class="app-list-right">
-                                    <span class="price-tag free">FREE</span>
-                                    <div class="rating-row">
-                                        <div class="stars-xs"><span class="star-xs lit">★</span><span
-                                                class="star-xs lit">★</span><span class="star-xs lit">★</span><span
-                                                class="star-xs">★</span><span class="star-xs">★</span></div>
-                                        <span class="rating-num">3.7</span>
-                                    </div>
-                                </div>
-                            </a>
-                            <a class="app-list-card" data-desc="a short description" data-name="app name positioning"
-                               href="/apps/2">
-                                <div class="app-list-icon" style="background:#2d2d40;color:#f0c040;">🎩</div>
-                                <div class="app-list-body">
-                                    <div class="app-list-name">App name – positioning statement</div>
-                                    <div class="app-list-desc">A short description of your app. One line within …</div>
-                                </div>
-                                <div class="app-list-right">
-                                    <span class="price-tag paid">24,99 €</span>
-                                    <div class="rating-row">
-                                        <div class="stars-xs"><span class="star-xs lit">★</span><span
-                                                class="star-xs lit">★</span><span class="star-xs lit">★</span><span
-                                                class="star-xs">★</span><span class="star-xs">★</span></div>
-                                        <span class="rating-num">3.7</span>
-                                    </div>
-                                </div>
-                            </a>
-                            <a class="app-list-card" data-desc="a short description" data-name="app name feature tease"
-                               href="/apps/3">
-                                <div class="app-list-icon"
-                                     style="background:linear-gradient(135deg,#e74c3c,#c0392b);color:white;">📊
-                                </div>
-                                <div class="app-list-body">
-                                    <div class="app-list-name">App name – feature tease</div>
-                                    <div class="app-list-desc">A short description of your app. One line within …</div>
-                                </div>
-                                <div class="app-list-right">
-                                    <span class="price-tag paid2">11,99 €</span>
-                                    <div class="rating-row">
-                                        <div class="stars-xs"><span class="star-xs lit">★</span><span
-                                                class="star-xs lit">★</span><span class="star-xs lit">★</span><span
-                                                class="star-xs">★</span><span class="star-xs">★</span></div>
-                                        <span class="rating-num">3.7</span>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-
-                        <div class="empty-state" th:if="${#lists.isEmpty(topRatedApps)}">No rated apps yet.</div>
-                    </div>
-                    <a class="section-more" href="/explore" th:href="@{/explore(tab='top-rated')}">More</a>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- ROW 4: Apps with a Different Vibe -->
-        <div class="section-row row-1" id="row-4">
-            <div class="section-wrapper" data-section-id="vibe" id="sec-vibe">
-                <!-- Title above the card -->
-                <div class="section-header">
-                    <div class="section-title-row">
-                        <span class="section-title"
-                              style="color:rgba(255,255,255,0.65);">Apps with a different vibe</span>
-                        <span class="section-count" th:text="'(' + ${#lists.size(vibeApps)} + ')'"></span>
-                    </div>
-                    <div class="drag-dots">
-                        <span></span><span></span><span></span><span></span><span></span><span></span></div>
-                </div>
-                <!-- The card itself -->
-                <div class="home-section blue-vibe">
-                    <div class="vibe-grid" th:if="${!#lists.isEmpty(vibeApps)}">
-                        <th:block th:each="app : ${vibeApps}">
+                    <div class="home-section blue-vibe">
+                        <div class="vibe-grid">
                             <a class="grid-card"
-                               th:data-desc="${app.description != null ? app.description.toLowerCase() : ''}"
+                               th:each="app : ${vibeApps}"
+                               th:href="@{/p/{slug}(slug=${app.slug})}"
                                th:data-name="${app.name.toLowerCase()}"
-                               th:href="@{/apps/{id}/manage(id=${app.id})}">
+                               th:data-desc="${app.description != null ? app.description.toLowerCase() : ''}">
                                 <div class="grid-icon">
                                     <img alt="" th:if="${app.iconUrl != null}" th:src="${app.iconUrl}"/>
                                     <span th:if="${app.iconUrl == null}">🖼</span>
@@ -1065,75 +529,16 @@
                                          th:text="${app.description != null ? app.description : 'No description'}"></div>
                                 </div>
                             </a>
-                        </th:block>
+                        </div>
                     </div>
-
-                    <!-- FALLBACK static -->
-                    <div class="vibe-grid" th:remove="all">
-                        <a class="grid-card" data-desc="a short description" data-name="app name marketing"
-                           href="/apps/1">
-                            <div class="grid-icon" style="background:#2a3a50;color:rgba(255,255,255,0.5);">▷</div>
-                            <div>
-                                <div class="grid-name">App name – marketing claim</div>
-                                <div class="grid-desc">A short description of your app. One line within …</div>
-                            </div>
-                        </a>
-                        <a class="grid-card" data-desc="a short description" data-name="app name marketing"
-                           href="/apps/4">
-                            <div class="grid-icon" style="background:#2a3a50;color:rgba(255,255,255,0.5);">▷</div>
-                            <div>
-                                <div class="grid-name">App name – marketing claim</div>
-                                <div class="grid-desc">A short description of your app. One line within …</div>
-                            </div>
-                        </a>
-                        <a class="grid-card" data-desc="a short description" data-name="app name positioning"
-                           href="/apps/2">
-                            <div class="grid-icon" style="background:#2d2d40;color:#f0c040;">🎩</div>
-                            <div>
-                                <div class="grid-name">App name – positioning statement</div>
-                                <div class="grid-desc">A short description of your app. One line within …</div>
-                            </div>
-                        </a>
-                        <a class="grid-card" data-desc="a short description" data-name="app name positioning"
-                           href="/apps/5">
-                            <div class="grid-icon" style="background:#2d2d40;color:#f0c040;">🎩</div>
-                            <div>
-                                <div class="grid-name">App name – positioning statement</div>
-                                <div class="grid-desc">A short description of your app. One line within …</div>
-                            </div>
-                        </a>
-                        <a class="grid-card" data-desc="a short description" data-name="app name feature"
-                           href="/apps/3">
-                            <div class="grid-icon"
-                                 style="background:linear-gradient(135deg,#e74c3c,#c0392b);color:white;">📊
-                            </div>
-                            <div>
-                                <div class="grid-name">App name – feature tease</div>
-                                <div class="grid-desc">A short description of your app. One line within …</div>
-                            </div>
-                        </a>
-                        <a class="grid-card" data-desc="a short description" data-name="app name feature"
-                           href="/apps/6">
-                            <div class="grid-icon"
-                                 style="background:linear-gradient(135deg,#e74c3c,#c0392b);color:white;">📊
-                            </div>
-                            <div>
-                                <div class="grid-name">App name – feature tease</div>
-                                <div class="grid-desc">A short description of your app. One line within …</div>
-                            </div>
-                        </a>
-                    </div>
-
-                    <div class="empty-state" th:if="${#lists.isEmpty(vibeApps)}">Submit apps to see them here.</div>
                 </div>
             </div>
+
         </div>
-
-</div>
-</main>
+    </main>
 </div>
 
-<script>
+<script th:inline="javascript">
     /* ── Hero search ──────────────────────────────────────────────── */
     const heroSearch = document.getElementById('heroSearch');
     if (heroSearch) {
@@ -1143,17 +548,9 @@
                 if (q) window.location.href = '/explore?search=' + encodeURIComponent(q);
             }
         });
-        heroSearch.addEventListener('input', function () {
-            const q = this.value.toLowerCase().trim();
-            document.querySelectorAll('#mainContent [data-name]').forEach(card => {
-                if (!q) { card.style.display = ''; return; }
-                const match = (card.dataset.name || '').includes(q) || (card.dataset.desc || '').includes(q);
-                card.style.display = match ? '' : 'none';
-            });
-        });
     }
 
-    /* ── Features strip scroll ────────────────────────────────────── */
+    /* ── Features strip scroll ───────────────────────────────────── */
     const strip = document.getElementById('featuresStrip');
     document.getElementById('featuresScrollRight')?.addEventListener('click', () => {
         strip?.scrollBy({ left: 200, behavior: 'smooth' });
@@ -1162,113 +559,78 @@
         strip?.scrollBy({ left: -200, behavior: 'smooth' });
     });
 
-    /* ── Drag & drop section reordering ─────────────────────────────
-       Now drags .section-wrapper elements so title travels with card.
-    ───────────────────────────────────────────────────────────────── */
-    const STORAGE_KEY = 'vibe_section_order_v1';
-
-    function saveSectionOrder() {
-        const ids = [...document.querySelectorAll('.section-wrapper')]
-            .map(s => s.dataset.sectionId)
-            .filter(Boolean);
-        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(ids)); } catch (_) {}
+    /* ── Inline section title save ───────────────────────────────── */
+    async function saveSectionTitle(el) {
+        const id = el.dataset.sectionId;
+        const title = el.textContent.trim();
+        if (!title) { el.textContent = el.dataset.original || 'Untitled section'; return; }
+        if (title === el.dataset.original) return;
+        const fd = new FormData();
+        fd.append('title', title);
+        try {
+            const r = await fetch(`/admin/home-sections/${id}`, { method: 'POST', body: fd });
+            if (r.ok) { el.dataset.original = title; }
+        } catch (e) { /* best effort */ }
     }
 
-    function initDraggableSections() {
-        let dragSrc = null;
+    /* ── Drag-and-drop section pairs ─────────────────────────────── */
+    (function initDrag() {
+        const container = document.getElementById('sectionsContainer');
+        if (!container) return;
 
-        document.querySelectorAll('.section-wrapper').forEach(wrapper => {
-            const handle = wrapper.querySelector('.section-header');
-            if (!handle) return;
+        let dragEl = null;
 
-            handle.addEventListener('mousedown', () => wrapper.setAttribute('draggable', 'true'));
-
-            wrapper.addEventListener('dragstart', e => {
-                dragSrc = wrapper;
-                setTimeout(() => wrapper.classList.add('dragging'), 0);
+        container.querySelectorAll('.section-pair[data-section-id]').forEach(pair => {
+            pair.addEventListener('dragstart', e => {
+                dragEl = pair;
+                setTimeout(() => pair.classList.add('dragging-pair'), 0);
                 e.dataTransfer.effectAllowed = 'move';
             });
-
-            wrapper.addEventListener('dragend', () => {
-                wrapper.classList.remove('dragging');
-                wrapper.removeAttribute('draggable');
-                document.querySelectorAll('.section-wrapper').forEach(s => s.classList.remove('drag-over'));
-                saveSectionOrder();
-                dragSrc = null;
+            pair.addEventListener('dragend', () => {
+                pair.classList.remove('dragging-pair');
+                container.querySelectorAll('.section-pair').forEach(p => p.classList.remove('drag-over-pair'));
+                persistOrder();
+                dragEl = null;
             });
-
-            wrapper.addEventListener('dragover', e => {
+            pair.addEventListener('dragover', e => {
                 e.preventDefault();
-                e.dataTransfer.dropEffect = 'move';
-                if (dragSrc && dragSrc !== wrapper) wrapper.classList.add('drag-over');
+                if (!dragEl || dragEl === pair) return;
+                pair.classList.add('drag-over-pair');
             });
-
-            wrapper.addEventListener('dragleave', () => wrapper.classList.remove('drag-over'));
-
-            wrapper.addEventListener('drop', e => {
+            pair.addEventListener('dragleave', () => pair.classList.remove('drag-over-pair'));
+            pair.addEventListener('drop', e => {
                 e.preventDefault();
-                wrapper.classList.remove('drag-over');
-                if (!dragSrc || dragSrc === wrapper) return;
-
-                const srcRow = dragSrc.closest('.section-row');
-                const tgtRow = wrapper.closest('.section-row');
-                if (!srcRow || !tgtRow) return;
-
-                if (srcRow === tgtRow) {
-                    const placeholder = document.createElement('div');
-                    srcRow.insertBefore(placeholder, dragSrc);
-                    srcRow.insertBefore(dragSrc, wrapper);
-                    srcRow.insertBefore(wrapper, placeholder);
-                    placeholder.remove();
-                } else {
-                    const container = srcRow.parentElement;
-                    const rows = [...container.querySelectorAll('.section-row')];
-                    const srcRowIdx = rows.indexOf(srcRow);
-                    const tgtRowIdx = rows.indexOf(tgtRow);
-                    if (srcRowIdx < tgtRowIdx) tgtRow.after(srcRow);
-                    else tgtRow.before(srcRow);
-                }
+                pair.classList.remove('drag-over-pair');
+                if (!dragEl || dragEl === pair) return;
+                const els = [...container.querySelectorAll('.section-pair[data-section-id]')];
+                const dragIdx = els.indexOf(dragEl);
+                const dropIdx = els.indexOf(pair);
+                if (dragIdx < dropIdx) pair.after(dragEl);
+                else pair.before(dragEl);
             });
+
+            // Enable drag only when grabbing the header's drag-dots
+            const header = pair.querySelector('.section-header');
+            if (header) {
+                header.addEventListener('mousedown', () => pair.setAttribute('draggable', 'true'));
+                header.addEventListener('mouseup', () => pair.removeAttribute('draggable'));
+            }
         });
-    }
-    function saveSectionOrder() {
-    const ids = [...document.querySelectorAll('.section-wrapper')]
-        .map(s => s.dataset.sectionId)
-        .filter(Boolean);
 
-    // Built-in sections keep using the existing site-config endpoint.
-    fetch('/api/site-config/section-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ order: JSON.stringify(ids) })
-    }).catch(() => {});
-
-    // Custom sections additionally get their own DB-backed order via
-    // /admin/home-sections/reorder (keeps the two concerns decoupled).
-    const customIds = ids
-        .filter(id => id.startsWith('custom-'))
-        .map(id => id.replace('custom-', ''));
-    if (customIds.length) {
-        fetch('/admin/home-sections/reorder', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(customIds)
-        }).catch(() => {});
-    }
-}
-
-async function saveCustomSectionTitle(el) {
-    const id = el.dataset.sectionId;
-    const title = el.textContent.trim();
-    if (!title) { el.textContent = el.dataset.original || 'Untitled section'; return; }
-    const fd = new FormData();
-    fd.append('title', title);
-    try {
-        await fetch(`/admin/home-sections/${id}`, { method: 'POST', body: fd });
-    } catch (e) { /* best effort */ }
-}
-
-    initDraggableSections();
+        async function persistOrder() {
+            const ids = [...container.querySelectorAll('.section-pair[data-section-id]')]
+                .map(p => p.dataset.sectionId)
+                .filter(Boolean);
+            if (!ids.length) return;
+            try {
+                await fetch('/admin/home-sections/reorder', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(ids)
+                });
+            } catch (_) { /* best effort */ }
+        }
+    })();
 </script>
 </body>
 </html>
