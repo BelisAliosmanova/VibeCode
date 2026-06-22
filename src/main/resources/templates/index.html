@@ -418,43 +418,6 @@
                     </div>
                 </div>
 
-                <!-- ═══ Fixed block: Apps with a different vibe ═══ -->
-                <div th:if="${blockId == blockVibe}"
-                     class="section-row-full"
-                     th:data-block-id="${blockId}"
-                     th:id="'block-' + ${blockId}">
-                    <div class="section-wrapper">
-                        <div class="section-header">
-                            <span class="section-title" style="color:rgba(255,255,255,0.65);">Apps with a different vibe</span>
-                            <div class="drag-dots">
-                                <span></span><span></span><span></span><span></span><span></span><span></span>
-                            </div>
-                        </div>
-                        <div class="home-section blue-vibe" th:if="${!#lists.isEmpty(vibeApps)}">
-                            <div class="vibe-grid">
-                                <a class="grid-card"
-                                   th:each="app : ${vibeApps}"
-                                   th:href="@{/p/{slug}(slug=${app.slug})}"
-                                   th:data-name="${app.name.toLowerCase()}"
-                                   th:data-desc="${app.description != null ? app.description.toLowerCase() : ''}">
-                                    <div class="grid-icon">
-                                        <img alt="" th:if="${app.iconUrl != null}" th:src="${app.iconUrl}"/>
-                                        <span th:if="${app.iconUrl == null}">🖼</span>
-                                    </div>
-                                    <div>
-                                        <div class="grid-name" th:text="${app.name}">App Name</div>
-                                        <div class="grid-desc"
-                                             th:text="${app.description != null ? app.description : 'No description'}"></div>
-                                    </div>
-                                </a>
-                            </div>
-                        </div>
-                        <div class="home-section blue-vibe" th:if="${#lists.isEmpty(vibeApps)}">
-                            <div class="empty-state">No apps yet.</div>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- ═══ Custom section blocks ═══ -->
                 <th:block th:with="section=${sectionsById.get(blockId)}">
                     <th:block th:if="${section != null}">

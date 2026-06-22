@@ -48,6 +48,16 @@
         }
         .tab-btn.active { background: var(--panel2); color: #fff; border-color: var(--blue); }
 
+        /* Filters auto-select button */
+        .btn-filter-autoselect {
+            background: transparent; border: 1.5px solid var(--border);
+            color: var(--gray-200); border-radius: 8px; padding: 0.5rem 0.7rem; font-size: 0.78rem;
+            font-weight: 600; cursor: pointer; font-family: var(--font);
+            text-align: left; width: 100%; margin-top: 0.15rem;
+            transition: background 0.1s, border-color 0.1s, color 0.1s;
+        }
+        .btn-filter-autoselect:hover { background: var(--panel2); color: #fff; border-color: var(--blue); }
+
         .btn-add {
             background: var(--green); color: #15280a; border: none; border-radius: var(--radius-pill);
             padding: 0.6rem 1rem; font-size: 0.85rem; font-weight: 800; cursor: pointer; font-family: var(--font);
@@ -122,6 +132,18 @@
         .content-panel { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem; }
         .panel-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.6rem; flex-wrap: wrap; gap: 0.5rem; }
         .panel-title { font-size: 0.66rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray-300); }
+        .panel-title-left { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+
+        /* Source filter chips in panel header */
+        .source-chip {
+            font-size: 0.65rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: var(--radius-pill);
+            border: 1.5px solid var(--border); color: var(--gray-300); cursor: pointer;
+            background: transparent; font-family: var(--font); transition: all 0.12s;
+            white-space: nowrap;
+        }
+        .source-chip:hover { border-color: var(--gray-200); color: #fff; }
+        .source-chip.on { background: var(--panel2); border-color: var(--blue); color: #fff; }
+
         .search-box { display: flex; align-items: center; gap: 0.4rem; background: var(--panel2); border: 1.5px solid var(--border); border-radius: var(--radius-pill); padding: 0.3rem 0.8rem; min-width: 220px; }
         .search-box input { background: transparent; border: none; outline: none; color: #fff; font-size: 0.78rem; width: 100%; font-family: var(--font); }
         .search-box svg { flex-shrink: 0; color: #888; }
@@ -181,6 +203,16 @@
         .pick-chip.feat-chip.on { background: var(--gold); border-color: var(--gold); color: #1a1306; }
         .pick-chip[disabled] { opacity: 0.3; cursor: not-allowed; }
 
+        /* Top rated / Verified inline lists */
+        .source-app-list { display: flex; flex-direction: column; gap: 0.3rem; }
+        .source-app-row {
+            display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 0.5rem;
+            border-radius: 8px; cursor: pointer; border: 1.5px solid transparent;
+            transition: background 0.1s;
+        }
+        .source-app-row:hover { background: var(--panel2); }
+        .source-app-row.added { border-color: var(--blue); background: rgba(37,99,235,0.12); }
+
         /* ── EXISTING SECTIONS MANAGER ──────────────────────────── */
         .manager { max-width: 1180px; margin: 1.5rem auto 3rem; padding: 0 1.5rem; }
         .manager-title { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.75rem; }
@@ -235,9 +267,8 @@
         <div class="control-block">
             <div class="control-label">Content source</div>
             <div class="tab-list">
-                <button class="tab-btn active" data-tab="filters" onclick="switchTab('filters', this)">Manual / Filters</button>
-                <button class="tab-btn" data-tab="toprated" onclick="switchTab('toprated', this)">Top rated</button>
-                <button class="tab-btn" data-tab="verified" onclick="switchTab('verified', this)">Verified</button>
+                <button class="tab-btn active" data-tab="manual" onclick="switchTab('manual', this)">Manual</button>
+                <button class="btn-filter-autoselect" id="filtersAutoBtn" onclick="autoSelectFromFilters()" title="Auto-fill list from currently visible filtered apps">Filters</button>
             </div>
         </div>
 
@@ -286,14 +317,19 @@
     </div>
 </div>
 
-<!-- ── BOTTOM: full-width filter sidebar + app picker (pick apps here) ── -->
+<!-- ── BOTTOM: full-width filter sidebar + app picker ── -->
 <div class="picker-section">
     <div class="content-panel">
 
-        <!-- FILTERS tab -->
-        <div id="tab-filters">
+        <!-- MANUAL tab (always visible, contains the filter panel) -->
+        <div id="tab-manual">
             <div class="panel-title-row">
-                <span class="panel-title">Pick apps — filter or search</span>
+                <div class="panel-title-left">
+                    <span class="panel-title">Pick apps</span>
+                    <!-- Source chips: Top rated + Verified inline in the header -->
+                    <button class="source-chip" id="chip-toprated" onclick="toggleSourceChip('toprated', this)">Top rated</button>
+                    <button class="source-chip" id="chip-verified" onclick="toggleSourceChip('verified', this)">Verified</button>
+                </div>
                 <div class="search-box">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                         <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/>
@@ -301,6 +337,7 @@
                     <input id="appSearch" placeholder="Find an app..." type="text"/>
                 </div>
             </div>
+
             <div class="picker-layout">
                 <!-- SIDEBAR: filter entries by category -->
                 <aside class="picker-sidebar">
@@ -323,71 +360,73 @@
                     </div>
                 </aside>
 
-                <!-- APP LIST -->
-                <div class="app-pick-list" id="appPickList">
-                    <th:block th:each="app : ${allApps}">
-                        <div class="app-pick-row"
-                             th:id="'pick-' + ${app.id}"
-                             th:data-app-id="${app.id}"
-                             th:data-app-name="${app.name.toLowerCase()}"
-                             th:data-entry-ids="${#strings.listJoin(appEntryIds.get(app.id) ?: {}, ',')}">
-                            <div class="app-pick-icon">
-                                <img th:if="${app.iconUrl != null}" th:src="${app.iconUrl}" alt=""/>
-                                <span th:if="${app.iconUrl == null}">🖼</span>
+                <!-- APP LIST: manual pick + source overlays -->
+                <div>
+                    <!-- Default manual pick list -->
+                    <div class="app-pick-list" id="appPickList">
+                        <th:block th:each="app : ${allApps}">
+                            <div class="app-pick-row"
+                                 th:id="'pick-' + ${app.id}"
+                                 th:data-app-id="${app.id}"
+                                 th:data-app-name="${app.name.toLowerCase()}"
+                                 th:data-entry-ids="${#strings.listJoin(appEntryIds.get(app.id) ?: {}, ',')}">
+                                <div class="app-pick-icon">
+                                    <img th:if="${app.iconUrl != null}" th:src="${app.iconUrl}" alt=""/>
+                                    <span th:if="${app.iconUrl == null}">🖼</span>
+                                </div>
+                                <span class="app-pick-name" th:text="${app.name}">App name</span>
+                                <div class="app-pick-actions">
+                                    <button type="button" class="pick-chip list-chip" onclick="toggleList(event, this)">+ list</button>
+                                    <button type="button" class="pick-chip feat-chip" onclick="toggleFeatured(event, this)">★ feat</button>
+                                </div>
                             </div>
-                            <span class="app-pick-name" th:text="${app.name}">App name</span>
-                            <div class="app-pick-actions">
-                                <button type="button" class="pick-chip list-chip" onclick="toggleList(event, this)">+ list</button>
-                                <button type="button" class="pick-chip feat-chip" onclick="toggleFeatured(event, this)">★ feat</button>
-                            </div>
+                        </th:block>
+                        <div th:if="${#lists.isEmpty(allApps)}" style="color:var(--gray-300);font-size:0.78rem;padding:1rem 0;">No apps yet.</div>
+                    </div>
+
+                    <!-- Top rated overlay (shown when chip active) -->
+                    <div id="list-toprated" style="display:none;">
+                        <div class="source-app-list">
+                            <th:block th:each="app : ${topUserRated}">
+                                <div class="source-app-row"
+                                     th:data-app-id="${app.id}"
+                                     onclick="quickAddToList(this.dataset.appId, this)">
+                                    <div class="app-pick-icon">
+                                        <img th:if="${app.iconUrl != null}" th:src="${app.iconUrl}" alt=""/>
+                                        <span th:if="${app.iconUrl == null}">🖼</span>
+                                    </div>
+                                    <span class="app-pick-name" th:text="${app.name}">App name</span>
+                                    <span style="font-size:0.65rem;color:var(--gray-300);flex-shrink:0;"
+                                          th:text="${#numbers.formatDecimal(app.userRatingAvg,1,1)} + ' (' + ${app.userRatingCount} + ')'"></span>
+                                </div>
+                            </th:block>
+                            <div th:if="${#lists.isEmpty(topUserRated)}" style="color:var(--gray-300);font-size:0.78rem;padding:1rem 0;">No rated apps yet.</div>
                         </div>
-                    </th:block>
-                    <div th:if="${#lists.isEmpty(allApps)}" style="color:var(--gray-300);font-size:0.78rem;padding:1rem 0;">No apps yet.</div>
+                    </div>
+
+                    <!-- Verified overlay (shown when chip active) -->
+                    <div id="list-verified" style="display:none;">
+                        <div class="source-app-list">
+                            <th:block th:each="app : ${topVerified}">
+                                <div class="source-app-row"
+                                     th:data-app-id="${app.id}"
+                                     onclick="quickAddToList(this.dataset.appId, this)">
+                                    <div class="app-pick-icon">
+                                        <img th:if="${app.iconUrl != null}" th:src="${app.iconUrl}" alt=""/>
+                                        <span th:if="${app.iconUrl == null}">🖼</span>
+                                    </div>
+                                    <span class="app-pick-name" th:text="${app.name}">App name</span>
+                                    <span style="font-size:0.65rem;color:var(--gray-300);flex-shrink:0;"
+                                          th:text="${#numbers.formatDecimal(app.verifiedScore,1,1)}"></span>
+                                </div>
+                            </th:block>
+                            <div th:if="${#lists.isEmpty(topVerified)}" style="color:var(--gray-300);font-size:0.78rem;padding:1rem 0;">No verified apps yet.</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- TOP RATED tab -->
-        <div id="tab-toprated" style="display:none;">
-            <div class="panel-title" style="margin-bottom:0.75rem;">Top user rated — click to quick-add to list</div>
-            <div class="app-pick-list">
-                <th:block th:each="app : ${topUserRated}">
-                    <div class="app-pick-row"
-                         th:data-app-id="${app.id}"
-                         onclick="quickAddToList(this.dataset.appId, this)">
-                        <div class="app-pick-icon">
-                            <img th:if="${app.iconUrl != null}" th:src="${app.iconUrl}" alt=""/>
-                            <span th:if="${app.iconUrl == null}">🖼</span>
-                        </div>
-                        <span class="app-pick-name" th:text="${app.name}">App name</span>
-                        <span style="font-size:0.65rem;color:var(--gray-300);flex-shrink:0;"
-                              th:text="${#numbers.formatDecimal(app.userRatingAvg,1,1)} + ' (' + ${app.userRatingCount} + ')'"></span>
-                    </div>
-                </th:block>
-                <div th:if="${#lists.isEmpty(topUserRated)}" style="color:var(--gray-300);font-size:0.78rem;">No rated apps yet.</div>
-            </div>
-        </div>
-
-        <!-- VERIFIED tab -->
-        <div id="tab-verified" style="display:none;">
-            <div class="panel-title" style="margin-bottom:0.75rem;">Top verified — click to quick-add to list</div>
-            <div class="app-pick-list">
-                <th:block th:each="app : ${topVerified}">
-                    <div class="app-pick-row"
-                         th:data-app-id="${app.id}"
-                         onclick="quickAddToList(this.dataset.appId, this)">
-                        <div class="app-pick-icon">
-                            <img th:if="${app.iconUrl != null}" th:src="${app.iconUrl}" alt=""/>
-                            <span th:if="${app.iconUrl == null}">🖼</span>
-                        </div>
-                        <span class="app-pick-name" th:text="${app.name}">App name</span>
-                        <span style="font-size:0.65rem;color:var(--gray-300);flex-shrink:0;"
-                              th:text="${#numbers.formatDecimal(app.verifiedScore,1,1)}"></span>
-                    </div>
-                </th:block>
-                <div th:if="${#lists.isEmpty(topVerified)}" style="color:var(--gray-300);font-size:0.78rem;">No verified apps yet.</div>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -414,14 +453,71 @@
 
 <script th:inline="javascript">
     /* ── State ──────────────────────────────────────────────────────────── */
-    let currentLayout      = 'FIVE_PLUS_ONE'; // or 'SIX_GRID'
-    let selectedListIds    = [];     // up to 5 (or 6 for SIX_GRID), ordered
+    let currentLayout      = 'FIVE_PLUS_ONE';
+    let selectedListIds    = [];
     let selectedFeaturedId = null;
+    let activeEntryFilters = new Set();
 
-    let activeEntryFilters = new Set(); // entry IDs currently active in sidebar
+    // Which source chip is active: null | 'toprated' | 'verified'
+    let activeSourceChip = null;
 
     function maxListSize() {
         return currentLayout === 'SIX_GRID' ? 6 : 5;
+    }
+
+    /* ── Source chips (Top rated / Verified) ──────────────────────────── */
+    function toggleSourceChip(name, btn) {
+        if (activeSourceChip === name) {
+            // deactivate — go back to manual list
+            activeSourceChip = null;
+            btn.classList.remove('on');
+            document.getElementById('appPickList').style.display = '';
+            document.getElementById('list-' + name).style.display = 'none';
+        } else {
+            // deactivate previous chip if any
+            if (activeSourceChip) {
+                document.getElementById('chip-' + activeSourceChip)?.classList.remove('on');
+                document.getElementById('list-' + activeSourceChip).style.display = 'none';
+            }
+            activeSourceChip = name;
+            btn.classList.add('on');
+            document.getElementById('appPickList').style.display = 'none';
+            document.getElementById('list-' + name).style.display = '';
+        }
+    }
+
+    /* ── Auto-select from filters ─────────────────────────────────────── */
+    function autoSelectFromFilters() {
+        // Collect all currently visible rows in the manual pick list
+        const visibleRows = [...document.querySelectorAll('#appPickList .app-pick-row')]
+            .filter(row => row.style.display !== 'none');
+
+        if (visibleRows.length === 0) {
+            showMsg('No visible apps to select. Apply a filter first.', true);
+            return;
+        }
+
+        const max = maxListSize();
+        let added = 0;
+
+        for (const row of visibleRows) {
+            if (selectedListIds.length >= max) break;
+            const id = row.dataset.appId;
+            if (!selectedListIds.includes(id)) {
+                selectedListIds.push(id);
+                row.classList.add('sel-list');
+                row.querySelector('.list-chip')?.classList.add('on');
+                added++;
+            }
+        }
+
+        if (added === 0) {
+            showMsg('All visible apps are already in the list.', false);
+        } else {
+            showMsg(`Added ${added} app${added > 1 ? 's' : ''} from current filter.`, false);
+        }
+
+        renderPreview();
     }
 
     /* ── Layout switching ──────────────────────────────────────────────── */
@@ -432,7 +528,6 @@
         document.getElementById('previewCards51').style.display = is6 ? 'none' : '';
         document.getElementById('previewCards6').style.display  = is6 ? '' : 'none';
 
-        // Switching to 6-grid drops any featured selection (no featured slot there)
         if (is6 && selectedFeaturedId) {
             const prev = findRow(selectedFeaturedId);
             prev?.classList.remove('sel-featured');
@@ -440,7 +535,6 @@
             selectedFeaturedId = null;
         }
 
-        // Trim list selection down if it now exceeds the new max
         const max = maxListSize();
         if (selectedListIds.length > max) {
             selectedListIds.slice(max).forEach(id => {
@@ -461,18 +555,13 @@
         });
     }
 
-    /* ── Tab switching ─────────────────────────────────────────────────── */
+    /* ── Tab switching (only Manual tab now, kept for extensibility) ─── */
     function switchTab(tab, btn) {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        ['filters','toprated','verified'].forEach(t => {
-            document.getElementById('tab-' + t).style.display = (t === tab) ? '' : 'none';
-        });
     }
 
     /* ── Filter sidebar ────────────────────────────────────────────────── */
-    // entryId -> categoryId, built from the sidebar markup, so we can group
-    // active filters by category (AND across categories, OR within one).
     const entryCategoryMap = {};
     document.querySelectorAll('.picker-sidebar .filter-item[data-entry-id]').forEach(el => {
         entryCategoryMap[el.dataset.entryId] = el.closest('.filter-group')?.dataset.catId || null;
@@ -488,12 +577,19 @@
             el.classList.add('active');
         }
         applyFilters();
+        // Switch back to manual list if a source chip is active, so filters are visible
+        if (activeSourceChip) {
+            const chipEl = document.getElementById('chip-' + activeSourceChip);
+            chipEl?.classList.remove('on');
+            document.getElementById('list-' + activeSourceChip).style.display = 'none';
+            activeSourceChip = null;
+            document.getElementById('appPickList').style.display = '';
+        }
     }
 
     function applyFilters() {
         const searchQ = document.getElementById('appSearch').value.toLowerCase().trim();
 
-        // Group active filters by category: { catId: Set(entryId, ...) }
         const byCategory = {};
         activeEntryFilters.forEach(entryId => {
             const catId = entryCategoryMap[entryId];
@@ -509,9 +605,7 @@
             let filterMatch = true;
             if (categoryGroups.length > 0) {
                 const appEntries = new Set((row.dataset.entryIds || '').split(',').filter(Boolean));
-                // AND across categories: app must satisfy every active category group
                 filterMatch = categoryGroups.every(group => {
-                    // OR within a category: app needs at least one entry from this group
                     for (const entryId of group) {
                         if (appEntries.has(entryId)) return true;
                     }
@@ -523,7 +617,16 @@
         });
     }
 
-    document.getElementById('appSearch').addEventListener('input', applyFilters);
+    document.getElementById('appSearch').addEventListener('input', () => {
+        // If a source chip is active, switch back to manual list so search works
+        if (activeSourceChip) {
+            document.getElementById('chip-' + activeSourceChip)?.classList.remove('on');
+            document.getElementById('list-' + activeSourceChip).style.display = 'none';
+            activeSourceChip = null;
+            document.getElementById('appPickList').style.display = '';
+        }
+        applyFilters();
+    });
 
     /* ── Pick row helpers ──────────────────────────────────────────────── */
     function findRow(appId) {
@@ -556,7 +659,7 @@
 
     function toggleFeatured(evt, btn) {
         evt.stopPropagation();
-        if (currentLayout === 'SIX_GRID') return; // no featured slot on this layout
+        if (currentLayout === 'SIX_GRID') return;
         const row = btn.closest('.app-pick-row');
         const id  = row.dataset.appId;
         if (selectedFeaturedId === id) {
@@ -564,7 +667,6 @@
             btn.classList.remove('on');
             row.classList.remove('sel-featured');
         } else {
-            // deselect previous
             if (selectedFeaturedId) {
                 const prev = findRow(selectedFeaturedId);
                 prev?.classList.remove('sel-featured');
@@ -578,9 +680,13 @@
     }
 
     function quickAddToList(appId, rowEl) {
-        if (selectedListIds.includes(appId)) return;
+        if (selectedListIds.includes(appId)) {
+            rowEl?.classList.add('added');
+            return;
+        }
         if (selectedListIds.length >= maxListSize()) { showMsg(`List is full (max ${maxListSize()}).`, true); return; }
         selectedListIds.push(appId);
+        rowEl?.classList.add('added');
         const liveRow = findRow(appId);
         if (liveRow) { liveRow.classList.add('sel-list'); liveRow.querySelector('.list-chip')?.classList.add('on'); }
         renderPreview();
@@ -605,7 +711,6 @@
             return;
         }
 
-        /* LIST (left card) */
         const listWrap = document.getElementById('previewList');
         listWrap.innerHTML = '';
         if (selectedListIds.length === 0) {
@@ -622,7 +727,6 @@
             });
         }
 
-        /* FEATURED (right card) */
         const featWrap = document.getElementById('previewFeatured');
         featWrap.innerHTML = '';
         if (!selectedFeaturedId) {
