@@ -169,4 +169,11 @@ public class HomeSectionService {
             homeSectionRepository.save(section);
         }
     }
+
+    public void swapSides(UUID id) {
+        HomeSection s = homeSectionRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Section not found"));
+        s.setFeaturedLeft(!Boolean.TRUE.equals(s.getFeaturedLeft()));
+        homeSectionRepository.save(s);
+    }
 }

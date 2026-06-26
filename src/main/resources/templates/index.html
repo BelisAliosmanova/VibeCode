@@ -168,6 +168,17 @@
             display: flex; flex-direction: column; gap: 0; min-width: 0;
         }
 
+        /* ── SUB-SECTION SWAP (left ↔ right within a FIVE_PLUS_ONE pair) ── */
+        .section-wrapper.order-1 { order: 1; }
+        .section-wrapper.order-2 { order: 2; }
+
+        .section-wrapper.sub-dragging { opacity: 0.55; }
+        .section-wrapper.sub-drag-over .home-section {
+            outline: 2px dashed rgba(255,255,255,0.35);
+            outline-offset: 3px;
+            border-radius: var(--radius-xl);
+        }
+
         /* ── SECTION HEADER ──────────────────────────────────────── */
         .section-header {
             display: flex; align-items: center; justify-content: space-between;
@@ -182,9 +193,11 @@
         }
         .section-title[contenteditable="true"]:hover { border-bottom-color: rgba(255,255,255,0.2); }
         .section-title[contenteditable="true"]:focus { border-bottom-color: rgba(255,255,255,0.5); }
-        .drag-dots { display: flex; gap: 2px; opacity: 0.2; transition: opacity 0.15s; }
+        .drag-dots { display: flex; gap: 2px; opacity: 0.2; transition: opacity 0.15s; cursor: grab; }
+        .drag-dots:active { cursor: grabbing; }
         .drag-dots span { display: block; width: 3px; height: 3px; background: rgba(255,255,255,0.8); border-radius: 50%; }
         .section-pair:hover .drag-dots, .section-row-full:hover .drag-dots { opacity: 0.5; }
+        .sub-draggable:hover .drag-dots { opacity: 0.6 !important; }
 
         /* ── SECTION CARD ───────────────────────────────────────── */
         .home-section {
@@ -368,16 +381,6 @@
     <main class="content" id="mainContent">
         <div class="sections-container" id="sectionsContainer">
 
-            <!-- ── HOMEPAGE BLOCKS (drag to reorder) ──────────────────────── -->
-            <!--
-              One unified, drag-reorderable sequence. Each block is one of:
-                - a custom HomeSection (FIVE_PLUS_ONE or SIX_GRID), looked up
-                  by id from ${sections}
-                - the fixed "Most popular features" block
-                - the fixed "Apps with a different vibe" block
-              Order comes from ${blockOrder} (persisted via site config), so
-              fixed and custom blocks can be freely interleaved by dragging.
-            -->
             <th:block th:each="blockId : ${blockOrder}">
 
                 <!-- ═══ Fixed block: Most popular features ═══ -->
@@ -427,22 +430,25 @@
                              class="section-pair layout-5-1"
                              draggable="false"
                              th:data-block-id="${blockId}"
+                             th:data-section-id="${section.id}"
                              th:id="'block-' + ${blockId}">
 
-                            <!-- LEFT: list of up to 5 apps -->
-                            <div class="section-wrapper">
+                            <!-- LIST side — order driven by featuredLeft flag -->
+                            <div class="section-wrapper sub-draggable"
+                                 th:classappend="${section.featuredLeft} ? ' order-2' : ' order-1'"
+                                 data-sub-slot="list">
                                 <div class="section-header">
                                     <div class="section-title-row">
-                                    <span class="section-title"
-                                          contenteditable="true"
-                                          th:data-section-id="${section.id}"
-                                          th:data-title-field="title"
-                                          th:data-original="${section.title}"
-                                          th:text="${section.title}"
-                                          onblur="saveSectionTitle(this)"
-                                          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"></span>
+                                        <span class="section-title"
+                                              contenteditable="true"
+                                              th:data-section-id="${section.id}"
+                                              th:data-title-field="title"
+                                              th:data-original="${section.title}"
+                                              th:text="${section.title}"
+                                              onblur="saveSectionTitle(this)"
+                                              onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"></span>
                                     </div>
-                                    <div class="drag-dots">
+                                    <div class="drag-dots" title="Drag to swap sides">
                                         <span></span><span></span><span></span><span></span><span></span><span></span>
                                     </div>
                                 </div>
@@ -468,8 +474,8 @@
                                                             <span class="price-tag free">FREE</span>
                                                             <div class="rating-row">
                                                                 <div class="stars-xs">
-                                                                <span th:each="i : ${#numbers.sequence(1,5)}" class="star-xs"
-                                                                      th:classappend="${app.userRatingAvg >= i} ? ' lit' : ''">★</span>
+                                                                    <span th:each="i : ${#numbers.sequence(1,5)}" class="star-xs"
+                                                                          th:classappend="${app.userRatingAvg >= i} ? ' lit' : ''">★</span>
                                                                 </div>
                                                                 <span class="rating-num"
                                                                       th:text="${#numbers.formatDecimal(app.userRatingAvg,1,1)}">0.0</span>
@@ -487,18 +493,23 @@
                                 </div>
                             </div>
 
-                            <!-- RIGHT: featured app, with its own independently editable title -->
-                            <div class="section-wrapper">
+                            <!-- FEATURED side — order driven by featuredLeft flag -->
+                            <div class="section-wrapper sub-draggable"
+                                 th:classappend="${section.featuredLeft} ? ' order-1' : ' order-2'"
+                                 data-sub-slot="featured">
                                 <div class="section-header">
                                     <div class="section-title-row">
-                                    <span class="section-title"
-                                          contenteditable="true"
-                                          th:data-section-id="${section.id}"
-                                          th:data-title-field="featuredTitle"
-                                          th:data-original="${section.featuredTitle != null ? section.featuredTitle : 'Featured'}"
-                                          th:text="${section.featuredTitle != null ? section.featuredTitle : 'Featured'}"
-                                          onblur="saveSectionTitle(this)"
-                                          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"></span>
+                                        <span class="section-title"
+                                              contenteditable="true"
+                                              th:data-section-id="${section.id}"
+                                              th:data-title-field="featuredTitle"
+                                              th:data-original="${section.featuredTitle != null ? section.featuredTitle : 'Featured'}"
+                                              th:text="${section.featuredTitle != null ? section.featuredTitle : 'Featured'}"
+                                              onblur="saveSectionTitle(this)"
+                                              onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"></span>
+                                    </div>
+                                    <div class="drag-dots" title="Drag to swap sides">
+                                        <span></span><span></span><span></span><span></span><span></span><span></span>
                                     </div>
                                 </div>
                                 <div class="home-section dark-card">
@@ -513,8 +524,8 @@
                                                 <div class="featured-desc" th:text="${feat.description != null ? feat.description : ''}"></div>
                                                 <div class="rating-row" style="margin-top:0.75rem;">
                                                     <div class="stars-xs">
-                                                    <span th:each="i : ${#numbers.sequence(1,5)}" class="star-xs"
-                                                          th:classappend="${feat.verifiedScore != null and feat.verifiedScore >= i} ? ' lit-blue' : (${feat.userRatingAvg >= i} ? ' lit' : '')">★</span>
+                                                        <span th:each="i : ${#numbers.sequence(1,5)}" class="star-xs"
+                                                              th:classappend="${feat.verifiedScore != null and feat.verifiedScore >= i} ? ' lit-blue' : (${feat.userRatingAvg >= i} ? ' lit' : '')">★</span>
                                                     </div>
                                                     <span class="price-tag free" style="font-size:0.62rem;padding:0.12rem 0.5rem;margin-left:0.4rem;">FREE</span>
                                                 </div>
@@ -537,14 +548,14 @@
                             <div class="section-wrapper">
                                 <div class="section-header">
                                     <div class="section-title-row">
-                                    <span class="section-title"
-                                          contenteditable="true"
-                                          th:data-section-id="${section.id}"
-                                          th:data-title-field="title"
-                                          th:data-original="${section.title}"
-                                          th:text="${section.title}"
-                                          onblur="saveSectionTitle(this)"
-                                          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"></span>
+                                        <span class="section-title"
+                                              contenteditable="true"
+                                              th:data-section-id="${section.id}"
+                                              th:data-title-field="title"
+                                              th:data-original="${section.title}"
+                                              th:text="${section.title}"
+                                              onblur="saveSectionTitle(this)"
+                                              onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"></span>
                                     </div>
                                     <div class="drag-dots">
                                         <span></span><span></span><span></span><span></span><span></span><span></span>
@@ -582,7 +593,7 @@
 
             </th:block>
 
-            <!-- ── EMPTY STATE when no custom sections exist yet ─────────── -->
+            <!-- ── EMPTY STATE ─────────────────────────────────────────────── -->
             <div th:if="${#lists.isEmpty(sections)}"
                  style="text-align:center;padding:2.5rem 2rem 1rem;color:var(--gray-300);font-size:0.88rem;line-height:1.7;">
                 No custom homepage sections yet.<br/>
@@ -615,10 +626,10 @@
         strip?.scrollBy({ left: -200, behavior: 'smooth' });
     });
 
-    /* ── Inline section title save (works for both list & featured titles) ── */
+    /* ── Inline section title save ───────────────────────────────── */
     async function saveSectionTitle(el) {
         const id    = el.dataset.sectionId;
-        const field = el.dataset.titleField || 'title'; // 'title' or 'featuredTitle'
+        const field = el.dataset.titleField || 'title';
         const value = el.textContent.trim();
         if (!value) { el.textContent = el.dataset.original || 'Untitled'; return; }
         if (value === el.dataset.original) return;
@@ -631,7 +642,7 @@
         } catch (e) { /* best effort */ }
     }
 
-    /* ── Drag-and-drop homepage blocks (custom sections + fixed blocks) ──── */
+    /* ── Drag-and-drop homepage blocks (outer reorder) ───────────── */
     (function initDrag() {
         const container = document.getElementById('sectionsContainer');
         if (!container) return;
@@ -641,6 +652,8 @@
 
         container.querySelectorAll(blockSelector).forEach(block => {
             block.addEventListener('dragstart', e => {
+                // Ignore if the drag started inside a sub-draggable
+                if (e.target.closest('.sub-draggable')) return;
                 dragEl = block;
                 setTimeout(() => block.classList.add('dragging-pair'), 0);
                 e.dataTransfer.effectAllowed = 'move';
@@ -652,12 +665,16 @@
                 dragEl = null;
             });
             block.addEventListener('dragover', e => {
+                if (e.target.closest('.sub-draggable')) return;
                 e.preventDefault();
                 if (!dragEl || dragEl === block) return;
                 block.classList.add('drag-over-pair');
             });
-            block.addEventListener('dragleave', () => block.classList.remove('drag-over-pair'));
+            block.addEventListener('dragleave', e => {
+                if (!block.contains(e.relatedTarget)) block.classList.remove('drag-over-pair');
+            });
             block.addEventListener('drop', e => {
+                if (e.target.closest('.sub-draggable')) return;
                 e.preventDefault();
                 block.classList.remove('drag-over-pair');
                 if (!dragEl || dragEl === block) return;
@@ -668,9 +685,9 @@
                 else block.before(dragEl);
             });
 
-            // Enable drag only when grabbing the header's drag-dots
-            // (not when clicking interactive controls like the scroll arrows)
-            const header = block.querySelector('.section-header');
+            // Enable outer drag only when grabbing the header drag-dots
+            // but NOT the sub-draggable's drag-dots
+            const header = block.querySelector(':scope > .section-wrapper > .section-header');
             if (header) {
                 header.addEventListener('mousedown', e => {
                     if (e.target.closest('button, a, [contenteditable]')) return;
@@ -693,6 +710,82 @@
                 });
             } catch (_) { /* best effort */ }
         }
+    })();
+
+    /* ── Sub-section swap (left ↔ right inside a FIVE_PLUS_ONE pair) ── */
+    (function initSubDrag() {
+        document.querySelectorAll('.section-pair.layout-5-1').forEach(pair => {
+            const subs = pair.querySelectorAll('.sub-draggable');
+            let dragSub = null;
+
+            subs.forEach(sub => {
+                const handle = sub.querySelector('.drag-dots');
+
+                // Activate draggable only when mousedown on the drag-dots handle
+                if (handle) {
+                    handle.addEventListener('mousedown', e => {
+                        e.stopPropagation(); // don't let outer block pick this up
+                        sub.setAttribute('draggable', 'true');
+                    });
+                    document.addEventListener('mouseup', () => {
+                        sub.removeAttribute('draggable');
+                    }, { once: false });
+                }
+
+                sub.addEventListener('dragstart', e => {
+                    if (!sub.getAttribute('draggable')) return;
+                    e.stopPropagation(); // prevent outer block drag from firing
+                    dragSub = sub;
+                    setTimeout(() => sub.classList.add('sub-dragging'), 0);
+                    e.dataTransfer.effectAllowed = 'move';
+                });
+
+                sub.addEventListener('dragend', e => {
+                    e.stopPropagation();
+                    sub.classList.remove('sub-dragging');
+                    subs.forEach(s => s.classList.remove('sub-drag-over'));
+                    sub.removeAttribute('draggable');
+                    dragSub = null;
+                });
+
+                sub.addEventListener('dragover', e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!dragSub || dragSub === sub) return;
+                    sub.classList.add('sub-drag-over');
+                });
+
+                sub.addEventListener('dragleave', e => {
+                    e.stopPropagation();
+                    if (!sub.contains(e.relatedTarget)) {
+                        sub.classList.remove('sub-drag-over');
+                    }
+                });
+
+                sub.addEventListener('drop', e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    sub.classList.remove('sub-drag-over');
+                    if (!dragSub || dragSub === sub) return;
+
+                    // Swap the order-1 / order-2 classes between the two wrappers
+                    const dragIsOrder1 = dragSub.classList.contains('order-1');
+                    const dropIsOrder1 = sub.classList.contains('order-1');
+
+                    dragSub.classList.toggle('order-1', dropIsOrder1);
+                    dragSub.classList.toggle('order-2', !dropIsOrder1);
+                    sub.classList.toggle('order-1', dragIsOrder1);
+                    sub.classList.toggle('order-2', !dragIsOrder1);
+
+                    // Persist to server — flips featuredLeft on the HomeSection
+                    const sectionId = pair.dataset.sectionId;
+                    if (sectionId) {
+                        fetch(`/admin/home-sections/${sectionId}/swap-sides`, { method: 'POST' })
+                            .catch(() => { /* best effort */ });
+                    }
+                });
+            });
+        });
     })();
 </script>
 </body>

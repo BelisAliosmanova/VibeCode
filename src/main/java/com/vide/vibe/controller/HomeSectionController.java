@@ -173,4 +173,16 @@ public class HomeSectionController {
                     .body(Map.of("error", e.getMessage() != null ? e.getMessage() : "Error"));
         }
     }
+
+    @PostMapping("/{id}/swap-sides")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> swapSides(@PathVariable UUID id) {
+        try {
+            homeSectionService.swapSides(id);
+            return ResponseEntity.ok(Map.of("ok", true));
+        } catch (Exception e) {
+            return ResponseEntity.status(500)
+                    .body(Map.of("error", e.getMessage() != null ? e.getMessage() : "Error"));
+        }
+    }
 }

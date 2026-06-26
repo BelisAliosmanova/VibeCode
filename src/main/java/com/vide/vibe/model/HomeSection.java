@@ -38,6 +38,10 @@ public class HomeSection extends SoftDeletableEntity {
     @Builder.Default
     private Layout layout = Layout.FIVE_PLUS_ONE;
 
+    @Column(name = "featured_left", nullable = false)
+    @Builder.Default
+    private Boolean featuredLeft = false;
+
     /** Order among all homepage sections (built-in + custom). */
     @Column(name = "position", nullable = false)
     @Builder.Default
