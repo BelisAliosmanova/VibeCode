@@ -153,14 +153,26 @@
 
         /* ── PAIRED ROW (two section-wrappers side by side) ─────── */
         .section-pair {
-            display: grid;
+            display: flex;
             padding-top: 2rem;
+            gap: 0;
         }
-        .section-pair.layout-5-1 {
-            grid-template-columns: 60fr 40fr;
-        }
+        /* Width is tied to the wrapper's ROLE (list vs featured) via
+           data-sub-slot, completely independent of its order-1/order-2
+           position. That's the key fix: previously this was CSS grid with
+           fixed-width tracks (60fr / 40fr), so whichever wrapper landed in
+           the first track always became the wide one — swapping sides
+           made the sizes swap too, which isn't what we want. With flexbox,
+           each wrapper brings its own flex-basis with it wherever `order`
+           places it, so the list side stays the wide one and the featured
+           side stays the narrow one no matter which side of the screen
+           they're currently on. */
+        .section-pair.layout-5-1 .section-wrapper[data-sub-slot="list"]     { flex: 60 60 0; }
+        .section-pair.layout-5-1 .section-wrapper[data-sub-slot="featured"] { flex: 40 40 0; }
         .section-pair.layout-6-grid {
+            display: grid;
             grid-template-columns: 1fr;
+            padding-top: 2rem;
         }
 
         /* ── SECTION WRAPPER ─────────────────────────────────────── */
@@ -172,19 +184,20 @@
         .section-wrapper.order-1 { order: 1; }
         .section-wrapper.order-2 { order: 2; }
 
-        .section-wrapper.sub-dragging { opacity: 0.55; }
-        .section-wrapper.sub-drag-over .home-section {
-            outline: 2px dashed rgba(255,255,255,0.35);
-            outline-offset: 3px;
+        @keyframes swap-pulse {
+            0%   { outline: 2px solid rgba(255,255,255,0.4); outline-offset: 2px; }
+            100% { outline: 2px solid rgba(255,255,255,0); outline-offset: 8px; }
+        }
+        .section-wrapper.just-swapped .home-section {
             border-radius: var(--radius-xl);
+            animation: swap-pulse 0.5s ease-out;
         }
 
         /* ── SECTION HEADER ──────────────────────────────────────── */
         .section-header {
             display: flex; align-items: center; justify-content: space-between;
-            padding: 0 0.4rem 0.5rem 0.4rem; cursor: grab; user-select: none;
+            padding: 0 0.4rem 0.5rem 0.4rem; user-select: none;
         }
-        .section-header:active { cursor: grabbing; }
         .section-title-row { display: flex; align-items: center; gap: 0.5rem; }
         .section-title {
             color: rgba(255,255,255,0.6); font-family: Sora; font-weight: 300; font-size: 16px;
@@ -193,11 +206,77 @@
         }
         .section-title[contenteditable="true"]:hover { border-bottom-color: rgba(255,255,255,0.2); }
         .section-title[contenteditable="true"]:focus { border-bottom-color: rgba(255,255,255,0.5); }
-        .drag-dots { display: flex; gap: 2px; opacity: 0.2; transition: opacity 0.15s; cursor: grab; }
-        .drag-dots:active { cursor: grabbing; }
+        .section-header-actions { display: flex; align-items: center; gap: 0.5rem; }
+        .section-edit-link {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: rgba(83, 184, 255, 1);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 80%;
+            padding: 0.12rem 0.35rem;
+            transition: color 0.12s, border-color 0.12s, background 0.12s;
+            cursor: pointer;
+            background: black;
+            white-space: nowrap;
+        }
+        .section-edit-link:hover { color: #fff; border-color: rgba(255,255,255,0.45); background: rgba(255,255,255,0.06); }
+        .section-delete-link {
+            font-family: var(--font);
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: rgba(255, 0, 0, 1);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 80%;
+            padding: 0.22rem 0.50rem;
+            transition: color 0.12s, border-color 0.12s, background 0.12s;
+            cursor: pointer;
+            background: black;
+            white-space: nowrap;
+        }
+        .section-delete-link:hover { color: #ff4b4b; border-color: rgba(255,75,75,0.6); background: rgba(255,75,75,0.08); }
+
+        /* Edit + Delete are rendered in BOTH headers of a 5+1 pair, but
+           only ever shown on whichever wrapper currently sits on the right
+           (order-2). This is pure CSS, driven by the same order-1/order-2
+           class the swap toggles — no JS DOM moves, so nothing can pile up
+           or get out of sync. */
+        .only-on-right { display: none; }
+        .section-wrapper.order-2 .only-on-right { display: inline-flex; }
+
+        /* Generic dots glyph, reused visually by both handle types */
+        .drag-dots { display: flex; gap: 2px; pointer-events: none; }
         .drag-dots span { display: block; width: 3px; height: 3px; background: rgba(255,255,255,0.8); border-radius: 50%; }
-        .section-pair:hover .drag-dots, .section-row-full:hover .drag-dots { opacity: 0.5; }
-        .sub-draggable:hover .drag-dots { opacity: 0.6 !important; }
+
+        /* Handle that REORDERS the whole block up/down (outer drag).
+           Deliberately small and only lives in the block's top-left corner,
+           away from the swap handle, so the two never overlap. */
+        .block-move-handle {
+            display: flex; align-items: center; justify-content: center;
+            width: 22px; height: 22px; border-radius: var(--radius-sm);
+            cursor: grab; opacity: 0.18; transition: opacity 0.15s, background 0.12s;
+            flex-shrink: 0;
+        }
+        .block-move-handle:hover { opacity: 0.6; background: rgba(255,255,255,0.06); }
+        .block-move-handle:active { cursor: grabbing; opacity: 0.8; }
+        .block-move-handle .drag-dots { flex-wrap: wrap; width: 9px; gap: 2px; }
+
+        /* Handle that SWAPS left ↔ right within a 5+1 pair — a plain click,
+           not a drag. Wider hit-area and a distinct ⇄ glyph so it doesn't
+           get confused with the block-move-handle above. Rendered in both
+           headers (always visible on both sides, unlike Edit/Delete). */
+        .swap-handle {
+            display: flex; align-items: center; gap: 0.3rem;
+            padding: 0.2rem 0.5rem; border-radius: var(--radius-pill);
+            cursor: pointer; opacity: 0.3; transition: opacity 0.15s, background 0.12s;
+            font-size: 0.85rem; color: rgba(255,255,255,0.8); flex-shrink: 0;
+            border: none; background: transparent; font-family: var(--font);
+        }
+        .swap-handle:hover { opacity: 1; background: rgba(255,255,255,0.08); }
+        .swap-handle .swap-label { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; opacity: 0.8; white-space: nowrap; }
+
+        .section-pair:hover .block-move-handle { opacity: 0.45; }
+        .section-row-full:hover .block-move-handle { opacity: 0.45; }
+        .sub-draggable:hover .swap-handle { opacity: 0.85; }
 
         /* ── SECTION CARD ───────────────────────────────────────── */
         .home-section {
@@ -318,7 +397,9 @@
             .hero-content { max-width: 100%; }
             .hero-heading { font-size: 2rem; }
             .wish-card { display: none; }
-            .section-pair.layout-5-1 { grid-template-columns: 1fr; }
+            .section-pair.layout-5-1 { flex-direction: column; }
+            .section-pair.layout-5-1 .section-wrapper[data-sub-slot="list"],
+            .section-pair.layout-5-1 .section-wrapper[data-sub-slot="featured"] { flex: 1 1 auto; }
             .vibe-grid { grid-template-columns: 1fr; }
             .content { padding: 2rem 1rem 3rem; }
         }
@@ -395,8 +476,10 @@
                                 <div style="display:flex;align-items:center;gap:0.4rem;">
                                     <button class="features-arrow-btn" id="featuresScrollLeft">‹</button>
                                     <button class="features-arrow-btn" id="featuresScrollRight">›</button>
-                                    <div class="drag-dots">
-                                        <span></span><span></span><span></span><span></span><span></span><span></span>
+                                    <div class="block-move-handle" title="Drag to reorder this row">
+                                        <div class="drag-dots">
+                                            <span></span><span></span><span></span><span></span><span></span><span></span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -439,6 +522,11 @@
                                  data-sub-slot="list">
                                 <div class="section-header">
                                     <div class="section-title-row">
+                                        <div class="block-move-handle" title="Drag to reorder this row">
+                                            <div class="drag-dots">
+                                                <span></span><span></span><span></span><span></span><span></span><span></span>
+                                            </div>
+                                        </div>
                                         <span class="section-title"
                                               contenteditable="true"
                                               th:data-section-id="${section.id}"
@@ -448,8 +536,12 @@
                                               onblur="saveSectionTitle(this)"
                                               onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"></span>
                                     </div>
-                                    <div class="drag-dots" title="Drag to swap sides">
-                                        <span></span><span></span><span></span><span></span><span></span><span></span>
+                                    <div class="section-header-actions">
+                                        <a class="section-edit-link only-on-right" th:href="@{/admin/home-sections(edit=${section.id})}" title="Edit this section">✎ Edit</a>
+                                        <button type="button" class="section-delete-link only-on-right" th:data-section-id="${section.id}" onclick="deleteSection(this)" title="Delete this section">🗑</button>
+                                        <button type="button" class="swap-handle" th:data-section-id="${section.id}" onclick="swapSides(this)" title="Click to swap left ↔ right">
+                                            <span class="swap-label">Swap</span><span aria-hidden="true">⇄</span>
+                                        </button>
                                     </div>
                                 </div>
                                 <div class="home-section">
@@ -508,8 +600,12 @@
                                               onblur="saveSectionTitle(this)"
                                               onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"></span>
                                     </div>
-                                    <div class="drag-dots" title="Drag to swap sides">
-                                        <span></span><span></span><span></span><span></span><span></span><span></span>
+                                    <div class="section-header-actions">
+                                        <a class="section-edit-link only-on-right" th:href="@{/admin/home-sections(edit=${section.id})}" title="Edit this section">🖉</a>
+                                        <button type="button" class="section-delete-link only-on-right" th:data-section-id="${section.id}" onclick="deleteSection(this)" title="Delete this section">🗑</button>
+                                        <button type="button" class="swap-handle" th:data-section-id="${section.id}" onclick="swapSides(this)" title="Click to swap left ↔ right">
+                                            <span class="swap-label">Swap</span><span aria-hidden="true">⇄</span>
+                                        </button>
                                     </div>
                                 </div>
                                 <div class="home-section dark-card">
@@ -548,6 +644,11 @@
                             <div class="section-wrapper">
                                 <div class="section-header">
                                     <div class="section-title-row">
+                                        <div class="block-move-handle" title="Drag to reorder this row">
+                                            <div class="drag-dots">
+                                                <span></span><span></span><span></span><span></span><span></span><span></span>
+                                            </div>
+                                        </div>
                                         <span class="section-title"
                                               contenteditable="true"
                                               th:data-section-id="${section.id}"
@@ -557,8 +658,9 @@
                                               onblur="saveSectionTitle(this)"
                                               onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"></span>
                                     </div>
-                                    <div class="drag-dots">
-                                        <span></span><span></span><span></span><span></span><span></span><span></span>
+                                    <div class="section-header-actions">
+                                        <a class="section-edit-link" th:href="@{/admin/home-sections(edit=${section.id})}" title="Edit this section">✎ Edit</a>
+                                        <button type="button" class="section-delete-link" th:data-section-id="${section.id}" onclick="deleteSection(this)" title="Delete this section">🗑 Delete</button>
                                     </div>
                                 </div>
                                 <div class="home-section blue-vibe">
@@ -642,6 +744,52 @@
         } catch (e) { /* best effort */ }
     }
 
+    /* ── Delete a whole section (both sides for FIVE_PLUS_ONE) ────── */
+    async function deleteSection(btn) {
+        const id = btn.dataset.sectionId;
+        if (!id) return;
+        if (!confirm('Delete this section? This removes both halves and cannot be undone.')) return;
+
+        btn.disabled = true;
+        try {
+            const r = await fetch(`/admin/home-sections/${id}/delete`, { method: 'POST' });
+            if (r.ok) {
+                const block = document.querySelector(`[data-section-id="${id}"]`);
+                block?.remove();
+            } else {
+                btn.disabled = false;
+            }
+        } catch (e) {
+            btn.disabled = false;
+        }
+    }
+
+    /* ── Swap left ↔ right inside a FIVE_PLUS_ONE pair ───────────────
+       A single click on the ⇄ Swap button. All it does is flip the
+       order-1/order-2 class on each of the pair's two wrappers — CSS
+       (.only-on-right) takes care of showing Edit/Delete on whichever
+       side ends up on the right. No DOM nodes are created or moved, so
+       there's nothing that can pile up or drift out of sync no matter
+       how many times you click it. */
+    function swapSides(btn) {
+        const sectionId = btn.dataset.sectionId;
+        const pair = btn.closest('.section-pair.layout-5-1');
+        if (!pair) return;
+
+        pair.querySelectorAll(':scope > .sub-draggable').forEach(sub => {
+            const wasOrder1 = sub.classList.contains('order-1');
+            sub.classList.toggle('order-1', !wasOrder1);
+            sub.classList.toggle('order-2', wasOrder1);
+            sub.classList.add('just-swapped');
+            setTimeout(() => sub.classList.remove('just-swapped'), 500);
+        });
+
+        if (sectionId) {
+            fetch(`/admin/home-sections/${sectionId}/swap-sides`, { method: 'POST' })
+                .catch(() => { /* best effort */ });
+        }
+    }
+
     /* ── Drag-and-drop homepage blocks (outer reorder) ───────────── */
     (function initDrag() {
         const container = document.getElementById('sectionsContainer');
@@ -652,32 +800,33 @@
 
         container.querySelectorAll(blockSelector).forEach(block => {
             block.addEventListener('dragstart', e => {
-                // Ignore if the drag started inside a sub-draggable
-                if (e.target.closest('.sub-draggable')) return;
+                // Only proceed if this block itself is the one armed for dragging
+                if (block.getAttribute('draggable') !== 'true') return;
                 dragEl = block;
                 setTimeout(() => block.classList.add('dragging-pair'), 0);
                 e.dataTransfer.effectAllowed = 'move';
             });
             block.addEventListener('dragend', () => {
                 block.classList.remove('dragging-pair');
+                block.removeAttribute('draggable');
                 container.querySelectorAll(blockSelector).forEach(b => b.classList.remove('drag-over-pair'));
                 persistOrder();
                 dragEl = null;
             });
             block.addEventListener('dragover', e => {
-                if (e.target.closest('.sub-draggable')) return;
+                if (!dragEl) return;
                 e.preventDefault();
-                if (!dragEl || dragEl === block) return;
+                if (dragEl === block) return;
                 block.classList.add('drag-over-pair');
             });
             block.addEventListener('dragleave', e => {
                 if (!block.contains(e.relatedTarget)) block.classList.remove('drag-over-pair');
             });
             block.addEventListener('drop', e => {
-                if (e.target.closest('.sub-draggable')) return;
+                if (!dragEl) return;
                 e.preventDefault();
                 block.classList.remove('drag-over-pair');
-                if (!dragEl || dragEl === block) return;
+                if (dragEl === block) return;
                 const els = [...container.querySelectorAll(blockSelector)];
                 const dragIdx = els.indexOf(dragEl);
                 const dropIdx = els.indexOf(block);
@@ -685,16 +834,20 @@
                 else block.before(dragEl);
             });
 
-            // Enable outer drag only when grabbing the header drag-dots
-            // but NOT the sub-draggable's drag-dots
-            const header = block.querySelector(':scope > .section-wrapper > .section-header');
-            if (header) {
-                header.addEventListener('mousedown', e => {
-                    if (e.target.closest('button, a, [contenteditable]')) return;
+            // Outer (whole-row) dragging arms ONLY from this block's own
+            // .block-move-handle — never from the header generally, and
+            // never from the inner .swap-handle button. Keeping these two
+            // handles visually and functionally separate is what prevents
+            // them from fighting over the same mousedown.
+            block.querySelectorAll(':scope .block-move-handle').forEach(handle => {
+                handle.addEventListener('mousedown', e => {
+                    e.stopPropagation();
                     block.setAttribute('draggable', 'true');
                 });
-                header.addEventListener('mouseup', () => block.removeAttribute('draggable'));
-            }
+            });
+            document.addEventListener('mouseup', () => {
+                if (!dragEl) block.removeAttribute('draggable');
+            });
         });
 
         async function persistOrder() {
@@ -710,82 +863,6 @@
                 });
             } catch (_) { /* best effort */ }
         }
-    })();
-
-    /* ── Sub-section swap (left ↔ right inside a FIVE_PLUS_ONE pair) ── */
-    (function initSubDrag() {
-        document.querySelectorAll('.section-pair.layout-5-1').forEach(pair => {
-            const subs = pair.querySelectorAll('.sub-draggable');
-            let dragSub = null;
-
-            subs.forEach(sub => {
-                const handle = sub.querySelector('.drag-dots');
-
-                // Activate draggable only when mousedown on the drag-dots handle
-                if (handle) {
-                    handle.addEventListener('mousedown', e => {
-                        e.stopPropagation(); // don't let outer block pick this up
-                        sub.setAttribute('draggable', 'true');
-                    });
-                    document.addEventListener('mouseup', () => {
-                        sub.removeAttribute('draggable');
-                    }, { once: false });
-                }
-
-                sub.addEventListener('dragstart', e => {
-                    if (!sub.getAttribute('draggable')) return;
-                    e.stopPropagation(); // prevent outer block drag from firing
-                    dragSub = sub;
-                    setTimeout(() => sub.classList.add('sub-dragging'), 0);
-                    e.dataTransfer.effectAllowed = 'move';
-                });
-
-                sub.addEventListener('dragend', e => {
-                    e.stopPropagation();
-                    sub.classList.remove('sub-dragging');
-                    subs.forEach(s => s.classList.remove('sub-drag-over'));
-                    sub.removeAttribute('draggable');
-                    dragSub = null;
-                });
-
-                sub.addEventListener('dragover', e => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (!dragSub || dragSub === sub) return;
-                    sub.classList.add('sub-drag-over');
-                });
-
-                sub.addEventListener('dragleave', e => {
-                    e.stopPropagation();
-                    if (!sub.contains(e.relatedTarget)) {
-                        sub.classList.remove('sub-drag-over');
-                    }
-                });
-
-                sub.addEventListener('drop', e => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    sub.classList.remove('sub-drag-over');
-                    if (!dragSub || dragSub === sub) return;
-
-                    // Swap the order-1 / order-2 classes between the two wrappers
-                    const dragIsOrder1 = dragSub.classList.contains('order-1');
-                    const dropIsOrder1 = sub.classList.contains('order-1');
-
-                    dragSub.classList.toggle('order-1', dropIsOrder1);
-                    dragSub.classList.toggle('order-2', !dropIsOrder1);
-                    sub.classList.toggle('order-1', dragIsOrder1);
-                    sub.classList.toggle('order-2', !dragIsOrder1);
-
-                    // Persist to server — flips featuredLeft on the HomeSection
-                    const sectionId = pair.dataset.sectionId;
-                    if (sectionId) {
-                        fetch(`/admin/home-sections/${sectionId}/swap-sides`, { method: 'POST' })
-                            .catch(() => { /* best effort */ });
-                    }
-                });
-            });
-        });
     })();
 </script>
 </body>

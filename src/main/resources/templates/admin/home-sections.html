@@ -273,6 +273,7 @@
         </div>
 
         <button class="btn-add" id="addBtn" onclick="submitSection()">ADD</button>
+        <button class="tab-btn" id="cancelEditBtn" onclick="cancelEdit()" style="display:none;">Cancel edit</button>
         <div id="formMsg" style="font-size:0.72rem;color:var(--gray-300);min-height:1.2em;"></div>
     </div>
 
@@ -435,13 +436,21 @@
     <div class="manager-title">Homepage sections (drag to reorder)</div>
     <div id="sectionsManagerList">
         <th:block th:each="section : ${sections}">
-            <div class="section-row-admin" draggable="true" th:data-id="${section.id}">
+            <div class="section-row-admin" draggable="true"
+                 th:data-id="${section.id}"
+                 th:data-title="${section.title}"
+                 th:data-featured-title="${section.featuredTitle ?: ''}"
+                 th:data-layout="${section.layout.name()}"
+                 th:data-list-ids="${#strings.listJoin(sectionListApps.get(section.id) != null ? sectionListApps.get(section.id).![id] : {}, ',')}"
+                 th:data-featured-id="${sectionFeatured.get(section.id) != null ? sectionFeatured.get(section.id).id : ''}">
                 <span class="drag-handle">⠿⠿</span>
                 <span class="section-row-name" th:text="${section.title}">Section title</span>
                 <span class="section-row-meta"
                       th:text="${#lists.size(sectionListApps.get(section.id) ?: {})} + ' list'
                                 + (${sectionFeatured.get(section.id) != null} ? ' · 1 featured' : '')
                                 + ' · ' + (${section.layout.name() == 'SIX_GRID'} ? '6-grid' : '5+1')"></span>
+                <button class="btn-row-delete" th:data-id="${section.id}" onclick="editSection(this.dataset.id)"
+                        style="background:transparent;border:1.5px solid var(--border);color:var(--gray-200);">✎ Edit</button>
                 <button class="btn-row-delete" th:data-id="${section.id}" onclick="deleteSection(this.dataset.id)">✕ Delete</button>
             </div>
         </th:block>
@@ -457,6 +466,7 @@
     let selectedListIds    = [];
     let selectedFeaturedId = null;
     let activeEntryFilters = new Set();
+    let editingId          = null; // null = creating a new section, otherwise id of section being edited
 
     // Which source chip is active: null | 'toprated' | 'verified'
     let activeSourceChip = null;
@@ -790,7 +800,80 @@
         return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
-    /* ── Submit new section ────────────────────────────────────────────── */
+    /* ── Edit an existing section (loads it into the same form/preview/picker the ADD flow uses) ── */
+    function clearSelections() {
+        selectedListIds.forEach(id => {
+            const r = findRow(id);
+            r?.classList.remove('sel-list');
+            r?.querySelector('.list-chip')?.classList.remove('on');
+        });
+        if (selectedFeaturedId) {
+            const r = findRow(selectedFeaturedId);
+            r?.classList.remove('sel-featured');
+            r?.querySelector('.feat-chip')?.classList.remove('on');
+        }
+        selectedListIds    = [];
+        selectedFeaturedId = null;
+    }
+
+    function editSection(id) {
+        const row = document.querySelector(`.section-row-admin[data-id="${id}"]`);
+        if (!row) return;
+
+        editingId = id;
+        clearSelections();
+
+        const layout = row.dataset.layout || 'FIVE_PLUS_ONE';
+        document.getElementById('sectionLayout').value = layout;
+        currentLayout = layout;
+        onLayoutChange(); // shows/hides the right preview card(s), resets featured chip availability
+
+        const title         = row.dataset.title || '';
+        const featuredTitle = row.dataset.featuredTitle || '';
+        if (layout === 'SIX_GRID') {
+            document.getElementById('gridTitleInput').value = title;
+        } else {
+            document.getElementById('listTitleInput').value     = title;
+            document.getElementById('featuredTitleInput').value = featuredTitle;
+        }
+
+        (row.dataset.listIds || '').split(',').filter(Boolean).forEach(appId => {
+            const r = findRow(appId);
+            if (!r) return;
+            selectedListIds.push(appId);
+            r.classList.add('sel-list');
+            r.querySelector('.list-chip')?.classList.add('on');
+        });
+
+        const featuredId = row.dataset.featuredId || '';
+        if (featuredId && layout !== 'SIX_GRID') {
+            selectedFeaturedId = featuredId;
+            const r = findRow(featuredId);
+            r?.classList.add('sel-featured');
+            r?.querySelector('.feat-chip')?.classList.add('on');
+        }
+
+        document.getElementById('addBtn').textContent = 'SAVE CHANGES';
+        document.getElementById('cancelEditBtn').style.display = '';
+        showMsg(`Editing "${title}" — change anything above, then Save.`, false);
+
+        renderPreview();
+        document.querySelector('.editor-top').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function cancelEdit() {
+        editingId = null;
+        clearSelections();
+        document.getElementById('listTitleInput').value     = '';
+        document.getElementById('featuredTitleInput').value = '';
+        document.getElementById('gridTitleInput').value     = '';
+        document.getElementById('addBtn').textContent = 'ADD';
+        document.getElementById('cancelEditBtn').style.display = 'none';
+        showMsg('', false);
+        renderPreview();
+    }
+
+    /* ── Submit new section (or save edits, when editingId is set) ──────── */
     async function submitSection() {
         const is6 = currentLayout === 'SIX_GRID';
         const title         = (is6 ? document.getElementById('gridTitleInput') : document.getElementById('listTitleInput')).value.trim();
@@ -800,8 +883,10 @@
         if (selectedListIds.length === 0 && !selectedFeaturedId) {
             showMsg('Pick at least one app.', true); return;
         }
+
+        const isEditing = !!editingId;
         const btn = document.getElementById('addBtn');
-        btn.disabled = true; btn.textContent = 'Adding…';
+        btn.disabled = true; btn.textContent = isEditing ? 'Saving…' : 'Adding…';
 
         const fd = new FormData();
         fd.append('title', title);
@@ -810,17 +895,20 @@
         selectedListIds.forEach(id => fd.append('listAppIds', id));
         if (!is6 && selectedFeaturedId) fd.append('featuredAppId', selectedFeaturedId);
 
+        const url = isEditing ? `/admin/home-sections/${editingId}` : '/admin/home-sections';
+
         try {
-            const r    = await fetch('/admin/home-sections', { method: 'POST', body: fd });
+            const r    = await fetch(url, { method: 'POST', body: fd });
             const data = await r.json();
-            if (!r.ok || data.error) throw new Error(data.error || 'Could not add section');
-            showMsg('Section added — reloading…');
+            if (!r.ok || data.error) throw new Error(data.error || `Could not ${isEditing ? 'save' : 'add'} section`);
+            showMsg(`Section ${isEditing ? 'updated' : 'added'} — reloading…`);
             setTimeout(() => window.location.reload(), 600);
         } catch (e) {
             showMsg(e.message, true);
-            btn.disabled = false; btn.textContent = 'ADD';
+            btn.disabled = false; btn.textContent = isEditing ? 'SAVE CHANGES' : 'ADD';
         }
     }
+
 
     /* ── Delete section ────────────────────────────────────────────────── */
     async function deleteSection(id) {
@@ -867,6 +955,15 @@
     // Init
     updateFeaturedChipAvailability();
     renderPreview();
+
+    // Deep-link from the homepage's per-section "Edit" button: /admin/home-sections?edit={id}
+    (function initEditFromQuery() {
+        const params  = new URLSearchParams(window.location.search);
+        const editId  = params.get('edit');
+        if (editId && document.querySelector(`.section-row-admin[data-id="${editId}"]`)) {
+            editSection(editId);
+        }
+    })();
 </script>
 </body>
 </html>
