@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
@@ -418,8 +418,24 @@
         <a class="nav-link" href="/apps" th:href="@{/apps}">Wish an app</a>
     </div>
     <div class="nav-right">
-        <a class="btn-nav-ghost" href="/login" th:href="@{/login}">Sign in</a>
-        <a class="btn-nav-solid" href="/register" th:href="@{/register}">Sign up</a>
+    <span sec:authorize="hasAnyRole('MANAGER','ADMIN')">
+        <a class="nav-link" th:href="@{/apps}">Manage Apps</a>
+    </span>
+        <span sec:authorize="hasAnyRole('MANAGER','ADMIN')">
+        <a class="nav-link" th:href="@{/admin/home-sections}">Home Sections</a>
+    </span>
+        <span sec:authorize="hasRole('ADMIN')">
+        <a class="nav-link" th:href="@{/categories}">Categories</a>
+    </span>
+
+        <span sec:authorize="isAuthenticated()" class="nav-link" sec:authentication="name"></span>
+
+        <form sec:authorize="isAuthenticated()" method="post" th:action="@{/auth/logout}" style="display:inline">
+            <button class="btn-nav-ghost" type="submit">Log out</button>
+        </form>
+
+        <a sec:authorize="isAnonymous()" class="btn-nav-ghost" th:href="@{/auth/login}">Log in</a>
+        <a sec:authorize="isAnonymous()" class="btn-nav-solid" th:href="@{/auth/register}">Sign up</a>
     </div>
 </nav>
 

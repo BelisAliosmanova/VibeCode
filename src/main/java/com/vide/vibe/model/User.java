@@ -22,9 +22,8 @@ import java.util.Set;
 public class User extends SoftDeletableEntity {
 
     public enum Role {
-        ADMIN, USER
+        USER, MANAGER, ADMIN
     }
-
     public enum Status {
         ACTIVE, PENDING, BANNED
     }

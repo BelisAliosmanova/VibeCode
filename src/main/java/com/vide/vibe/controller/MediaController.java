@@ -7,6 +7,7 @@ import com.vide.vibe.service.AppService;
 import com.vide.vibe.service.MediaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,10 +24,7 @@ public class MediaController {
     private final AppService appService;
     private final AppMediaRepository appMediaRepository;
 
-    /**
-     * Upload an icon for an app.
-     * Returns JSON: { "url": "/images/icons/uuid.png" }
-     */
+    @PreAuthorize("@appSecurity.canEdit(#appId, authentication)")
     @PostMapping("/upload/icon/{appId}")
     @ResponseBody
     public ResponseEntity<?> uploadIcon(
@@ -35,7 +33,6 @@ public class MediaController {
         try {
             App app = appService.findById(appId);
 
-            // Delete old icon if present
             if (app.getIconUrl() != null) {
                 mediaService.delete(app.getIconUrl());
             }
@@ -49,10 +46,7 @@ public class MediaController {
         }
     }
 
-    /**
-     * Upload a screenshot / media for an app.
-     * Returns JSON: { "url": "...", "mediaId": "..." }
-     */
+    @PreAuthorize("@appSecurity.canEdit(#appId, authentication)")
     @PostMapping("/upload/screenshot/{appId}")
     @ResponseBody
     public ResponseEntity<?> uploadScreenshot(
@@ -82,9 +76,7 @@ public class MediaController {
         }
     }
 
-    /**
-     * Delete a media item.
-     */
+    @PreAuthorize("@appSecurity.canEditMedia(#mediaId, authentication)")
     @DeleteMapping("/{mediaId}")
     @ResponseBody
     public ResponseEntity<?> deleteMedia(@PathVariable UUID mediaId) {
@@ -100,9 +92,10 @@ public class MediaController {
     }
 
     /**
-     * Generic file upload (not tied to app) — useful for standalone usage.
-     * Returns JSON: { "url": "..." }
+     * Generic, app-independent upload. Any authenticated user may use it —
+     * there's no app to check ownership against.
      */
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/upload")
     @ResponseBody
     public ResponseEntity<?> upload(
