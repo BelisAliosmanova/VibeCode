@@ -159,7 +159,7 @@ public class SubmitController {
 
         // Final step — submit and send claim email
         App submitted = appService.submit(appId);
-        claimService.sendInitialClaimEmail(submitted);   // ← verification email
+//        claimService.sendInitialClaimEmail(submitted);   // ← verification email
         return "redirect:/submit/success?appId=" + appId;
     }
 
