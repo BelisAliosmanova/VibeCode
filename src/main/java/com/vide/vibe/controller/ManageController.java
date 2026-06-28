@@ -3,10 +3,13 @@ package com.vide.vibe.controller;
 import com.vide.vibe.model.*;
 import com.vide.vibe.repository.AppMediaRepository;
 import com.vide.vibe.repository.AppRepository;
+import com.vide.vibe.security.AppSecurity;
 import com.vide.vibe.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -26,35 +29,42 @@ public class ManageController {
     private final AppMediaRepository appMediaRepository;
     private final ReviewService      reviewService;
     private final ClaimService       claimService;
+    private final AppSecurity        appSecurity;
 
-    @PreAuthorize("@appSecurity.canEdit(#appId, authentication)")
+    // ─── The manage page is publicly accessible (guests can view + claim).
+    //     We resolve canEdit ourselves instead of using @PreAuthorize so that
+    //     non-editors still reach the page rather than getting a 403.
     @GetMapping
     public String manage(@PathVariable UUID appId,
                          @RequestParam(required = false) String claimed,
                          Model model) {
+
         App app = appService.findById(appId);
+
+        Authentication auth   = SecurityContextHolder.getContext().getAuthentication();
+        boolean        canEdit = appSecurity.canEdit(appId, auth);
 
         List<Category> categories = categoryService.findAllVisible();
         Map<Category, List<CategoryEntry>> categorySelections = new LinkedHashMap<>();
-        Map<UUID, List<CategoryEntry>> allEntries = new LinkedHashMap<>();
+        Map<UUID, List<CategoryEntry>>     allEntries         = new LinkedHashMap<>();
 
         for (Category category : categories) {
-            List<UUID> selectedIds = categoryService.findSelectedEntryIds(appId, category.getId());
-            List<CategoryEntry> entries = categoryService.findVisibleEntriesByCategoryId(category.getId());
+            List<UUID>          selectedIds = categoryService.findSelectedEntryIds(appId, category.getId());
+            List<CategoryEntry> entries     = categoryService.findVisibleEntriesByCategoryId(category.getId());
             allEntries.put(category.getId(), entries);
             categorySelections.put(category, entries.stream()
                     .filter(e -> selectedIds.contains(e.getId()))
                     .collect(Collectors.toList()));
         }
 
-        List<Workflow> workflows = workflowService.findByAppId(appId);
+        List<Workflow>              workflows     = workflowService.findByAppId(appId);
         Map<UUID, List<WorkflowStep>> workflowSteps = new LinkedHashMap<>();
         for (Workflow wf : workflows) {
             workflowSteps.put(wf.getId(), workflowService.findStepsByWorkflowId(wf.getId()));
         }
 
-        List<AppReview> visibleReviews = reviewService.findVisibleReviewsForApp(appId);
-        Map<UUID, List<AppSubReview>> subReviewMap = new LinkedHashMap<>();
+        List<AppReview>              visibleReviews = reviewService.findVisibleReviewsForApp(appId);
+        Map<UUID, List<AppSubReview>> subReviewMap  = new LinkedHashMap<>();
         for (AppReview rev : visibleReviews) {
             subReviewMap.put(rev.getId(), reviewService.findSubReviews(rev.getId()));
         }
@@ -65,24 +75,28 @@ public class ManageController {
                 .average()
                 .orElse(0.0);
 
+        // ownerUnverified is only meaningful to show the "verify email" banner to the actual owner
         boolean ownerUnverified = claimService.isOwnerUnverified(app);
-        boolean justClaimed = "1".equals(claimed);
+        boolean justClaimed     = "1".equals(claimed);
 
-        model.addAttribute("certifiedAvg",       certifiedAvg);
-        model.addAttribute("app",                app);
-        model.addAttribute("categories",         categories);
+        model.addAttribute("canEdit",          canEdit);
+        model.addAttribute("certifiedAvg",     certifiedAvg);
+        model.addAttribute("app",              app);
+        model.addAttribute("categories",       categories);
         model.addAttribute("categorySelections", categorySelections);
-        model.addAttribute("allEntries",         allEntries);
-        model.addAttribute("workflows",          workflows);
-        model.addAttribute("workflowSteps",      workflowSteps);
-        model.addAttribute("media",              appMediaRepository.findAllByAppIdOrderByPositionAsc(appId));
-        model.addAttribute("visibleReviews",     visibleReviews);
-        model.addAttribute("subReviewMap",       subReviewMap);
-        model.addAttribute("ownerUnverified",    ownerUnverified);
-        model.addAttribute("justClaimed",        justClaimed);
+        model.addAttribute("allEntries",       allEntries);
+        model.addAttribute("workflows",        workflows);
+        model.addAttribute("workflowSteps",    workflowSteps);
+        model.addAttribute("media",            appMediaRepository.findAllByAppIdOrderByPositionAsc(appId));
+        model.addAttribute("visibleReviews",   visibleReviews);
+        model.addAttribute("subReviewMap",     subReviewMap);
+        model.addAttribute("ownerUnverified",  ownerUnverified);
+        model.addAttribute("justClaimed",      justClaimed);
 
         return "manage/index";
     }
+
+    // ─── All write endpoints remain protected — non-editors get 403 ──────────
 
     @PreAuthorize("@appSecurity.canEdit(#appId, authentication)")
     @PostMapping("/video")
@@ -128,14 +142,14 @@ public class ManageController {
             if (description != null)              app.setDescription(description.trim());
             if (url != null)                      app.setUrl(url.trim().isEmpty() ? null : url.trim());
 
-            // verifiedScore is an admin/manager-only field — block plain owners from setting it.
             if (verifiedScore != null) {
-                var auth = org.springframework.security.core.context.SecurityContextHolder
-                        .getContext().getAuthentication();
-                boolean isStaff = auth != null && auth.getAuthorities().stream()
-                        .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_MANAGER"));
+                Authentication auth    = SecurityContextHolder.getContext().getAuthentication();
+                boolean        isStaff = auth != null && auth.getAuthorities().stream()
+                        .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")
+                                || a.getAuthority().equals("ROLE_MANAGER"));
                 if (!isStaff) {
-                    return ResponseEntity.status(403).body(Map.of("error", "Only staff can set verified score"));
+                    return ResponseEntity.status(403)
+                            .body(Map.of("error", "Only staff can set verified score"));
                 }
                 if (verifiedScore.isBlank()) {
                     app.setVerifiedScore(null);

@@ -461,7 +461,8 @@
             <div class="wish-card">
                 <div class="wish-card-label">Can't find the right app? No problem!</div>
                 <a class="btn-wish" href="/apps" th:href="@{/apps}">Wish an app</a>
-                <a class="nav-link" style="font-size:0.72rem;margin-top:0.5rem;display:block;opacity:0.6;" th:href="@{/admin/home-sections}">Edit homepage</a>
+                <a class="nav-link" style="font-size:0.72rem;margin-top:0.5rem;display:block;opacity:0.6;"
+                   th:if="${isAdmin}" th:href="@{/admin/home-sections}">Edit homepage</a>
             </div>
         </div>
     </div>
@@ -492,7 +493,7 @@
                                 <div style="display:flex;align-items:center;gap:0.4rem;">
                                     <button class="features-arrow-btn" id="featuresScrollLeft">‹</button>
                                     <button class="features-arrow-btn" id="featuresScrollRight">›</button>
-                                    <div class="block-move-handle" title="Drag to reorder this row">
+                                    <div class="block-move-handle" th:if="${isAdmin}" title="Drag to reorder this row">
                                         <div class="drag-dots">
                                             <span></span><span></span><span></span><span></span><span></span><span></span>
                                         </div>
@@ -538,12 +539,13 @@
                                  data-sub-slot="list">
                                 <div class="section-header">
                                     <div class="section-title-row">
-                                        <div class="block-move-handle" title="Drag to reorder this row">
+                                        <div class="block-move-handle" th:if="${isAdmin}" title="Drag to reorder this row">
                                             <div class="drag-dots">
                                                 <span></span><span></span><span></span><span></span><span></span><span></span>
                                             </div>
                                         </div>
                                         <span class="section-title"
+                                              th:if="${isAdmin}"
                                               contenteditable="true"
                                               th:data-section-id="${section.id}"
                                               th:data-title-field="title"
@@ -551,9 +553,12 @@
                                               th:text="${section.title}"
                                               onblur="saveSectionTitle(this)"
                                               onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"></span>
+                                        <span class="section-title"
+                                              th:unless="${isAdmin}"
+                                              th:text="${section.title}"></span>
                                     </div>
-                                    <div class="section-header-actions">
-                                        <a class="section-edit-link only-on-right" th:href="@{/admin/home-sections(edit=${section.id})}" title="Edit this section">✎ Edit</a>
+                                    <div class="section-header-actions" th:if="${isAdmin}">
+                                        <a class="section-edit-link only-on-right" th:href="@{/admin/home-sections(edit=${section.id})}" title="Edit this section">✎</a>
                                         <button type="button" class="section-delete-link only-on-right" th:data-section-id="${section.id}" onclick="deleteSection(this)" title="Delete this section">🗑</button>
                                         <button type="button" class="swap-handle" th:data-section-id="${section.id}" onclick="swapSides(this)" title="Click to swap left ↔ right">
                                             <span class="swap-label">Swap</span><span aria-hidden="true">⇄</span>
@@ -608,6 +613,7 @@
                                 <div class="section-header">
                                     <div class="section-title-row">
                                         <span class="section-title"
+                                              th:if="${isAdmin}"
                                               contenteditable="true"
                                               th:data-section-id="${section.id}"
                                               th:data-title-field="featuredTitle"
@@ -615,8 +621,11 @@
                                               th:text="${section.featuredTitle != null ? section.featuredTitle : 'Featured'}"
                                               onblur="saveSectionTitle(this)"
                                               onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"></span>
+                                        <span class="section-title"
+                                              th:unless="${isAdmin}"
+                                              th:text="${section.featuredTitle != null ? section.featuredTitle : 'Featured'}"></span>
                                     </div>
-                                    <div class="section-header-actions">
+                                    <div class="section-header-actions" th:if="${isAdmin}">
                                         <a class="section-edit-link only-on-right" th:href="@{/admin/home-sections(edit=${section.id})}" title="Edit this section">🖉</a>
                                         <button type="button" class="section-delete-link only-on-right" th:data-section-id="${section.id}" onclick="deleteSection(this)" title="Delete this section">🗑</button>
                                         <button type="button" class="swap-handle" th:data-section-id="${section.id}" onclick="swapSides(this)" title="Click to swap left ↔ right">
@@ -660,12 +669,13 @@
                             <div class="section-wrapper">
                                 <div class="section-header">
                                     <div class="section-title-row">
-                                        <div class="block-move-handle" title="Drag to reorder this row">
+                                        <div class="block-move-handle" th:if="${isAdmin}" title="Drag to reorder this row">
                                             <div class="drag-dots">
                                                 <span></span><span></span><span></span><span></span><span></span><span></span>
                                             </div>
                                         </div>
                                         <span class="section-title"
+                                              th:if="${isAdmin}"
                                               contenteditable="true"
                                               th:data-section-id="${section.id}"
                                               th:data-title-field="title"
@@ -673,8 +683,11 @@
                                               th:text="${section.title}"
                                               onblur="saveSectionTitle(this)"
                                               onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"></span>
+                                        <span class="section-title"
+                                              th:unless="${isAdmin}"
+                                              th:text="${section.title}"></span>
                                     </div>
-                                    <div class="section-header-actions">
+                                    <div class="section-header-actions" th:if="${isAdmin}">
                                         <a class="section-edit-link" th:href="@{/admin/home-sections(edit=${section.id})}" title="Edit this section">✎ Edit</a>
                                         <button type="button" class="section-delete-link" th:data-section-id="${section.id}" onclick="deleteSection(this)" title="Delete this section">🗑 Delete</button>
                                     </div>
@@ -715,7 +728,7 @@
             <div th:if="${#lists.isEmpty(sections)}"
                  style="text-align:center;padding:2.5rem 2rem 1rem;color:var(--gray-300);font-size:0.88rem;line-height:1.7;">
                 No custom homepage sections yet.<br/>
-                <a th:href="@{/admin/home-sections}"
+                <a th:if="${isAdmin}" th:href="@{/admin/home-sections}"
                    style="color:var(--accent-green);font-weight:700;text-decoration:underline;">Add your first section →</a>
             </div>
 
@@ -724,6 +737,13 @@
 </div>
 
 <script th:inline="javascript">
+    /* Server-computed flag: only MANAGER/ADMIN roles get true. Drives whether
+       the editing JS (drag-reorder, title editing, delete, swap) is armed at
+       all. The real authorization boundary still lives on the server-side
+       /admin/home-sections/** and /api/site-config/** endpoints — this flag
+       only controls the client-side UI affordances. */
+    const IS_ADMIN = [[${isAdmin}]];
+
     /* ── Hero search ──────────────────────────────────────────────── */
     const heroSearch = document.getElementById('heroSearch');
     if (heroSearch) {
@@ -806,80 +826,86 @@
         }
     }
 
-    /* ── Drag-and-drop homepage blocks (outer reorder) ───────────── */
-    (function initDrag() {
-        const container = document.getElementById('sectionsContainer');
-        if (!container) return;
+    /* ── Drag-and-drop homepage blocks (outer reorder) ─────────────
+       Only armed for admins/managers — for everyone else there are no
+       .block-move-handle elements in the DOM anyway (gated server-side
+       via th:if="${isAdmin}"), but we also skip wiring up the whole
+       drag machinery as a belt-and-suspenders measure. */
+    if (IS_ADMIN) {
+        (function initDrag() {
+            const container = document.getElementById('sectionsContainer');
+            if (!container) return;
 
-        const blockSelector = '.section-pair[data-block-id], .section-row-full[data-block-id]';
-        let dragEl = null;
+            const blockSelector = '.section-pair[data-block-id], .section-row-full[data-block-id]';
+            let dragEl = null;
 
-        container.querySelectorAll(blockSelector).forEach(block => {
-            block.addEventListener('dragstart', e => {
-                // Only proceed if this block itself is the one armed for dragging
-                if (block.getAttribute('draggable') !== 'true') return;
-                dragEl = block;
-                setTimeout(() => block.classList.add('dragging-pair'), 0);
-                e.dataTransfer.effectAllowed = 'move';
-            });
-            block.addEventListener('dragend', () => {
-                block.classList.remove('dragging-pair');
-                block.removeAttribute('draggable');
-                container.querySelectorAll(blockSelector).forEach(b => b.classList.remove('drag-over-pair'));
-                persistOrder();
-                dragEl = null;
-            });
-            block.addEventListener('dragover', e => {
-                if (!dragEl) return;
-                e.preventDefault();
-                if (dragEl === block) return;
-                block.classList.add('drag-over-pair');
-            });
-            block.addEventListener('dragleave', e => {
-                if (!block.contains(e.relatedTarget)) block.classList.remove('drag-over-pair');
-            });
-            block.addEventListener('drop', e => {
-                if (!dragEl) return;
-                e.preventDefault();
-                block.classList.remove('drag-over-pair');
-                if (dragEl === block) return;
-                const els = [...container.querySelectorAll(blockSelector)];
-                const dragIdx = els.indexOf(dragEl);
-                const dropIdx = els.indexOf(block);
-                if (dragIdx < dropIdx) block.after(dragEl);
-                else block.before(dragEl);
-            });
+            container.querySelectorAll(blockSelector).forEach(block => {
+                block.addEventListener('dragstart', e => {
+                    // Only proceed if this block itself is the one armed for dragging
+                    if (block.getAttribute('draggable') !== 'true') return;
+                    dragEl = block;
+                    setTimeout(() => block.classList.add('dragging-pair'), 0);
+                    e.dataTransfer.effectAllowed = 'move';
+                });
+                block.addEventListener('dragend', () => {
+                    block.classList.remove('dragging-pair');
+                    block.removeAttribute('draggable');
+                    container.querySelectorAll(blockSelector).forEach(b => b.classList.remove('drag-over-pair'));
+                    persistOrder();
+                    dragEl = null;
+                });
+                block.addEventListener('dragover', e => {
+                    if (!dragEl) return;
+                    e.preventDefault();
+                    if (dragEl === block) return;
+                    block.classList.add('drag-over-pair');
+                });
+                block.addEventListener('dragleave', e => {
+                    if (!block.contains(e.relatedTarget)) block.classList.remove('drag-over-pair');
+                });
+                block.addEventListener('drop', e => {
+                    if (!dragEl) return;
+                    e.preventDefault();
+                    block.classList.remove('drag-over-pair');
+                    if (dragEl === block) return;
+                    const els = [...container.querySelectorAll(blockSelector)];
+                    const dragIdx = els.indexOf(dragEl);
+                    const dropIdx = els.indexOf(block);
+                    if (dragIdx < dropIdx) block.after(dragEl);
+                    else block.before(dragEl);
+                });
 
-            // Outer (whole-row) dragging arms ONLY from this block's own
-            // .block-move-handle — never from the header generally, and
-            // never from the inner .swap-handle button. Keeping these two
-            // handles visually and functionally separate is what prevents
-            // them from fighting over the same mousedown.
-            block.querySelectorAll(':scope .block-move-handle').forEach(handle => {
-                handle.addEventListener('mousedown', e => {
-                    e.stopPropagation();
-                    block.setAttribute('draggable', 'true');
+                // Outer (whole-row) dragging arms ONLY from this block's own
+                // .block-move-handle — never from the header generally, and
+                // never from the inner .swap-handle button. Keeping these two
+                // handles visually and functionally separate is what prevents
+                // them from fighting over the same mousedown.
+                block.querySelectorAll(':scope .block-move-handle').forEach(handle => {
+                    handle.addEventListener('mousedown', e => {
+                        e.stopPropagation();
+                        block.setAttribute('draggable', 'true');
+                    });
+                });
+                document.addEventListener('mouseup', () => {
+                    if (!dragEl) block.removeAttribute('draggable');
                 });
             });
-            document.addEventListener('mouseup', () => {
-                if (!dragEl) block.removeAttribute('draggable');
-            });
-        });
 
-        async function persistOrder() {
-            const ids = [...container.querySelectorAll(blockSelector)]
-                .map(b => b.dataset.blockId)
-                .filter(Boolean);
-            if (!ids.length) return;
-            try {
-                await fetch('/api/site-config/section-order', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ order: ids.join(',') })
-                });
-            } catch (_) { /* best effort */ }
-        }
-    })();
+            async function persistOrder() {
+                const ids = [...container.querySelectorAll(blockSelector)]
+                    .map(b => b.dataset.blockId)
+                    .filter(Boolean);
+                if (!ids.length) return;
+                try {
+                    await fetch('/api/site-config/section-order', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ order: ids.join(',') })
+                    });
+                } catch (_) { /* best effort */ }
+            }
+        })();
+    }
 </script>
 </body>
 </html>
