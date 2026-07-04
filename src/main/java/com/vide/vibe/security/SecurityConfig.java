@@ -45,7 +45,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/apps/*/manage").permitAll()
                         .requestMatchers(HttpMethod.POST, "/apps/*/claim/**").permitAll()
                         .requestMatchers("/categories/**", "/review-categories/**", "/apps/*/reviews/**").hasRole("ADMIN")
-                        .requestMatchers("/admin/users/**").hasAnyRole("ADMIN", "USER")
+                        .requestMatchers("/admin/users/**").hasRole("ADMIN")
                         .requestMatchers("/admin/home-sections/**", "/api/site-config/**").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers("/apps/**").authenticated()
                         .requestMatchers("/media/**").authenticated()
