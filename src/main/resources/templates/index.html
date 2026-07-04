@@ -6,6 +6,7 @@
     <title>Vibe — Apps for people by people</title>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@100;200;300;400;500;600;700;800&display=swap"
           rel="stylesheet"/>
+    <link th:replace="~{fragments/navbar :: navbar-css}"/>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
@@ -32,7 +33,7 @@
             --radius-xl:    16px;
             --radius-pill:  999px;
             --font: 'Sora', sans-serif;
-            --nav-h:        52px;
+            /* --nav-h now comes from navbar.css (shared with every other page) */
         }
         * { font-family: 'Sora', sans-serif; }
         html { scroll-behavior: smooth; }
@@ -46,38 +47,6 @@
         }
         a { text-decoration: none; color: inherit; }
         button { font-family: var(--font); cursor: pointer; }
-
-        /* ── NAV ───────────────────────────────────────────────── */
-        nav {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 2rem; height: var(--nav-h);
-            background: rgba(15,22,35,0.92);
-            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-            border-bottom: 1px solid rgba(255,255,255,0.06);
-            position: fixed; top: 0; left: 0; right: 0; z-index: 300;
-        }
-        .nav-left  { display: flex; align-items: center; gap: 2rem; }
-        .nav-logo  {
-            width: 30px; height: 30px; border-radius: 50%;
-            background: #fff; display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0; overflow: hidden;
-        }
-        .nav-link  { color: rgba(255,255,255,0.75); font-size: 0.85rem; font-weight: 500; transition: color 0.12s; }
-        .nav-link:hover { color: var(--white); }
-        .nav-right { display: flex; align-items: center; gap: 0.75rem; }
-        .btn-nav-ghost {
-            background: transparent; border: none;
-            color: rgba(255,255,255,0.75); font-size: 0.83rem; font-weight: 500;
-            padding: 0.3rem 0.75rem; border-radius: var(--radius-pill); transition: color 0.12s;
-        }
-        .btn-nav-ghost:hover { color: var(--white); }
-        .btn-nav-solid {
-            background: transparent; border: 1.5px solid rgba(255,255,255,0.5);
-            color: var(--white); font-size: 0.83rem; font-weight: 600;
-            padding: 0.3rem 1rem; border-radius: var(--radius-pill);
-            transition: border-color 0.12s, background 0.12s;
-        }
-        .btn-nav-solid:hover { border-color: var(--white); background: rgba(255,255,255,0.05); }
 
         /* ── HERO ──────────────────────────────────────────────── */
         .hero {
@@ -407,37 +376,7 @@
 </head>
 <body>
 
-<nav>
-    <div class="nav-left">
-        <a class="nav-logo" href="/" th:href="@{/}">
-            <img alt="Vibe logo" src="/logo_sm.png" style="width:100%;height:100%;object-fit:cover;background:black;"
-                 th:src="@{/logo_sm.png}"/>
-        </a>
-        <a class="nav-link" href="/submit" th:href="@{/submit}">Submit</a>
-        <a class="nav-link" href="/explore" th:href="@{/explore}">Explore</a>
-        <a class="nav-link" href="/apps" th:href="@{/apps}">Wish an app</a>
-    </div>
-    <div class="nav-right">
-    <span sec:authorize="hasAnyRole('MANAGER','ADMIN')">
-        <a class="nav-link" th:href="@{/apps}">Manage Apps</a>
-    </span>
-        <span sec:authorize="hasAnyRole('MANAGER','ADMIN')">
-        <a class="nav-link" th:href="@{/admin/home-sections}">Home Sections</a>
-    </span>
-        <span sec:authorize="hasRole('ADMIN')">
-        <a class="nav-link" th:href="@{/categories}">Categories</a>
-    </span>
-
-        <span sec:authorize="isAuthenticated()" class="nav-link" sec:authentication="name"></span>
-
-        <form sec:authorize="isAuthenticated()" method="post" th:action="@{/auth/logout}" style="display:inline">
-            <button class="btn-nav-ghost" type="submit">Log out</button>
-        </form>
-
-        <a sec:authorize="isAnonymous()" class="btn-nav-ghost" th:href="@{/auth/login}">Log in</a>
-        <a sec:authorize="isAnonymous()" class="btn-nav-solid" th:href="@{/auth/register}">Sign up</a>
-    </div>
-</nav>
+<nav th:replace="~{fragments/navbar :: navbar}"></nav>
 
 <div style="padding-top: var(--nav-h);">
 
@@ -571,7 +510,7 @@
                                             <th:block th:if="${listApps != null and !#lists.isEmpty(listApps)}">
                                                 <th:block th:each="app : ${listApps}">
                                                     <a class="app-list-card"
-                                                       th:href="@{/p/{slug}(slug=${app.slug})}"
+                                                       th:href="@{/apps/{id}/manage(id=${app.id})}"
                                                        th:data-name="${app.name.toLowerCase()}"
                                                        th:data-desc="${app.description != null ? app.description.toLowerCase() : ''}">
                                                         <div class="app-list-icon">
@@ -636,7 +575,7 @@
                                 <div class="home-section dark-card">
                                     <th:block th:with="feat=${sectionFeatured.get(section.id)}">
                                         <div th:if="${feat != null}" class="featured-card-inner">
-                                            <a th:href="@{/p/{slug}(slug=${feat.slug})}" style="text-decoration:none;color:inherit;">
+                                            <a th:href="@{/apps/{id}/manage(id=${feat.id})}" style="text-decoration:none;color:inherit;">
                                                 <div class="featured-icon">
                                                     <img alt="" th:if="${feat.iconUrl != null}" th:src="${feat.iconUrl}"/>
                                                     <span th:if="${feat.iconUrl == null}">⭐</span>
@@ -697,7 +636,7 @@
                                         <div class="vibe-grid" th:if="${listApps != null and !#lists.isEmpty(listApps)}">
                                             <a class="grid-card"
                                                th:each="app : ${listApps}"
-                                               th:href="@{/p/{slug}(slug=${app.slug})}"
+                                               th:href="@{/apps/{id}/manage(id=${app.id})}"
                                                th:data-name="${app.name.toLowerCase()}"
                                                th:data-desc="${app.description != null ? app.description.toLowerCase() : ''}">
                                                 <div class="grid-icon">
