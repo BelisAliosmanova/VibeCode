@@ -41,6 +41,10 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User not found: " + email));
     }
 
+    public User save(User user) {
+        return userRepository.save(user);
+    }
+
     @Transactional
     public User create(User user) {
         if (userRepository.existsByEmail(user.getEmail())) {

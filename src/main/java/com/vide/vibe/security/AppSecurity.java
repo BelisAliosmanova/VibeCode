@@ -44,7 +44,7 @@ public class AppSecurity {
 
     private User currentUser(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) return null;
-        if (!(authentication.getPrincipal() instanceof AppUserPrincipal principal)) return null;
+        if (!(authentication.getPrincipal() instanceof AppPrincipal principal)) return null;
         return principal.getUser();
     }
 }
