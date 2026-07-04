@@ -25,6 +25,9 @@
         <span sec:authorize="hasRole('ADMIN')">
         <a class="nav-link" th:href="@{/categories}">Categories</a>
     </span>
+        <span sec:authorize="hasRole('ADMIN')">
+        <a class="nav-link" th:href="@{/admin/users}">Users</a>
+    </span>
 
         <span sec:authorize="isAuthenticated()" class="nav-link" sec:authentication="name"></span>
 
