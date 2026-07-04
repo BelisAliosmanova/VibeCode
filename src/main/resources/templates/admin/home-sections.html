@@ -40,23 +40,12 @@
         }
         .title-input:focus, select:focus { border-color: var(--blue); }
 
-        .tab-list { display: flex; flex-direction: column; gap: 0.3rem; }
         .tab-btn {
             text-align: left; background: transparent; border: 1.5px solid var(--border);
             color: var(--gray-200); border-radius: 8px; padding: 0.5rem 0.7rem; font-size: 0.78rem;
-            font-weight: 600; cursor: pointer; font-family: var(--font);
+            font-weight: 600; cursor: pointer; font-family: var(--font); width: 100%;
         }
         .tab-btn.active { background: var(--panel2); color: #fff; border-color: var(--blue); }
-
-        /* Filters auto-select button */
-        .btn-filter-autoselect {
-            background: transparent; border: 1.5px solid var(--border);
-            color: var(--gray-200); border-radius: 8px; padding: 0.5rem 0.7rem; font-size: 0.78rem;
-            font-weight: 600; cursor: pointer; font-family: var(--font);
-            text-align: left; width: 100%; margin-top: 0.15rem;
-            transition: background 0.1s, border-color 0.1s, color 0.1s;
-        }
-        .btn-filter-autoselect:hover { background: var(--panel2); color: #fff; border-color: var(--blue); }
 
         .btn-add {
             background: var(--green); color: #15280a; border: none; border-radius: var(--radius-pill);
@@ -266,10 +255,10 @@
 
         <div class="control-block">
             <div class="control-label">Content source</div>
-            <div class="tab-list">
-                <button class="tab-btn active" data-tab="manual" onclick="switchTab('manual', this)">Manual</button>
-                <button class="btn-filter-autoselect" id="filtersAutoBtn" onclick="autoSelectFromFilters()" title="Auto-fill list from currently visible filtered apps">Filters</button>
-            </div>
+            <select id="contentSource" onchange="onContentSourceChange()">
+                <option value="manual">Manual</option>
+                <option value="filters">Filters (auto-select)</option>
+            </select>
         </div>
 
         <button class="btn-add" id="addBtn" onclick="submitSection()">ADD</button>
@@ -322,7 +311,6 @@
 <div class="picker-section">
     <div class="content-panel">
 
-        <!-- MANUAL tab (always visible, contains the filter panel) -->
         <div id="tab-manual">
             <div class="panel-title-row">
                 <div class="panel-title-left">
@@ -496,6 +484,18 @@
         }
     }
 
+    /* ── Content source dropdown (Manual / Filters) ─────────────────────
+       "Filters" is a one-off action (auto-select from the currently
+       visible/filtered apps), not a persistent mode — so after running it
+       we snap the dropdown back to "Manual". */
+    function onContentSourceChange() {
+        const select = document.getElementById('contentSource');
+        if (select.value === 'filters') {
+            autoSelectFromFilters();
+            select.value = 'manual';
+        }
+    }
+
     /* ── Auto-select from filters ─────────────────────────────────────── */
     function autoSelectFromFilters() {
         // Collect all currently visible rows in the manual pick list
@@ -563,12 +563,6 @@
         document.querySelectorAll('.feat-chip').forEach(btn => {
             btn.disabled = currentLayout === 'SIX_GRID';
         });
-    }
-
-    /* ── Tab switching (only Manual tab now, kept for extensibility) ─── */
-    function switchTab(tab, btn) {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
     }
 
     /* ── Filter sidebar ────────────────────────────────────────────────── */
