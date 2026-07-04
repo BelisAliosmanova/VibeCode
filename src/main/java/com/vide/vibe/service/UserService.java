@@ -6,8 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -25,7 +25,18 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User not found: " + id));
     }
 
-    public User findByEmail(String email) {
+    public void updateRole(UUID id, User.Role role) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found: " + id));
+        user.setRole(role);
+        userRepository.save(user);
+    }
+
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+    public User getByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found: " + email));
     }
@@ -35,7 +46,9 @@ public class UserService {
         if (userRepository.existsByEmail(user.getEmail())) {
             throw new RuntimeException("Email already in use: " + user.getEmail());
         }
-        user.setStatus(User.Status.PENDING);
+        if (user.getStatus() == null) {
+            user.setStatus(User.Status.PENDING);
+        }
         return userRepository.save(user);
     }
 

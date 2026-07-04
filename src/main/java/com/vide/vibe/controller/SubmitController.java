@@ -52,7 +52,7 @@ public class SubmitController {
 
         User owner;
         try {
-            owner = userService.findByEmail(ownerEmail);
+            owner = userService.findByEmail(ownerEmail).get();
         } catch (RuntimeException e) {
             owner = userService.create(User.builder()
                     .email(ownerEmail)

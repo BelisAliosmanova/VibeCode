@@ -9,6 +9,8 @@ import com.vide.vibe.service.CategoryService;
 import com.vide.vibe.service.HomeSectionService;
 import com.vide.vibe.service.SiteConfigService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -72,6 +74,13 @@ public class HomeController {
         Map<String, HomeSection> sectionsById = new LinkedHashMap<>();
         for (HomeSection s : sections) sectionsById.put(s.getId().toString(), s);
 
+        // ── Is the current user allowed to see/use the homepage editing UI? ───
+        // This only controls whether the edit affordances render. The actual
+        // security boundary is (and must remain) enforced independently on
+        // the /admin/home-sections/** and /api/site-config/** endpoints via
+        // Spring Security's hasAnyRole('MANAGER','ADMIN') checks.
+        boolean isAdmin = isCurrentUserManagerOrAdmin();
+
         model.addAttribute("blockOrder",      blockOrder);
         model.addAttribute("blockPopular",    BLOCK_POPULAR_FEATURES);
         model.addAttribute("blockVibe",       BLOCK_DIFFERENT_VIBE);
@@ -83,8 +92,22 @@ public class HomeController {
         model.addAttribute("vibeApps",        vibeApps);
         model.addAttribute("entryAppCounts",  entryAppCounts);
         model.addAttribute("totalAppCount",   allApps.size());
+        model.addAttribute("isAdmin",         isAdmin);
 
         return "index";
+    }
+
+    /**
+     * True only for an authenticated user holding ROLE_MANAGER or ROLE_ADMIN.
+     * Anonymous users and plain authenticated users (no elevated role) get false.
+     */
+    private boolean isCurrentUserManagerOrAdmin() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return false;
+        }
+        return auth.getAuthorities().stream().anyMatch(a ->
+                "ROLE_MANAGER".equals(a.getAuthority()) || "ROLE_ADMIN".equals(a.getAuthority()));
     }
 
     /**

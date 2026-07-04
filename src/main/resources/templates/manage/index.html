@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/springsecurity6">
 <head>
     <meta charset="UTF-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
@@ -38,8 +39,6 @@
         a { text-decoration: none; color: inherit; }
         button { font-family: var(--font); }
 
-        /* NAV (restyled to match index.html's dark nav, in case the navbar
-           fragment reuses these class names) */
         nav { display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 2rem; background: rgba(15,22,35,0.92); border-bottom: 1px solid var(--border); }
         .nav-left { display: flex; align-items: center; gap: 1.5rem; }
         .nav-logo { width: 30px; height: 30px; background: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #111; font-weight: 800; font-size: 0.8rem; }
@@ -102,17 +101,20 @@
         /* ── APP HEADER ─────────────────────────────────────────── */
         .app-header-card { display: flex; align-items: flex-start; gap: 1.25rem; margin-bottom: 1.75rem; }
         .app-icon-wrap { width: 86px; height: 86px; flex-shrink: 0; border-radius: var(--radius-xl); overflow: hidden; background: var(--white); display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; box-shadow: 0 4px 18px rgba(0,0,0,0.25); }
+        .app-icon-wrap.readonly { cursor: default; }
         .app-icon-wrap img { width: 100%; height: 100%; object-fit: cover; }
         .app-icon-placeholder { width: 38px; height: 38px; object-fit: contain; opacity: 0.35; }
         .app-icon-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; color: white; font-size: 0.72rem; font-weight: 600; }
-        .app-icon-wrap:hover .app-icon-overlay { display: flex; }
+        .app-icon-wrap:not(.readonly):hover .app-icon-overlay { display: flex; }
 
         .app-header-info { flex: 1; min-width: 0; padding-top: 0.2rem; }
         .app-title-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
         .app-name-edit { font-size: 1.45rem; font-weight: 800; color: var(--white); outline: none; border-radius: 6px; padding: 2px 6px; margin-left: -6px; display: inline-block; min-width: 40px; }
         .app-name-edit:focus { background: rgba(255,255,255,0.06); }
+        .app-name-static { font-size: 1.45rem; font-weight: 800; color: var(--white); padding: 2px 0; display: inline-block; }
         .app-desc-edit { font-size: 0.8rem; color: var(--gray-200); opacity: 0.75; line-height: 1.5; outline: none; border-radius: 6px; padding: 2px 6px; margin-left: -6px; display: block; min-height: 1.5em; margin-top: 0.3rem; max-width: 480px; }
         .app-desc-edit:focus { background: rgba(255,255,255,0.06); }
+        .app-desc-static { font-size: 0.8rem; color: var(--gray-200); opacity: 0.75; line-height: 1.5; display: block; margin-top: 0.3rem; max-width: 480px; }
         .save-inline-badge { display: none; font-size: 0.7rem; color: var(--green); font-weight: 700; margin-left: 6px; text-transform: uppercase; letter-spacing: 0.06em; }
         .save-inline-badge.show { display: inline; }
 
@@ -150,13 +152,14 @@
         .media-strip { border-radius: var(--radius-xl); overflow: hidden; margin-bottom: 1.75rem; }
         .media-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
         .media-cell { background: var(--card-bg2); border-radius: var(--radius-lg); aspect-ratio: 4/3; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; cursor: pointer; transition: background 0.12s; }
-        .media-cell:hover { background: #34495e; }
+        .media-cell.readonly { cursor: default; }
+        .media-cell:not(.readonly):hover { background: #34495e; }
         .media-cell img { height: 100%;}
         .play-btn { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1rem; }
         .play-btn img { height: 36px; object-fit: contain; }
         .media-placeholder { width: 30px; height: 30px; object-fit: contain; opacity: 0.55; }
         .media-upload-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; color: white; font-size: 0.72rem; font-weight: 600; }
-        .media-cell:hover .media-upload-overlay { display: flex; }
+        .media-cell:not(.readonly):hover .media-upload-overlay { display: flex; }
         .media-dots { display: none; }
 
         /* ── SECTIONS ───────────────────────────────────────────── */
@@ -176,6 +179,7 @@
             text-transform: uppercase; letter-spacing: 0.06em;
             user-select: none;
         }
+        .sel-pill.readonly { padding: 0.35rem 0.9rem; }
         .sel-pill img { width: 13px; height: 13px; object-fit: contain; border-radius: 2px; }
         .sel-pill-remove {
             width: 16px; height: 16px; border-radius: 50%;
@@ -246,6 +250,7 @@
         .workflow-title-input::placeholder { color: var(--pink); opacity: 0.5; }
         .workflow-title-input:hover { border-bottom-color: var(--border); }
         .workflow-title-input:focus { border-bottom-color: var(--pink); }
+        .workflow-title-static { font-size: 0.9rem; font-weight: 800; color: var(--pink); flex: 1; text-transform: uppercase; letter-spacing: 0.04em; }
         .workflow-delete-btn { background: none; border: none; color: var(--gray-400); cursor: pointer; font-size: 0.75rem; padding: 2px 4px; transition: color 0.12s; flex-shrink: 0; }
         .workflow-delete-btn:hover { color: var(--danger); }
 
@@ -255,7 +260,7 @@
         .steps-diagram::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
         .step-arrow { color: var(--gray-400); font-size: 0.85rem; flex-shrink: 0; line-height: 1; user-select: none; padding: 0 0.5rem; }
 
-        /* Step box — editable */
+        /* Step box */
         .step-box {
             flex-shrink: 0; border: 1.5px solid var(--pink); border-radius: 999px;
             padding: 0.45rem 1rem; background: transparent;
@@ -264,13 +269,12 @@
             transition: border-color 0.15s, background 0.15s;
         }
         .step-box.multiline { border-radius: 14px; }
-        .step-box:hover { background: rgba(255,75,114,0.08); }
+        .step-box:not(.readonly):hover { background: rgba(255,75,114,0.08); }
         .step-box.editing { border-color: var(--cyan); border-style: solid; }
 
         .step-box-inner { min-width: 0; flex: 1; }
         .step-box-label { font-size: 0.55rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray-400); margin-bottom: 2px; white-space: nowrap; }
 
-        /* The editable text */
         .step-box-text {
             font-size: 0.74rem; color: var(--white); line-height: 1.35;
             word-break: break-word; outline: none; cursor: text;
@@ -278,8 +282,8 @@
             min-width: 20px;
         }
         .step-box-text:focus { background: rgba(255,255,255,0.06); }
+        .step-box-text.readonly { cursor: default; }
 
-        /* Char counter — shown while editing */
         .step-char-counter {
             position: absolute; bottom: -16px; right: 4px;
             font-size: 0.58rem; color: var(--gray-400);
@@ -296,7 +300,7 @@
             font-size: 0.55rem; display: none; align-items: center; justify-content: center;
             line-height: 1; padding: 0; transition: background 0.12s;
         }
-        .step-box:hover .step-box-delete { display: flex; }
+        .step-box:not(.readonly):hover .step-box-delete { display: flex; }
         .step-box-delete:hover { background: var(--danger); color: white; }
 
         .add-step-circle { flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid var(--pink); background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.1rem; color: var(--pink); transition: background 0.15s, color 0.15s; font-family: var(--font); }
@@ -346,16 +350,30 @@
 
 <div class="page">
 
-    <!-- APP HEADER -->
+    <!-- ═══════════════════════════════════════════════════════════
+         APP HEADER
+    ════════════════════════════════════════════════════════════ -->
     <div class="app-header-card">
-        <div class="app-icon-wrap" id="iconWrap" onclick="document.getElementById('iconFileInput').click()">
+
+        <!-- Icon — editable for owners/staff, static for everyone else -->
+        <div th:if="${canEdit}"
+             class="app-icon-wrap" id="iconWrap"
+             onclick="document.getElementById('iconFileInput').click()">
             <img alt="icon" id="iconImg" th:if="${app.iconUrl != null}" th:src="${app.iconUrl}"/>
-            <img alt="" class="app-icon-placeholder" id="iconPlaceholder" src="/img_placeholder_ico.png" th:if="${app.iconUrl == null}"/>
+            <img alt="" class="app-icon-placeholder" id="iconPlaceholder"
+                 src="/img_placeholder_ico.png" th:if="${app.iconUrl == null}"/>
             <div class="app-icon-overlay">Upload</div>
         </div>
-        <input accept="image/*" id="iconFileInput" style="display:none;" type="file"/>
+        <input th:if="${canEdit}" accept="image/*" id="iconFileInput" style="display:none;" type="file"/>
 
-        <div class="app-header-info">
+        <div th:if="${!canEdit}" class="app-icon-wrap readonly">
+            <img alt="icon" th:if="${app.iconUrl != null}" th:src="${app.iconUrl}"/>
+            <img alt="" class="app-icon-placeholder"
+                 src="/img_placeholder_ico.png" th:if="${app.iconUrl == null}"/>
+        </div>
+
+        <!-- Header info — editable vs. read-only -->
+        <div class="app-header-info" th:if="${canEdit}">
             <div class="app-title-row">
                 <span class="app-name-edit" contenteditable="true" id="editableName"
                       th:text="${app.name}"></span>
@@ -368,24 +386,28 @@
                 <button class="btn-sm" onclick="saveAppInfo()">Save changes</button>
             </div>
         </div>
+
+        <div class="app-header-info" th:if="${!canEdit}">
+            <div class="app-title-row">
+                <span class="app-name-static" th:text="${app.name}"></span>
+            </div>
+            <span class="app-desc-static" th:text="${app.description}"></span>
+            <div class="app-badges-row">
+                <span class="pricing-badge">PRICING</span>
+            </div>
+        </div>
     </div>
-    <!--
-      ══════════════════════════════════════════════════════════════════════════════
-      CLAIM BANNER  —  paste this block immediately after <div class="page"> in
-      src/main/resources/templates/manage/index.html
 
-      It renders:
-       • a green "just verified" flash when ?claimed=1 is in the URL
-       • an amber "unverified email" banner with a Claim button when the owner
-         is still in PENDING status
-    -->
+    <!-- ═══════════════════════════════════════════════════════════
+         CLAIM BANNERS
+    ════════════════════════════════════════════════════════════ -->
 
-    <!-- ── Just-claimed success flash ────────────────────────────────────────── -->
+    <!-- Just-claimed success flash (shown to owner after verifying) -->
     <div th:if="${justClaimed}"
          id="claimedFlash"
          style="display:flex;align-items:center;gap:0.75rem;
-            background:rgba(34,197,94,0.12);border:1.5px solid rgba(34,197,94,0.4);border-radius:12px;
-            padding:0.85rem 1.1rem;margin-bottom:1.25rem;">
+                background:rgba(34,197,94,0.12);border:1.5px solid rgba(34,197,94,0.4);border-radius:12px;
+                padding:0.85rem 1.1rem;margin-bottom:1.25rem;">
         <span style="font-size:1.1rem;">✅</span>
         <div>
             <div style="font-size:0.82rem;font-weight:700;color:#4ade80;">Email verified!</div>
@@ -397,12 +419,12 @@
                 style="margin-left:auto;background:none;border:none;color:var(--gray-300);cursor:pointer;font-size:1rem;">✕</button>
     </div>
 
-    <!-- ── Unverified-owner banner ────────────────────────────────────────────── -->
-    <div th:if="${ownerUnverified}"
+    <!-- Unverified-owner banner: shown only to the owner/staff when email not yet verified -->
+    <div th:if="${ownerUnverified and canEdit}"
          id="claimBanner"
          style="display:flex;align-items:flex-start;gap:0.75rem;
-            background:rgba(245,158,11,0.1);border:1.5px solid rgba(245,158,11,0.4);border-radius:12px;
-            padding:0.9rem 1.1rem;margin-bottom:1.25rem;">
+                background:rgba(245,158,11,0.1);border:1.5px solid rgba(245,158,11,0.4);border-radius:12px;
+                padding:0.9rem 1.1rem;margin-bottom:1.25rem;">
         <span style="font-size:1.1rem;flex-shrink:0;margin-top:1px;">⚠️</span>
         <div style="flex:1;min-width:0;">
             <div style="font-size:0.82rem;font-weight:700;color:var(--gold);">Email not verified</div>
@@ -414,24 +436,45 @@
             <div style="display:flex;gap:0.5rem;margin-top:0.65rem;flex-wrap:wrap;">
                 <button onclick="openClaimModal()"
                         style="background:var(--gold);color:#1a1306;border:none;
-                     padding:0.35rem 1rem;border-radius:50px;
-                     font-size:0.75rem;font-weight:700;cursor:pointer;
-                     font-family:var(--font);">
+                               padding:0.35rem 1rem;border-radius:50px;
+                               font-size:0.75rem;font-weight:700;cursor:pointer;
+                               font-family:var(--font);">
                     Claim this app
                 </button>
                 <span style="font-size:0.72rem;color:var(--gray-300);align-self:center;">
-        Didn't get the email? Enter your address below to resend it.
-      </span>
+                    Didn't get the email? Enter your address below to resend it.
+                </span>
             </div>
         </div>
     </div>
 
-    <!--
-      ══════════════════════════════════════════════════════════════════════════════
-      CLAIM MODAL  —  paste this block just before </body> in manage/index.html,
-                      alongside the existing ADD WORKFLOW MODAL and ADD STEP MODAL
-      ══════════════════════════════════════════════════════════════════════════════
-    -->
+    <!-- Claim banner for guests/other users when app is unclaimed -->
+    <div th:if="${!app.claimed and !canEdit}"
+         id="claimBannerGuest"
+         style="display:flex;align-items:flex-start;gap:0.75rem;
+                background:rgba(245,158,11,0.1);border:1.5px solid rgba(245,158,11,0.4);border-radius:12px;
+                padding:0.9rem 1.1rem;margin-bottom:1.25rem;">
+        <span style="font-size:1.1rem;flex-shrink:0;margin-top:1px;">⚠️</span>
+        <div style="flex:1;min-width:0;">
+            <div style="font-size:0.82rem;font-weight:700;color:var(--gold);">This app hasn't been claimed</div>
+            <div style="font-size:0.75rem;color:var(--gray-200);margin-top:2px;line-height:1.5;">
+                Are you the developer? Verify your email to claim ownership of this listing.
+            </div>
+            <div style="display:flex;gap:0.5rem;margin-top:0.65rem;flex-wrap:wrap;">
+                <button onclick="openClaimModal()"
+                        style="background:var(--gold);color:#1a1306;border:none;
+                               padding:0.35rem 1rem;border-radius:50px;
+                               font-size:0.75rem;font-weight:700;cursor:pointer;
+                               font-family:var(--font);">
+                    Claim this app
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         CLAIM MODAL (available to all — guests need it to claim)
+    ════════════════════════════════════════════════════════════ -->
     <div class="modal-overlay" id="claimModal">
         <div class="modal">
             <div class="modal-title" style="display:flex;align-items:center;gap:0.5rem;">
@@ -457,96 +500,9 @@
         </div>
     </div>
 
-    <!--
-      ══════════════════════════════════════════════════════════════════════════════
-      CLAIM JS  —  paste these functions inside the existing <script> block in
-                   manage/index.html (anywhere after APP_ID is declared)
-      ══════════════════════════════════════════════════════════════════════════════
-    -->
-    <script th:inline="javascript">
-        /*<![CDATA[*/
-
-        // Auto-dismiss the "just claimed" flash after 6 seconds
-        (function() {
-            const flash = document.getElementById('claimedFlash');
-            if (flash) setTimeout(() => flash.style.opacity = '0', 5500);
-        })();
-
-        function openClaimModal() {
-            const input = document.getElementById('claimEmailInput');
-            if (input) input.value = '';
-            const msg = document.getElementById('claimModalMsg');
-            if (msg) { msg.style.display = 'none'; msg.textContent = ''; }
-            openModal('claimModal');
-            setTimeout(() => input && input.focus(), 80);
-        }
-
-        async function submitClaim() {
-            const email = document.getElementById('claimEmailInput').value.trim();
-            const msg   = document.getElementById('claimModalMsg');
-            const btn   = document.getElementById('claimSubmitBtn');
-
-            if (!email) {
-                showClaimMsg('Please enter your email address.', false);
-                return;
-            }
-
-            btn.disabled = true;
-            btn.textContent = 'Sending…';
-
-            try {
-                const fd = new FormData();
-                fd.append('email', email);
-                const r    = await fetch(`/apps/${APP_ID}/claim/request`, { method: 'POST', body: fd });
-                const data = await r.json();
-
-                if (r.ok && data.ok) {
-                    showClaimMsg('✓ ' + data.message, true);
-                    btn.textContent = 'Sent!';
-                    setTimeout(() => closeModal('claimModal'), 2500);
-                } else {
-                    showClaimMsg(data.error || 'Something went wrong.', false);
-                    btn.disabled = false;
-                    btn.textContent = 'Send verification email';
-                }
-            } catch (e) {
-                showClaimMsg('Network error — please try again.', false);
-                btn.disabled = false;
-                btn.textContent = 'Send verification email';
-            }
-        }
-
-        function showClaimMsg(text, success) {
-            const el = document.getElementById('claimModalMsg');
-            el.textContent = text;
-            el.style.color  = success ? '#4ade80' : '#f87171';
-            el.style.display = 'block';
-        }
-
-        // Allow Enter key in the email field
-        document.addEventListener('DOMContentLoaded', function() {
-            const input = document.getElementById('claimEmailInput');
-            if (input) {
-                input.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter') { e.preventDefault(); submitClaim(); }
-                });
-            }
-        });
-
-        /*]]>*/
-    </script>
-
-
-    <!--
-      ══════════════════════════════════════════════════════════════════════════════
-      CSS additions  —  paste inside the existing <style> block in manage/index.html
-      ══════════════════════════════════════════════════════════════════════════════
-
-      No new rules are strictly needed — the banner uses only inline styles so it
-      doesn't conflict with the existing stylesheet.  The modal re-uses existing
-      .modal / .modal-overlay / .modal-field classes already present in the file.
-    -->
-    <!-- CERTIFIED REVIEW -->
+    <!-- ═══════════════════════════════════════════════════════════
+         CERTIFIED REVIEW
+    ════════════════════════════════════════════════════════════ -->
     <div class="section">
         <div class="section-title">Certified review</div>
         <div class="meta-row" style="border-top:none;padding-top:0;">
@@ -556,7 +512,11 @@
             </div>
             <span class="score-label"
                   th:text="${#numbers.formatDecimal(certifiedAvg,1,1)} + '/5'">0/5</span>
-            <a th:href="@{/apps/{id}/reviews(id=${app.id})}" class="edit-reviews-link" style="margin-left:auto;">
+            <!-- Edit reviews link: editors only -->
+            <a th:if="${canEdit}"
+               th:href="@{/apps/{id}/reviews(id=${app.id})}"
+               class="edit-reviews-link"
+               style="margin-left:auto;">
                 Edit reviews
             </a>
         </div>
@@ -572,10 +532,14 @@
         </div>
     </div>
 
-    <!-- MEDIA -->
+    <!-- ═══════════════════════════════════════════════════════════
+         MEDIA
+    ════════════════════════════════════════════════════════════ -->
     <div class="media-strip">
         <div class="media-grid">
-            <div class="media-cell" id="ytCell" style="position:relative;padding:0;overflow:hidden;">
+            <!-- Video cell -->
+            <div class="media-cell" th:classappend="${!canEdit} ? ' readonly' : ''"
+                 id="ytCell" style="position:relative;padding:0;overflow:hidden;">
                 <th:block th:with="vm=${media.?[type.name()=='VIDEO']}">
                     <iframe th:if="${!vm.empty}"
                             id="videoIframe"
@@ -584,29 +548,34 @@
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowfullscreen></iframe>
                     <div th:if="${vm.empty}" id="ytPlaceholder"
-                         style="display:flex;flex-direction:column;align-items:center;gap:0.4rem;cursor:pointer;"
-                         onclick="openYouTubeModal()">
+                         th:style="${canEdit} ? 'display:flex;flex-direction:column;align-items:center;gap:0.4rem;cursor:pointer;' : 'display:flex;flex-direction:column;align-items:center;gap:0.4rem;cursor:default;'"
+                         th:onclick="${canEdit} ? 'openYouTubeModal()' : null">
                         <div class="play-btn"><img alt="" src="/video_placeholder_ico.png"/></div>
                     </div>
                 </th:block>
-                <!-- edit button always visible over the iframe -->
-                <button onclick="openYouTubeModal()"
+                <!-- Edit button: editors only -->
+                <button th:if="${canEdit}"
+                        onclick="openYouTubeModal()"
                         style="position:absolute;top:6px;right:6px;z-index:10;
-                   background:rgba(0,0,0,0.55);border:none;color:#fff;
-                   font-size:0.65rem;font-weight:700;padding:0.2rem 0.6rem;
-                   border-radius:var(--radius-pill);cursor:pointer;font-family:var(--font);
-                   letter-spacing:0.06em;text-transform:uppercase;">Edit</button>
+                               background:rgba(0,0,0,0.55);border:none;color:#fff;
+                               font-size:0.65rem;font-weight:700;padding:0.2rem 0.6rem;
+                               border-radius:var(--radius-pill);cursor:pointer;font-family:var(--font);
+                               letter-spacing:0.06em;text-transform:uppercase;">Edit</button>
             </div>
+
+            <!-- Screenshot cells -->
             <th:block th:with="ss=${media.?[type.name()=='SCREENSHOT']}">
-                <div class="media-cell" onclick="triggerMediaUpload('shot1')">
+                <div class="media-cell" th:classappend="${!canEdit} ? ' readonly' : ''"
+                     th:onclick="${canEdit} ? 'triggerMediaUpload(\'shot1\')' : null">
                     <img alt="" id="shot1Img" th:if="${ss.size()>0}" th:src="${ss[0].url}"/>
                     <img alt="" class="media-placeholder" src="/img_placeholder_ico.png" th:if="${ss.size()==0}"/>
-                    <div class="media-upload-overlay">Upload</div>
+                    <div th:if="${canEdit}" class="media-upload-overlay">Upload</div>
                 </div>
-                <div class="media-cell" onclick="triggerMediaUpload('shot2')">
+                <div class="media-cell" th:classappend="${!canEdit} ? ' readonly' : ''"
+                     th:onclick="${canEdit} ? 'triggerMediaUpload(\'shot2\')' : null">
                     <img alt="" id="shot2Img" th:if="${ss.size()>1}" th:src="${ss[1].url}"/>
                     <img alt="" class="media-placeholder" src="/img_placeholder_ico.png" th:if="${ss.size()<=1}"/>
-                    <div class="media-upload-overlay">Upload</div>
+                    <div th:if="${canEdit}" class="media-upload-overlay">Upload</div>
                 </div>
             </th:block>
         </div>
@@ -616,9 +585,11 @@
             <div class="media-dot"></div>
         </div>
     </div>
-    <input accept="image/*,video/*" id="mediaFileInput" style="display:none;" type="file"/>
+    <input th:if="${canEdit}" accept="image/*,video/*" id="mediaFileInput" style="display:none;" type="file"/>
 
-    <!-- CATEGORIES -->
+    <!-- ═══════════════════════════════════════════════════════════
+         CATEGORIES
+    ════════════════════════════════════════════════════════════ -->
     <th:block th:each="ce : ${categorySelections.entrySet()}">
         <div class="meta-row" th:id="'section-' + ${ce.key.id}">
             <div class="meta-label-col">
@@ -630,26 +601,34 @@
 
             <div class="meta-value-col">
                 <div class="selected-row" th:id="'sel-row-' + ${ce.key.id}">
+                    <!-- Selected pills — always visible -->
                     <th:block th:each="entry : ${allEntries.get(ce.key.id)}">
                         <span th:if="${ce.value.contains(entry)}"
                               class="sel-pill"
+                              th:classappend="${!canEdit} ? ' readonly' : ''"
                               th:data-entry-id="${entry.id}"
                               th:data-category-id="${ce.key.id}"
                               th:title="${entry.description}">
                             <img th:if="${entry.iconUrl != null}"
                                  th:src="${entry.iconUrl}" th:alt="${entry.name}"/>
                             <span th:text="${entry.name}">Entry</span>
-                            <button class="sel-pill-remove"
+                            <!-- Remove button: editors only -->
+                            <button th:if="${canEdit}"
+                                    class="sel-pill-remove"
                                     onclick="removePill(this.closest('.sel-pill'))"
                                     type="button">✕</button>
                         </span>
                     </th:block>
-                    <button class="pill-add-btn" type="button"
+                    <!-- Add button: editors only -->
+                    <button th:if="${canEdit}"
+                            class="pill-add-btn" type="button"
                             th:data-category-id="${ce.key.id}"
                             onclick="togglePicker(this)">+</button>
                 </div>
 
-                <div class="pill-picker" th:id="'picker-' + ${ce.key.id}"
+                <!-- Picker panel: editors only -->
+                <div th:if="${canEdit}"
+                     class="pill-picker" th:id="'picker-' + ${ce.key.id}"
                      th:data-allow-custom="${ce.key.allowCustom}"
                      th:data-category-id="${ce.key.id}">
                     <div class="picker-hint"
@@ -715,7 +694,9 @@
 
     <hr class="divider"/>
 
-    <!-- WORKFLOWS -->
+    <!-- ═══════════════════════════════════════════════════════════
+         WORKFLOWS
+    ════════════════════════════════════════════════════════════ -->
     <div class="section">
         <div class="section-title">Main workflows</div>
         <div class="workflows-container" id="workflowsContainer">
@@ -724,24 +705,36 @@
                     <div class="workflow-block" th:data-wf-id="${wf.id}" th:id="'wf-' + ${wf.id}">
                         <div class="workflow-header">
                             <span class="workflow-label">WORKFLOW NAME</span>
-                            <input class="workflow-title-input"
+                            <!-- Editable title: editors only -->
+                            <input th:if="${canEdit}"
+                                   class="workflow-title-input"
                                    onblur="saveWorkflowTitle(this.dataset.id, this.value)"
                                    placeholder="Workflow name"
                                    th:data-id="${wf.id}"
                                    th:id="'wfTitle-' + ${wf.id}"
                                    th:value="${wf.title}"
                                    type="text"/>
-                            <button class="workflow-delete-btn"
+                            <!-- Static title: read-only users -->
+                            <span th:if="${!canEdit}"
+                                  class="workflow-title-static"
+                                  th:text="${wf.title}"></span>
+                            <!-- Delete button: editors only -->
+                            <button th:if="${canEdit}"
+                                    class="workflow-delete-btn"
                                     onclick="deleteWorkflow(this.dataset.id)"
                                     th:data-id="${wf.id}">✕</button>
                         </div>
                         <div class="steps-diagram" th:id="'steps-' + ${wf.id}">
                             <th:block th:each="step, stat : ${workflowSteps.get(wf.id)}">
                                 <span class="step-arrow" th:if="${!stat.first}">→</span>
-                                <div class="step-box" th:id="'step-' + ${step.id}">
+                                <div class="step-box"
+                                     th:classappend="${!canEdit} ? ' readonly' : ''"
+                                     th:id="'step-' + ${step.id}">
                                     <div class="step-box-inner">
                                         <div class="step-box-label">STEP <span th:text="${stat.index + 1}"></span></div>
-                                        <div class="step-box-text"
+                                        <!-- Editable step text: editors only -->
+                                        <div th:if="${canEdit}"
+                                             class="step-box-text"
                                              contenteditable="true"
                                              th:data-step-id="${step.id}"
                                              th:data-wf-id="${wf.id}"
@@ -751,24 +744,34 @@
                                              oninput="handleStepInput(this)"
                                              onfocus="handleStepFocus(this)"
                                              onblur="handleStepBlur(this)"></div>
+                                        <!-- Static step text: read-only users -->
+                                        <div th:if="${!canEdit}"
+                                             class="step-box-text readonly"
+                                             th:text="${step.text}"></div>
                                     </div>
-                                    <span class="step-char-counter">0/70</span>
-                                    <button class="step-box-delete"
+                                    <span th:if="${canEdit}" class="step-char-counter">0/70</span>
+                                    <!-- Delete button: editors only -->
+                                    <button th:if="${canEdit}"
+                                            class="step-box-delete"
                                             onclick="deleteStep(this.dataset.wfId, this.dataset.stepId)"
                                             th:data-step-id="${step.id}"
                                             th:data-wf-id="${wf.id}">✕</button>
                                 </div>
                             </th:block>
-                            <span class="step-arrow"
-                                  th:if="${workflowSteps.get(wf.id) != null and !workflowSteps.get(wf.id).empty}">→</span>
-                            <button class="add-step-circle"
+                            <!-- Arrow before add button: editors only, shown when steps exist -->
+                            <span th:if="${canEdit and workflowSteps.get(wf.id) != null and !workflowSteps.get(wf.id).empty}"
+                                  class="step-arrow">→</span>
+                            <!-- Add step button: editors only -->
+                            <button th:if="${canEdit}"
+                                    class="add-step-circle"
                                     onclick="openAddStepModal(this.dataset.wfId)"
                                     th:data-wf-id="${wf.id}">+</button>
                         </div>
                     </div>
                 </th:block>
             </div>
-            <div class="add-workflow-row">
+            <!-- Add workflow row: editors only -->
+            <div th:if="${canEdit}" class="add-workflow-row">
                 <button class="add-workflow-btn" onclick="openAddWorkflowModal()">+ Add new workflow</button>
             </div>
         </div>
@@ -776,8 +779,12 @@
 
 </div>
 
+<!-- ═══════════════════════════════════════════════════════════
+     MODALS (editor-only modals are guarded by th:if="${canEdit}")
+════════════════════════════════════════════════════════════ -->
+
 <!-- ADD WORKFLOW MODAL -->
-<div class="modal-overlay" id="addWorkflowModal">
+<div th:if="${canEdit}" class="modal-overlay" id="addWorkflowModal">
     <div class="modal">
         <div class="modal-title">Add New Workflow</div>
         <div class="modal-field">
@@ -792,7 +799,7 @@
 </div>
 
 <!-- ADD STEP MODAL -->
-<div class="modal-overlay" id="addStepModal">
+<div th:if="${canEdit}" class="modal-overlay" id="addStepModal">
     <div class="modal">
         <div class="modal-title">Add Step</div>
         <div class="modal-field">
@@ -807,8 +814,9 @@
         </div>
     </div>
 </div>
+
 <!-- YOUTUBE MODAL -->
-<div class="modal-overlay" id="youtubeModal">
+<div th:if="${canEdit}" class="modal-overlay" id="youtubeModal">
     <div class="modal">
         <div class="modal-title" style="display:flex;align-items:center;gap:0.5rem;">
             <span style="color:#ff0000;">▶</span> Add YouTube video
@@ -823,7 +831,6 @@
                    autocomplete="off"
                    oninput="onYtInput(this.value)"/>
         </div>
-        <!-- live preview -->
         <div id="ytPreviewWrap"
              style="display:none;margin:0.75rem 0 1rem;border-radius:10px;overflow:hidden;
                     aspect-ratio:16/9;background:var(--card-bg2);position:relative;">
@@ -833,17 +840,17 @@
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowfullscreen></iframe>
         </div>
-        <div id="ytModalMsg"
-             style="font-size:0.78rem;margin-top:0.25rem;display:none;"></div>
+        <div id="ytModalMsg" style="font-size:0.78rem;margin-top:0.25rem;display:none;"></div>
         <div class="modal-actions">
             <button class="btn-modal-cancel" onclick="closeModal('youtubeModal')">Cancel</button>
-            <button class="btn-modal-submit" id="ytSubmitBtn"
-                    onclick="saveYouTubeUrl()" disabled>Save video</button>
+            <button class="btn-modal-submit" id="ytSubmitBtn" onclick="saveYouTubeUrl()" disabled>Save video</button>
         </div>
     </div>
 </div>
+
 <script th:inline="javascript">
-    const APP_ID = /*[[${app.id.toString()}]]*/ '';
+    const APP_ID  = /*[[${app.id.toString()}]]*/ '';
+    const CAN_EDIT = /*[[${canEdit}]]*/ false;
     const STEP_MAX = 70;
 
     // ─── TOAST ──────────────────────────────────────────────────────────────
@@ -856,8 +863,14 @@
     }
 
     // ─── MODAL helpers ──────────────────────────────────────────────────────
-    function openModal(id) { document.getElementById(id).classList.add('open'); }
-    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+    function openModal(id) {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('open');
+    }
+    function closeModal(id) {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove('open');
+    }
 
     document.querySelectorAll('.modal-overlay').forEach(o =>
         o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); }));
@@ -866,123 +879,137 @@
         if (e.key === 'Escape') {
             document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
         }
-        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-            if (document.getElementById('addStepModal').classList.contains('open')) createStep();
-            else if (document.getElementById('addWorkflowModal').classList.contains('open')) createWorkflow();
+        if (CAN_EDIT && (e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            const stepModal = document.getElementById('addStepModal');
+            const wfModal   = document.getElementById('addWorkflowModal');
+            if (stepModal && stepModal.classList.contains('open')) createStep();
+            else if (wfModal && wfModal.classList.contains('open')) createWorkflow();
         }
     });
 
-    async function addCustomEntry(catId) {
-        const input = document.getElementById('custom-input-' + catId);
-        const name = input.value.trim();
-        if (!name) return;
+    // ─── CLAIM ──────────────────────────────────────────────────────────────
+    (function() {
+        const flash = document.getElementById('claimedFlash');
+        if (flash) setTimeout(() => flash.style.opacity = '0', 5500);
+    })();
 
-        // Build slug from name
-        const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
-            + '-' + Date.now();
+    function openClaimModal() {
+        const input = document.getElementById('claimEmailInput');
+        if (input) input.value = '';
+        const msg = document.getElementById('claimModalMsg');
+        if (msg) { msg.style.display = 'none'; msg.textContent = ''; }
+        openModal('claimModal');
+        setTimeout(() => input && input.focus(), 80);
+    }
 
-        const fd = new FormData();
-        fd.append('name', name);
-        fd.append('slug', slug);
-        fd.append('interest', '0');
-        fd.append('position', '999');
-        fd.append('visibility', 'true');
+    async function submitClaim() {
+        const email = document.getElementById('claimEmailInput').value.trim();
+        const btn   = document.getElementById('claimSubmitBtn');
+
+        if (!email) { showClaimMsg('Please enter your email address.', false); return; }
+
+        btn.disabled = true;
+        btn.textContent = 'Sending…';
 
         try {
-            const r = await fetch(`/categories/${catId}/entries`, { method: 'POST', body: fd });
-            if (!r.ok) throw new Error('Failed to create entry');
+            const fd = new FormData();
+            fd.append('email', email);
+            const r    = await fetch(`/apps/${APP_ID}/claim/request`, { method: 'POST', body: fd });
+            const data = await r.json();
 
-            // The endpoint redirects, so we need to fetch the entry id a different way.
-            // Re-fetch the picker entries to find the new one.
-            const pageR = await fetch(`/categories/${catId}/entries`);
-            const html = await pageR.text();
-            const doc = new DOMParser().parseFromString(html, 'text/html');
-            const match = [...doc.querySelectorAll('.entry-pill-name')]
-                .find(el => el.textContent.trim() === name);
-
-            if (!match) throw new Error('Could not find created entry');
-            const pill = match.closest('.entry-pill');
-            // extract id from the delete form action
-            const deleteForm = pill.querySelector('form');
-            const parts = deleteForm?.action?.split('/');
-            const entryId = parts?.[parts.length - 2];
-            if (!entryId) throw new Error('Could not parse entry id');
-
-            // Add as opt-pill to picker
-            const pickerPills = document.getElementById('picker-pills-' + catId);
-            const optPill = document.createElement('span');
-            optPill.className = 'opt-pill selected';
-            optPill.dataset.entryId = entryId;
-            optPill.dataset.entryName = name;
-            optPill.dataset.categoryId = catId;
-            optPill.dataset.max = pickerPills.querySelector('.opt-pill')?.dataset.max || '';
-            optPill.onclick = function() { toggleOptPill(this); };
-            optPill.innerHTML = `<span>${name}</span>`;
-            pickerPills.appendChild(optPill);
-
-            // Also add to sel-row immediately
-            const selRow = document.getElementById('sel-row-' + catId);
-            const addBtn = selRow.querySelector('.pill-add-btn');
-            const selPill = buildSelPill(entryId, catId, name, null, null);
-            selRow.insertBefore(selPill, addBtn);
-
-            input.value = '';
-            showToast('Entry added');
+            if (r.ok && data.ok) {
+                showClaimMsg('✓ ' + data.message, true);
+                btn.textContent = 'Sent!';
+                setTimeout(() => closeModal('claimModal'), 2500);
+            } else {
+                showClaimMsg(data.error || 'Something went wrong.', false);
+                btn.disabled = false;
+                btn.textContent = 'Send verification email';
+            }
         } catch (e) {
-            showToast(e.message, true);
+            showClaimMsg('Network error — please try again.', false);
+            btn.disabled = false;
+            btn.textContent = 'Send verification email';
         }
     }
 
-    function handleCustomEntryKey(event, input) {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            addCustomEntry(input.dataset.categoryId);
-        }
+    function showClaimMsg(text, success) {
+        const el = document.getElementById('claimModalMsg');
+        el.textContent   = text;
+        el.style.color   = success ? '#4ade80' : '#f87171';
+        el.style.display = 'block';
     }
 
-    // ─── ICON UPLOAD ────────────────────────────────────────────────────────
-    document.getElementById('iconFileInput').addEventListener('change', async function () {
-        const file = this.files[0]; if (!file) return;
-        const fd = new FormData(); fd.append('file', file);
-        try {
-            const r = await fetch(`/media/upload/icon/${APP_ID}`, { method: 'POST', body: fd });
-            const d = await r.json();
-            if (!r.ok) throw new Error(d.error || 'Upload failed');
-            let img = document.getElementById('iconImg');
-            if (!img) {
-                img = document.createElement('img'); img.id = 'iconImg'; img.alt = 'icon';
-                document.getElementById('iconPlaceholder')?.remove();
-                document.getElementById('iconWrap').prepend(img);
-            }
-            img.src = d.url; showToast('Icon updated');
-        } catch (e) { showToast(e.message, true); }
-        this.value = '';
+    document.addEventListener('DOMContentLoaded', function() {
+        const input = document.getElementById('claimEmailInput');
+        if (input) {
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') { e.preventDefault(); submitClaim(); }
+            });
+        }
     });
 
-    // ─── MEDIA UPLOAD ───────────────────────────────────────────────────────
+    // ─── ICON UPLOAD (editors only) ─────────────────────────────────────────
+    if (CAN_EDIT) {
+        const iconInput = document.getElementById('iconFileInput');
+        if (iconInput) {
+            iconInput.addEventListener('change', async function () {
+                const file = this.files[0]; if (!file) return;
+                const fd = new FormData(); fd.append('file', file);
+                try {
+                    const r = await fetch(`/media/upload/icon/${APP_ID}`, { method: 'POST', body: fd });
+                    const d = await r.json();
+                    if (!r.ok) throw new Error(d.error || 'Upload failed');
+                    let img = document.getElementById('iconImg');
+                    if (!img) {
+                        img = document.createElement('img'); img.id = 'iconImg'; img.alt = 'icon';
+                        document.getElementById('iconPlaceholder')?.remove();
+                        document.getElementById('iconWrap').prepend(img);
+                    }
+                    img.src = d.url; showToast('Icon updated');
+                } catch (e) { showToast(e.message, true); }
+                this.value = '';
+            });
+        }
+    }
+
+    // ─── MEDIA UPLOAD (editors only) ────────────────────────────────────────
     let _mediaSlot = 'shot1';
-    function triggerMediaUpload(slot) { _mediaSlot = slot; document.getElementById('mediaFileInput').click(); }
-    document.getElementById('mediaFileInput').addEventListener('change', async function () {
-        const file = this.files[0]; if (!file) return;
-        const fd = new FormData(); fd.append('file', file); fd.append('position', _mediaSlot === 'shot2' ? 1 : 0);
-        try {
-            const r = await fetch(`/media/upload/screenshot/${APP_ID}`, { method: 'POST', body: fd });
-            const d = await r.json();
-            if (!r.ok) throw new Error(d.error || 'Upload failed');
-            const imgId = _mediaSlot === 'video' ? 'videoImg' : _mediaSlot === 'shot2' ? 'shot2Img' : 'shot1Img';
-            let img = document.getElementById(imgId);
-            if (!img) {
-                const cell = document.querySelector(`[onclick="triggerMediaUpload('${_mediaSlot}')"]`);
-                cell.querySelector('.media-placeholder, .play-btn')?.remove();
-                img = document.createElement('img'); img.id = imgId; img.alt = ''; cell.prepend(img);
-            }
-            img.src = d.url; showToast('Media uploaded');
-        } catch (e) { showToast(e.message, true); }
-        this.value = '';
-    });
+    function triggerMediaUpload(slot) {
+        if (!CAN_EDIT) return;
+        _mediaSlot = slot;
+        document.getElementById('mediaFileInput').click();
+    }
 
-    // ─── APP INFO ───────────────────────────────────────────────────────────
+    if (CAN_EDIT) {
+        const mediaInput = document.getElementById('mediaFileInput');
+        if (mediaInput) {
+            mediaInput.addEventListener('change', async function () {
+                const file = this.files[0]; if (!file) return;
+                const fd = new FormData();
+                fd.append('file', file);
+                fd.append('position', _mediaSlot === 'shot2' ? 1 : 0);
+                try {
+                    const r = await fetch(`/media/upload/screenshot/${APP_ID}`, { method: 'POST', body: fd });
+                    const d = await r.json();
+                    if (!r.ok) throw new Error(d.error || 'Upload failed');
+                    const imgId = _mediaSlot === 'shot2' ? 'shot2Img' : 'shot1Img';
+                    let img = document.getElementById(imgId);
+                    if (!img) {
+                        const cell = document.querySelector(`[onclick="triggerMediaUpload('${_mediaSlot}')"]`);
+                        cell.querySelector('.media-placeholder, .play-btn')?.remove();
+                        img = document.createElement('img'); img.id = imgId; img.alt = ''; cell.prepend(img);
+                    }
+                    img.src = d.url; showToast('Media uploaded');
+                } catch (e) { showToast(e.message, true); }
+                this.value = '';
+            });
+        }
+    }
+
+    // ─── APP INFO (editors only) ─────────────────────────────────────────────
     async function saveAppInfo() {
+        if (!CAN_EDIT) return;
         const name = document.getElementById('editableName').innerText.trim();
         const desc = document.getElementById('editableDescription').innerText.trim();
         if (!name) return showToast('Name cannot be empty', true);
@@ -1014,69 +1041,73 @@
         return json;
     }
 
-    // ─── CATEGORY PILLS ─────────────────────────────────────────────────────
+    // ─── CATEGORY PILLS (editors only) ──────────────────────────────────────
     function togglePicker(btn) {
+        if (!CAN_EDIT) return;
         const catId = btn.dataset.categoryId;
-        const picker = document.getElementById('picker-' + catId);
-        picker.classList.toggle('open');
+        document.getElementById('picker-' + catId).classList.toggle('open');
     }
 
     function closePicker(catId) {
-        document.getElementById('picker-' + catId).classList.remove('open');
+        const el = document.getElementById('picker-' + catId);
+        if (el) el.classList.remove('open');
     }
 
     function toggleOptPill(pill) {
+        if (!CAN_EDIT) return;
         const catId = pill.dataset.categoryId;
-        const max = pill.dataset.max ? parseInt(pill.dataset.max) : null;
+        const max   = pill.dataset.max ? parseInt(pill.dataset.max) : null;
         const pickerPills = document.getElementById('picker-pills-' + catId);
 
         if (pill.classList.contains('selected')) {
             pill.classList.remove('selected');
-            const selRow = document.getElementById('sel-row-' + catId);
-            selRow.querySelector(`.sel-pill[data-entry-id="${pill.dataset.entryId}"]`)?.remove();
+            document.getElementById('sel-row-' + catId)
+                ?.querySelector(`.sel-pill[data-entry-id="${pill.dataset.entryId}"]`)
+                ?.remove();
         } else {
             if (max === 1) {
-                pickerPills.querySelectorAll('.opt-pill.selected')
-                    .forEach(p => {
-                        p.classList.remove('selected');
-                        const selRow = document.getElementById('sel-row-' + catId);
-                        selRow.querySelector(`.sel-pill[data-entry-id="${p.dataset.entryId}"]`)?.remove();
-                    });
+                pickerPills.querySelectorAll('.opt-pill.selected').forEach(p => {
+                    p.classList.remove('selected');
+                    document.getElementById('sel-row-' + catId)
+                        ?.querySelector(`.sel-pill[data-entry-id="${p.dataset.entryId}"]`)
+                        ?.remove();
+                });
             } else if (max) {
-                const currentCount = pickerPills.querySelectorAll('.opt-pill.selected').length;
-                if (currentCount >= max) return;
+                if (pickerPills.querySelectorAll('.opt-pill.selected').length >= max) return;
             }
             pill.classList.add('selected');
             const selRow = document.getElementById('sel-row-' + catId);
             const addBtn = selRow.querySelector('.pill-add-btn');
-            const newPill = buildSelPill(
-                pill.dataset.entryId, catId,
-                pill.dataset.entryName, pill.dataset.entryIcon,
-                pill.dataset.entryDescription
+            selRow.insertBefore(
+                buildSelPill(pill.dataset.entryId, catId, pill.dataset.entryName, pill.dataset.entryIcon, pill.dataset.entryDescription),
+                addBtn
             );
-            selRow.insertBefore(newPill, addBtn);
         }
     }
 
     function removePill(pill) {
+        if (!CAN_EDIT) return;
         const entryId = pill.dataset.entryId;
-        const catId = pill.dataset.categoryId;
-        const optPill = document.querySelector(`#picker-pills-${catId} .opt-pill[data-entry-id="${entryId}"]`);
-        if (optPill) optPill.classList.remove('selected');
+        const catId   = pill.dataset.categoryId;
+        document.querySelector(`#picker-pills-${catId} .opt-pill[data-entry-id="${entryId}"]`)
+            ?.classList.remove('selected');
         pill.remove();
     }
 
     async function saveCategorySelections(categoryId, btn) {
-        const pickerPills = document.getElementById('picker-pills-' + categoryId);
+        if (!CAN_EDIT) return;
+        const pickerPills     = document.getElementById('picker-pills-' + categoryId);
         const selectedOptPills = [...pickerPills.querySelectorAll('.opt-pill.selected')];
-        const ids = selectedOptPills.map(p => p.dataset.entryId);
+        const ids             = selectedOptPills.map(p => p.dataset.entryId);
 
         const selRow = document.getElementById('sel-row-' + categoryId);
         const addBtn = selRow.querySelector('.pill-add-btn');
         selRow.querySelectorAll('.sel-pill').forEach(p => p.remove());
         selectedOptPills.forEach(optPill => {
-            const pill = buildSelPill(optPill.dataset.entryId, categoryId, optPill.dataset.entryName, optPill.dataset.entryIcon, optPill.dataset.entryDescription);
-            selRow.insertBefore(pill, addBtn);
+            selRow.insertBefore(
+                buildSelPill(optPill.dataset.entryId, categoryId, optPill.dataset.entryName, optPill.dataset.entryIcon, optPill.dataset.entryDescription),
+                addBtn
+            );
         });
 
         btn.textContent = 'Saving…'; btn.classList.add('saving');
@@ -1097,7 +1128,7 @@
         const span = document.createElement('span');
         span.className = 'sel-pill';
         if (description && description !== 'null') span.title = description;
-        span.dataset.entryId = entryId;
+        span.dataset.entryId    = entryId;
         span.dataset.categoryId = catId;
         if (iconUrl && iconUrl !== 'null') {
             const img = document.createElement('img'); img.src = iconUrl; img.alt = name;
@@ -1108,21 +1139,81 @@
         const removeBtn = document.createElement('button');
         removeBtn.className = 'sel-pill-remove'; removeBtn.type = 'button'; removeBtn.textContent = '✕';
         removeBtn.onclick = () => {
-            const optPill = document.querySelector(`#picker-pills-${catId} .opt-pill[data-entry-id="${entryId}"]`);
-            if (optPill) optPill.classList.remove('selected');
+            document.querySelector(`#picker-pills-${catId} .opt-pill[data-entry-id="${entryId}"]`)
+                ?.classList.remove('selected');
             span.remove();
         };
         span.appendChild(removeBtn);
         return span;
     }
 
+    async function addCustomEntry(catId) {
+        if (!CAN_EDIT) return;
+        const input = document.getElementById('custom-input-' + catId);
+        const name  = input.value.trim();
+        if (!name) return;
+
+        const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+            + '-' + Date.now();
+
+        const fd = new FormData();
+        fd.append('name', name);
+        fd.append('slug', slug);
+        fd.append('interest', '0');
+        fd.append('position', '999');
+        fd.append('visibility', 'true');
+
+        try {
+            const r = await fetch(`/categories/${catId}/entries`, { method: 'POST', body: fd });
+            if (!r.ok) throw new Error('Failed to create entry');
+
+            const pageR = await fetch(`/categories/${catId}/entries`);
+            const html  = await pageR.text();
+            const doc   = new DOMParser().parseFromString(html, 'text/html');
+            const match = [...doc.querySelectorAll('.entry-pill-name')]
+                .find(el => el.textContent.trim() === name);
+
+            if (!match) throw new Error('Could not find created entry');
+            const pill       = match.closest('.entry-pill');
+            const deleteForm = pill.querySelector('form');
+            const parts      = deleteForm?.action?.split('/');
+            const entryId    = parts?.[parts.length - 2];
+            if (!entryId) throw new Error('Could not parse entry id');
+
+            const pickerPills = document.getElementById('picker-pills-' + catId);
+            const optPill     = document.createElement('span');
+            optPill.className         = 'opt-pill selected';
+            optPill.dataset.entryId   = entryId;
+            optPill.dataset.entryName = name;
+            optPill.dataset.categoryId = catId;
+            optPill.dataset.max       = pickerPills.querySelector('.opt-pill')?.dataset.max || '';
+            optPill.onclick           = function() { toggleOptPill(this); };
+            optPill.innerHTML         = `<span>${name}</span>`;
+            pickerPills.appendChild(optPill);
+
+            const selRow = document.getElementById('sel-row-' + catId);
+            const addBtn = selRow.querySelector('.pill-add-btn');
+            selRow.insertBefore(buildSelPill(entryId, catId, name, null, null), addBtn);
+
+            input.value = '';
+            showToast('Entry added');
+        } catch (e) { showToast(e.message, true); }
+    }
+
+    function handleCustomEntryKey(event, input) {
+        if (event.key === 'Enter') { event.preventDefault(); addCustomEntry(input.dataset.categoryId); }
+    }
+
+    // ─── WORKFLOWS (editors only) ────────────────────────────────────────────
     function openAddWorkflowModal() {
+        if (!CAN_EDIT) return;
         document.getElementById('newWorkflowTitle').value = '';
         openModal('addWorkflowModal');
         setTimeout(() => document.getElementById('newWorkflowTitle').focus(), 80);
     }
 
     async function createWorkflow() {
+        if (!CAN_EDIT) return;
         const title = document.getElementById('newWorkflowTitle').value.trim();
         if (!title) return;
         const fd = new FormData(); fd.append('title', title);
@@ -1135,6 +1226,7 @@
     }
 
     async function deleteWorkflow(wfId) {
+        if (!CAN_EDIT) return;
         if (!confirm('Delete this workflow?')) return;
         try {
             await apiFetch(`/apps/${APP_ID}/manage/workflows/${wfId}/delete`, new FormData());
@@ -1144,6 +1236,7 @@
     }
 
     async function saveWorkflowTitle(wfId, value) {
+        if (!CAN_EDIT) return;
         const title = value.trim(); if (!title) return;
         const fd = new FormData(); fd.append('title', title);
         try {
@@ -1152,7 +1245,9 @@
         } catch (e) { showToast(e.message, true); }
     }
 
+    // ─── STEP EDITING (editors only) ────────────────────────────────────────
     function handleStepFocus(el) {
+        if (!CAN_EDIT) return;
         const box = el.closest('.step-box');
         box.classList.add('editing');
         el.dataset.original = el.textContent.trim();
@@ -1160,6 +1255,7 @@
     }
 
     function handleStepInput(el) {
+        if (!CAN_EDIT) return;
         const text = el.textContent;
         updateStepCounter(el);
         if (text.length > STEP_MAX) {
@@ -1170,35 +1266,21 @@
     }
 
     function handleStepKeydown(event, el) {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            el.blur();
-        }
-        if (event.key === 'Escape') {
-            event.preventDefault();
-            el.textContent = el.dataset.original || '';
-            el.blur();
-        }
+        if (!CAN_EDIT) return;
+        if (event.key === 'Enter') { event.preventDefault(); el.blur(); }
+        if (event.key === 'Escape') { event.preventDefault(); el.textContent = el.dataset.original || ''; el.blur(); }
     }
 
     async function handleStepBlur(el) {
-        const box = el.closest('.step-box');
+        if (!CAN_EDIT) return;
+        const box      = el.closest('.step-box');
         box.classList.remove('editing');
-
-        const newText = el.textContent.trim();
+        const newText  = el.textContent.trim();
         const original = el.dataset.original || '';
-
         if (newText === original) return;
-
-        if (!newText) {
-            el.textContent = original;
-            showToast('Step cannot be empty', true);
-            return;
-        }
-
+        if (!newText) { el.textContent = original; showToast('Step cannot be empty', true); return; }
         const stepId = el.dataset.stepId;
-        const wfId = el.dataset.wfId;
-
+        const wfId   = el.dataset.wfId;
         const fd = new FormData(); fd.append('text', newText);
         try {
             await apiFetch(`/apps/${APP_ID}/manage/workflows/${wfId}/steps/${stepId}/update`, fd);
@@ -1213,7 +1295,7 @@
     }
 
     function updateStepCounter(el) {
-        const box = el.closest('.step-box');
+        const box     = el.closest('.step-box');
         const counter = box.querySelector('.step-char-counter');
         if (!counter) return;
         const len = el.textContent.length;
@@ -1223,19 +1305,17 @@
 
     function placeCursorAtEnd(el) {
         const range = document.createRange();
-        const sel = window.getSelection();
-        range.selectNodeContents(el);
-        range.collapse(false);
-        sel.removeAllRanges();
-        sel.addRange(range);
+        const sel   = window.getSelection();
+        range.selectNodeContents(el); range.collapse(false);
+        sel.removeAllRanges(); sel.addRange(range);
     }
 
     let _activeWfId = null;
 
     function updateStepCharHint(input) {
-        const len = input.value.length;
+        const len  = input.value.length;
         const hint = document.getElementById('stepCharHint');
-        const btn = document.getElementById('addStepSubmitBtn');
+        const btn  = document.getElementById('addStepSubmitBtn');
         hint.textContent = `${len} / ${STEP_MAX}`;
         const over = len > STEP_MAX;
         hint.classList.toggle('over', over);
@@ -1243,6 +1323,7 @@
     }
 
     function openAddStepModal(wfId) {
+        if (!CAN_EDIT) return;
         _activeWfId = wfId;
         const input = document.getElementById('newStepText');
         input.value = '';
@@ -1252,6 +1333,7 @@
     }
 
     async function createStep() {
+        if (!CAN_EDIT) return;
         const text = document.getElementById('newStepText').value.trim();
         if (!text || !_activeWfId) return;
         if (text.length > STEP_MAX) return showToast(`Max ${STEP_MAX} characters`, true);
@@ -1265,6 +1347,7 @@
     }
 
     async function deleteStep(wfId, stepId) {
+        if (!CAN_EDIT) return;
         try {
             await apiFetch(`/apps/${APP_ID}/manage/workflows/${wfId}/steps/${stepId}/delete`, new FormData());
             removeStepBox(wfId, stepId);
@@ -1286,7 +1369,7 @@
                 step.after(arrow);
             }
         });
-        if (steps.length > 0) {
+        if (steps.length > 0 && addBtn) {
             const arrow = document.createElement('span');
             arrow.className = 'step-arrow'; arrow.textContent = '→';
             addBtn.before(arrow);
@@ -1294,10 +1377,10 @@
     }
 
     function appendStepBox(wfId, stepId, text, position) {
-        const diagram = document.getElementById('steps-' + wfId);
-        const addBtn = diagram.querySelector('.add-step-circle');
+        const diagram      = document.getElementById('steps-' + wfId);
+        const addBtn       = diagram.querySelector('.add-step-circle');
         const existingSteps = diagram.querySelectorAll('.step-box').length;
-        const box = document.createElement('div');
+        const box          = document.createElement('div');
         box.className = 'step-box'; box.id = 'step-' + stepId;
         box.innerHTML = `
           <div class="step-box-inner">
@@ -1334,7 +1417,7 @@
 
     function appendWorkflowBlock(wfId, title) {
         const list = document.getElementById('workflowsList');
-        const div = document.createElement('div');
+        const div  = document.createElement('div');
         div.className = 'workflow-block'; div.id = 'wf-' + wfId; div.dataset.wfId = wfId;
         div.innerHTML = `
           <div class="workflow-header">
@@ -1367,126 +1450,122 @@
     // ─── INIT ────────────────────────────────────────────────────────────────
     document.querySelectorAll('.step-box').forEach(applyMultilineClass);
     document.querySelectorAll('.steps-diagram').forEach(diagram => {
-        const wfId = diagram.id.replace('steps-', '');
-        redrawDiagram(wfId);
+        redrawDiagram(diagram.id.replace('steps-', ''));
     });
-    // Init char counters for existing steps
-    document.querySelectorAll('.step-box-text').forEach(el => {
-        updateStepCounter(el);
-    });
-
-    // ─── YOUTUBE ─────────────────────────────────────────────────────────────
-function extractYouTubeId(url) {
-    url = (url || '').trim();
-    const patterns = [
-        /[?&]v=([a-zA-Z0-9_-]{11})/,
-        /youtu\.be\/([a-zA-Z0-9_-]{11})/,
-        /embed\/([a-zA-Z0-9_-]{11})/,
-        /shorts\/([a-zA-Z0-9_-]{11})/
-    ];
-    for (const p of patterns) {
-        const m = url.match(p);
-        if (m) return m[1];
+    if (CAN_EDIT) {
+        document.querySelectorAll('.step-box-text').forEach(el => updateStepCounter(el));
     }
-    return null;
-}
 
-function onYtInput(val) {
-    const videoId   = extractYouTubeId(val);
-    const preview   = document.getElementById('ytPreviewWrap');
-    const frame     = document.getElementById('ytPreviewFrame');
-    const msg       = document.getElementById('ytModalMsg');
-    const submitBtn = document.getElementById('ytSubmitBtn');
+    // ─── YOUTUBE (editors only) ──────────────────────────────────────────────
+    function extractYouTubeId(url) {
+        url = (url || '').trim();
+        const patterns = [
+            /[?&]v=([a-zA-Z0-9_-]{11})/,
+            /youtu\.be\/([a-zA-Z0-9_-]{11})/,
+            /embed\/([a-zA-Z0-9_-]{11})/,
+            /shorts\/([a-zA-Z0-9_-]{11})/
+        ];
+        for (const p of patterns) { const m = url.match(p); if (m) return m[1]; }
+        return null;
+    }
 
-    if (videoId) {
-        frame.src = `https://www.youtube.com/embed/${videoId}?controls=1`;
-        preview.style.display  = 'block';
-        msg.style.display      = 'none';
-        submitBtn.disabled     = false;
-    } else {
-        preview.style.display  = 'none';
-        frame.src              = '';
-        submitBtn.disabled     = true;
-        if (val.length > 8) {
-            msg.textContent   = 'Could not find a YouTube video ID — check the URL.';
+    function onYtInput(val) {
+        const videoId   = extractYouTubeId(val);
+        const preview   = document.getElementById('ytPreviewWrap');
+        const frame     = document.getElementById('ytPreviewFrame');
+        const msg       = document.getElementById('ytModalMsg');
+        const submitBtn = document.getElementById('ytSubmitBtn');
+        if (!preview) return;
+
+        if (videoId) {
+            frame.src              = `https://www.youtube.com/embed/${videoId}?controls=1`;
+            preview.style.display  = 'block';
+            msg.style.display      = 'none';
+            submitBtn.disabled     = false;
+        } else {
+            preview.style.display  = 'none';
+            frame.src              = '';
+            submitBtn.disabled     = true;
+            if (val.length > 8) {
+                msg.textContent    = 'Could not find a YouTube video ID — check the URL.';
+                msg.style.color    = '#f87171';
+                msg.style.display  = 'block';
+            } else {
+                msg.style.display  = 'none';
+            }
+        }
+    }
+
+    function openYouTubeModal() {
+        if (!CAN_EDIT) return;
+        const input = document.getElementById('ytUrlInput');
+        input.value = '';
+        document.getElementById('ytPreviewWrap').style.display  = 'none';
+        document.getElementById('ytPreviewFrame').src           = '';
+        document.getElementById('ytModalMsg').style.display     = 'none';
+        document.getElementById('ytSubmitBtn').disabled         = true;
+        openModal('youtubeModal');
+        setTimeout(() => input.focus(), 80);
+    }
+
+    async function saveYouTubeUrl() {
+        if (!CAN_EDIT) return;
+        const url     = document.getElementById('ytUrlInput').value.trim();
+        const videoId = extractYouTubeId(url);
+        const msg     = document.getElementById('ytModalMsg');
+        const btn     = document.getElementById('ytSubmitBtn');
+
+        if (!videoId) {
+            msg.textContent   = 'Please enter a valid YouTube URL.';
             msg.style.color   = '#f87171';
             msg.style.display = 'block';
-        } else {
-            msg.style.display = 'none';
+            return;
+        }
+
+        const embedUrl = `https://www.youtube.com/embed/${videoId}?controls=1`;
+        btn.disabled    = true;
+        btn.textContent = 'Saving…';
+
+        try {
+            const fd = new FormData();
+            fd.append('url',      embedUrl);
+            fd.append('type',     'VIDEO');
+            fd.append('position', '0');
+
+            const r    = await fetch(`/apps/${APP_ID}/manage/video`, { method: 'POST', body: fd });
+            const data = await r.json();
+            if (!r.ok) throw new Error(data.error || 'Save failed');
+
+            const cell = document.getElementById('ytCell');
+            document.getElementById('ytPlaceholder')?.remove();
+            let iframe = document.getElementById('videoIframe');
+            if (!iframe) {
+                iframe = document.createElement('iframe');
+                iframe.id              = 'videoIframe';
+                iframe.style.cssText   = 'width:100%;height:100%;border:none;position:absolute;inset:0;';
+                iframe.allow           = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+                iframe.allowFullscreen = true;
+                cell.prepend(iframe);
+            }
+            iframe.src = embedUrl;
+            closeModal('youtubeModal');
+            showToast('Video saved');
+        } catch (e) {
+            msg.textContent   = e.message || 'Something went wrong.';
+            msg.style.color   = '#f87171';
+            msg.style.display = 'block';
+            btn.disabled      = false;
+            btn.textContent   = 'Save video';
         }
     }
-}
 
-function openYouTubeModal() {
-    const input = document.getElementById('ytUrlInput');
-    input.value = '';
-    document.getElementById('ytPreviewWrap').style.display = 'none';
-    document.getElementById('ytPreviewFrame').src          = '';
-    document.getElementById('ytModalMsg').style.display    = 'none';
-    document.getElementById('ytSubmitBtn').disabled        = true;
-    openModal('youtubeModal');
-    setTimeout(() => input.focus(), 80);
-}
-
-async function saveYouTubeUrl() {
-    const url     = document.getElementById('ytUrlInput').value.trim();
-    const videoId = extractYouTubeId(url);
-    const msg     = document.getElementById('ytModalMsg');
-    const btn     = document.getElementById('ytSubmitBtn');
-
-    if (!videoId) {
-        msg.textContent   = 'Please enter a valid YouTube URL.';
-        msg.style.color   = '#f87171';
-        msg.style.display = 'block';
-        return;
-    }
-
-    const embedUrl = `https://www.youtube.com/embed/${videoId}?controls=1`;
-
-    btn.disabled    = true;
-    btn.textContent = 'Saving…';
-
-    try {
-        const fd = new FormData();
-        fd.append('url',      embedUrl);
-        fd.append('type',     'VIDEO');
-        fd.append('position', '0');
-
-        const r    = await fetch(`/apps/${APP_ID}/manage/video`, { method: 'POST', body: fd });
-        const data = await r.json();
-        if (!r.ok) throw new Error(data.error || 'Save failed');
-
-        // Update the cell — swap placeholder for live iframe
-        const cell = document.getElementById('ytCell');
-        document.getElementById('ytPlaceholder')?.remove();
-        let iframe = document.getElementById('videoIframe');
-        if (!iframe) {
-            iframe = document.createElement('iframe');
-            iframe.id    = 'videoIframe';
-            iframe.style.cssText = 'width:100%;height:100%;border:none;position:absolute;inset:0;';
-            iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
-            iframe.allowFullscreen = true;
-            cell.prepend(iframe);
-        }
-        iframe.src = embedUrl;
-
-        closeModal('youtubeModal');
-        showToast('Video saved');
-    } catch (e) {
-        msg.textContent   = e.message || 'Something went wrong.';
-        msg.style.color   = '#f87171';
-        msg.style.display = 'block';
-        btn.disabled      = false;
-        btn.textContent   = 'Save video';
-    }
-}
-
-document.addEventListener('DOMContentLoaded', function () {
-    const input = document.getElementById('ytUrlInput');
-    if (input) input.addEventListener('keydown', e => {
-        if (e.key === 'Enter') { e.preventDefault(); saveYouTubeUrl(); }
+    document.addEventListener('DOMContentLoaded', function () {
+        if (!CAN_EDIT) return;
+        const input = document.getElementById('ytUrlInput');
+        if (input) input.addEventListener('keydown', e => {
+            if (e.key === 'Enter') { e.preventDefault(); saveYouTubeUrl(); }
+        });
     });
-});
 </script>
 
 </body>

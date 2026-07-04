@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>Vibe — Apps for people by people</title>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@100;200;300;400;500;600;700;800&display=swap"
           rel="stylesheet"/>
+    <link th:replace="~{fragments/navbar :: navbar-css}"/>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
@@ -32,7 +33,7 @@
             --radius-xl:    16px;
             --radius-pill:  999px;
             --font: 'Sora', sans-serif;
-            --nav-h:        52px;
+            /* --nav-h now comes from navbar.css (shared with every other page) */
         }
         * { font-family: 'Sora', sans-serif; }
         html { scroll-behavior: smooth; }
@@ -46,38 +47,6 @@
         }
         a { text-decoration: none; color: inherit; }
         button { font-family: var(--font); cursor: pointer; }
-
-        /* ── NAV ───────────────────────────────────────────────── */
-        nav {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 2rem; height: var(--nav-h);
-            background: rgba(15,22,35,0.92);
-            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-            border-bottom: 1px solid rgba(255,255,255,0.06);
-            position: fixed; top: 0; left: 0; right: 0; z-index: 300;
-        }
-        .nav-left  { display: flex; align-items: center; gap: 2rem; }
-        .nav-logo  {
-            width: 30px; height: 30px; border-radius: 50%;
-            background: #fff; display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0; overflow: hidden;
-        }
-        .nav-link  { color: rgba(255,255,255,0.75); font-size: 0.85rem; font-weight: 500; transition: color 0.12s; }
-        .nav-link:hover { color: var(--white); }
-        .nav-right { display: flex; align-items: center; gap: 0.75rem; }
-        .btn-nav-ghost {
-            background: transparent; border: none;
-            color: rgba(255,255,255,0.75); font-size: 0.83rem; font-weight: 500;
-            padding: 0.3rem 0.75rem; border-radius: var(--radius-pill); transition: color 0.12s;
-        }
-        .btn-nav-ghost:hover { color: var(--white); }
-        .btn-nav-solid {
-            background: transparent; border: 1.5px solid rgba(255,255,255,0.5);
-            color: var(--white); font-size: 0.83rem; font-weight: 600;
-            padding: 0.3rem 1rem; border-radius: var(--radius-pill);
-            transition: border-color 0.12s, background 0.12s;
-        }
-        .btn-nav-solid:hover { border-color: var(--white); background: rgba(255,255,255,0.05); }
 
         /* ── HERO ──────────────────────────────────────────────── */
         .hero {
@@ -407,21 +376,7 @@
 </head>
 <body>
 
-<nav>
-    <div class="nav-left">
-        <a class="nav-logo" href="/" th:href="@{/}">
-            <img alt="Vibe logo" src="/logo_sm.png" style="width:100%;height:100%;object-fit:cover;background:black;"
-                 th:src="@{/logo_sm.png}"/>
-        </a>
-        <a class="nav-link" href="/submit" th:href="@{/submit}">Submit</a>
-        <a class="nav-link" href="/explore" th:href="@{/explore}">Explore</a>
-        <a class="nav-link" href="/apps" th:href="@{/apps}">Wish an app</a>
-    </div>
-    <div class="nav-right">
-        <a class="btn-nav-ghost" href="/login" th:href="@{/login}">Sign in</a>
-        <a class="btn-nav-solid" href="/register" th:href="@{/register}">Sign up</a>
-    </div>
-</nav>
+<nav th:replace="~{fragments/navbar :: navbar}"></nav>
 
 <div style="padding-top: var(--nav-h);">
 
@@ -445,7 +400,8 @@
             <div class="wish-card">
                 <div class="wish-card-label">Can't find the right app? No problem!</div>
                 <a class="btn-wish" href="/apps" th:href="@{/apps}">Wish an app</a>
-                <a class="nav-link" style="font-size:0.72rem;margin-top:0.5rem;display:block;opacity:0.6;" th:href="@{/admin/home-sections}">Edit homepage</a>
+                <a class="nav-link" style="font-size:0.72rem;margin-top:0.5rem;display:block;opacity:0.6;"
+                   th:if="${isAdmin}" th:href="@{/admin/home-sections}">Edit homepage</a>
             </div>
         </div>
     </div>
@@ -476,7 +432,7 @@
                                 <div style="display:flex;align-items:center;gap:0.4rem;">
                                     <button class="features-arrow-btn" id="featuresScrollLeft">‹</button>
                                     <button class="features-arrow-btn" id="featuresScrollRight">›</button>
-                                    <div class="block-move-handle" title="Drag to reorder this row">
+                                    <div class="block-move-handle" th:if="${isAdmin}" title="Drag to reorder this row">
                                         <div class="drag-dots">
                                             <span></span><span></span><span></span><span></span><span></span><span></span>
                                         </div>
@@ -522,12 +478,13 @@
                                  data-sub-slot="list">
                                 <div class="section-header">
                                     <div class="section-title-row">
-                                        <div class="block-move-handle" title="Drag to reorder this row">
+                                        <div class="block-move-handle" th:if="${isAdmin}" title="Drag to reorder this row">
                                             <div class="drag-dots">
                                                 <span></span><span></span><span></span><span></span><span></span><span></span>
                                             </div>
                                         </div>
                                         <span class="section-title"
+                                              th:if="${isAdmin}"
                                               contenteditable="true"
                                               th:data-section-id="${section.id}"
                                               th:data-title-field="title"
@@ -535,9 +492,12 @@
                                               th:text="${section.title}"
                                               onblur="saveSectionTitle(this)"
                                               onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"></span>
+                                        <span class="section-title"
+                                              th:unless="${isAdmin}"
+                                              th:text="${section.title}"></span>
                                     </div>
-                                    <div class="section-header-actions">
-                                        <a class="section-edit-link only-on-right" th:href="@{/admin/home-sections(edit=${section.id})}" title="Edit this section">✎ Edit</a>
+                                    <div class="section-header-actions" th:if="${isAdmin}">
+                                        <a class="section-edit-link only-on-right" th:href="@{/admin/home-sections(edit=${section.id})}" title="Edit this section">✎</a>
                                         <button type="button" class="section-delete-link only-on-right" th:data-section-id="${section.id}" onclick="deleteSection(this)" title="Delete this section">🗑</button>
                                         <button type="button" class="swap-handle" th:data-section-id="${section.id}" onclick="swapSides(this)" title="Click to swap left ↔ right">
                                             <span class="swap-label">Swap</span><span aria-hidden="true">⇄</span>
@@ -550,7 +510,7 @@
                                             <th:block th:if="${listApps != null and !#lists.isEmpty(listApps)}">
                                                 <th:block th:each="app : ${listApps}">
                                                     <a class="app-list-card"
-                                                       th:href="@{/p/{slug}(slug=${app.slug})}"
+                                                       th:href="@{/apps/{id}/manage(id=${app.id})}"
                                                        th:data-name="${app.name.toLowerCase()}"
                                                        th:data-desc="${app.description != null ? app.description.toLowerCase() : ''}">
                                                         <div class="app-list-icon">
@@ -592,6 +552,7 @@
                                 <div class="section-header">
                                     <div class="section-title-row">
                                         <span class="section-title"
+                                              th:if="${isAdmin}"
                                               contenteditable="true"
                                               th:data-section-id="${section.id}"
                                               th:data-title-field="featuredTitle"
@@ -599,8 +560,11 @@
                                               th:text="${section.featuredTitle != null ? section.featuredTitle : 'Featured'}"
                                               onblur="saveSectionTitle(this)"
                                               onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"></span>
+                                        <span class="section-title"
+                                              th:unless="${isAdmin}"
+                                              th:text="${section.featuredTitle != null ? section.featuredTitle : 'Featured'}"></span>
                                     </div>
-                                    <div class="section-header-actions">
+                                    <div class="section-header-actions" th:if="${isAdmin}">
                                         <a class="section-edit-link only-on-right" th:href="@{/admin/home-sections(edit=${section.id})}" title="Edit this section">🖉</a>
                                         <button type="button" class="section-delete-link only-on-right" th:data-section-id="${section.id}" onclick="deleteSection(this)" title="Delete this section">🗑</button>
                                         <button type="button" class="swap-handle" th:data-section-id="${section.id}" onclick="swapSides(this)" title="Click to swap left ↔ right">
@@ -611,7 +575,7 @@
                                 <div class="home-section dark-card">
                                     <th:block th:with="feat=${sectionFeatured.get(section.id)}">
                                         <div th:if="${feat != null}" class="featured-card-inner">
-                                            <a th:href="@{/p/{slug}(slug=${feat.slug})}" style="text-decoration:none;color:inherit;">
+                                            <a th:href="@{/apps/{id}/manage(id=${feat.id})}" style="text-decoration:none;color:inherit;">
                                                 <div class="featured-icon">
                                                     <img alt="" th:if="${feat.iconUrl != null}" th:src="${feat.iconUrl}"/>
                                                     <span th:if="${feat.iconUrl == null}">⭐</span>
@@ -644,12 +608,13 @@
                             <div class="section-wrapper">
                                 <div class="section-header">
                                     <div class="section-title-row">
-                                        <div class="block-move-handle" title="Drag to reorder this row">
+                                        <div class="block-move-handle" th:if="${isAdmin}" title="Drag to reorder this row">
                                             <div class="drag-dots">
                                                 <span></span><span></span><span></span><span></span><span></span><span></span>
                                             </div>
                                         </div>
                                         <span class="section-title"
+                                              th:if="${isAdmin}"
                                               contenteditable="true"
                                               th:data-section-id="${section.id}"
                                               th:data-title-field="title"
@@ -657,8 +622,11 @@
                                               th:text="${section.title}"
                                               onblur="saveSectionTitle(this)"
                                               onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"></span>
+                                        <span class="section-title"
+                                              th:unless="${isAdmin}"
+                                              th:text="${section.title}"></span>
                                     </div>
-                                    <div class="section-header-actions">
+                                    <div class="section-header-actions" th:if="${isAdmin}">
                                         <a class="section-edit-link" th:href="@{/admin/home-sections(edit=${section.id})}" title="Edit this section">✎ Edit</a>
                                         <button type="button" class="section-delete-link" th:data-section-id="${section.id}" onclick="deleteSection(this)" title="Delete this section">🗑 Delete</button>
                                     </div>
@@ -668,7 +636,7 @@
                                         <div class="vibe-grid" th:if="${listApps != null and !#lists.isEmpty(listApps)}">
                                             <a class="grid-card"
                                                th:each="app : ${listApps}"
-                                               th:href="@{/p/{slug}(slug=${app.slug})}"
+                                               th:href="@{/apps/{id}/manage(id=${app.id})}"
                                                th:data-name="${app.name.toLowerCase()}"
                                                th:data-desc="${app.description != null ? app.description.toLowerCase() : ''}">
                                                 <div class="grid-icon">
@@ -699,7 +667,7 @@
             <div th:if="${#lists.isEmpty(sections)}"
                  style="text-align:center;padding:2.5rem 2rem 1rem;color:var(--gray-300);font-size:0.88rem;line-height:1.7;">
                 No custom homepage sections yet.<br/>
-                <a th:href="@{/admin/home-sections}"
+                <a th:if="${isAdmin}" th:href="@{/admin/home-sections}"
                    style="color:var(--accent-green);font-weight:700;text-decoration:underline;">Add your first section →</a>
             </div>
 
@@ -708,6 +676,13 @@
 </div>
 
 <script th:inline="javascript">
+    /* Server-computed flag: only MANAGER/ADMIN roles get true. Drives whether
+       the editing JS (drag-reorder, title editing, delete, swap) is armed at
+       all. The real authorization boundary still lives on the server-side
+       /admin/home-sections/** and /api/site-config/** endpoints — this flag
+       only controls the client-side UI affordances. */
+    const IS_ADMIN = [[${isAdmin}]];
+
     /* ── Hero search ──────────────────────────────────────────────── */
     const heroSearch = document.getElementById('heroSearch');
     if (heroSearch) {
@@ -790,80 +765,86 @@
         }
     }
 
-    /* ── Drag-and-drop homepage blocks (outer reorder) ───────────── */
-    (function initDrag() {
-        const container = document.getElementById('sectionsContainer');
-        if (!container) return;
+    /* ── Drag-and-drop homepage blocks (outer reorder) ─────────────
+       Only armed for admins/managers — for everyone else there are no
+       .block-move-handle elements in the DOM anyway (gated server-side
+       via th:if="${isAdmin}"), but we also skip wiring up the whole
+       drag machinery as a belt-and-suspenders measure. */
+    if (IS_ADMIN) {
+        (function initDrag() {
+            const container = document.getElementById('sectionsContainer');
+            if (!container) return;
 
-        const blockSelector = '.section-pair[data-block-id], .section-row-full[data-block-id]';
-        let dragEl = null;
+            const blockSelector = '.section-pair[data-block-id], .section-row-full[data-block-id]';
+            let dragEl = null;
 
-        container.querySelectorAll(blockSelector).forEach(block => {
-            block.addEventListener('dragstart', e => {
-                // Only proceed if this block itself is the one armed for dragging
-                if (block.getAttribute('draggable') !== 'true') return;
-                dragEl = block;
-                setTimeout(() => block.classList.add('dragging-pair'), 0);
-                e.dataTransfer.effectAllowed = 'move';
-            });
-            block.addEventListener('dragend', () => {
-                block.classList.remove('dragging-pair');
-                block.removeAttribute('draggable');
-                container.querySelectorAll(blockSelector).forEach(b => b.classList.remove('drag-over-pair'));
-                persistOrder();
-                dragEl = null;
-            });
-            block.addEventListener('dragover', e => {
-                if (!dragEl) return;
-                e.preventDefault();
-                if (dragEl === block) return;
-                block.classList.add('drag-over-pair');
-            });
-            block.addEventListener('dragleave', e => {
-                if (!block.contains(e.relatedTarget)) block.classList.remove('drag-over-pair');
-            });
-            block.addEventListener('drop', e => {
-                if (!dragEl) return;
-                e.preventDefault();
-                block.classList.remove('drag-over-pair');
-                if (dragEl === block) return;
-                const els = [...container.querySelectorAll(blockSelector)];
-                const dragIdx = els.indexOf(dragEl);
-                const dropIdx = els.indexOf(block);
-                if (dragIdx < dropIdx) block.after(dragEl);
-                else block.before(dragEl);
-            });
+            container.querySelectorAll(blockSelector).forEach(block => {
+                block.addEventListener('dragstart', e => {
+                    // Only proceed if this block itself is the one armed for dragging
+                    if (block.getAttribute('draggable') !== 'true') return;
+                    dragEl = block;
+                    setTimeout(() => block.classList.add('dragging-pair'), 0);
+                    e.dataTransfer.effectAllowed = 'move';
+                });
+                block.addEventListener('dragend', () => {
+                    block.classList.remove('dragging-pair');
+                    block.removeAttribute('draggable');
+                    container.querySelectorAll(blockSelector).forEach(b => b.classList.remove('drag-over-pair'));
+                    persistOrder();
+                    dragEl = null;
+                });
+                block.addEventListener('dragover', e => {
+                    if (!dragEl) return;
+                    e.preventDefault();
+                    if (dragEl === block) return;
+                    block.classList.add('drag-over-pair');
+                });
+                block.addEventListener('dragleave', e => {
+                    if (!block.contains(e.relatedTarget)) block.classList.remove('drag-over-pair');
+                });
+                block.addEventListener('drop', e => {
+                    if (!dragEl) return;
+                    e.preventDefault();
+                    block.classList.remove('drag-over-pair');
+                    if (dragEl === block) return;
+                    const els = [...container.querySelectorAll(blockSelector)];
+                    const dragIdx = els.indexOf(dragEl);
+                    const dropIdx = els.indexOf(block);
+                    if (dragIdx < dropIdx) block.after(dragEl);
+                    else block.before(dragEl);
+                });
 
-            // Outer (whole-row) dragging arms ONLY from this block's own
-            // .block-move-handle — never from the header generally, and
-            // never from the inner .swap-handle button. Keeping these two
-            // handles visually and functionally separate is what prevents
-            // them from fighting over the same mousedown.
-            block.querySelectorAll(':scope .block-move-handle').forEach(handle => {
-                handle.addEventListener('mousedown', e => {
-                    e.stopPropagation();
-                    block.setAttribute('draggable', 'true');
+                // Outer (whole-row) dragging arms ONLY from this block's own
+                // .block-move-handle — never from the header generally, and
+                // never from the inner .swap-handle button. Keeping these two
+                // handles visually and functionally separate is what prevents
+                // them from fighting over the same mousedown.
+                block.querySelectorAll(':scope .block-move-handle').forEach(handle => {
+                    handle.addEventListener('mousedown', e => {
+                        e.stopPropagation();
+                        block.setAttribute('draggable', 'true');
+                    });
+                });
+                document.addEventListener('mouseup', () => {
+                    if (!dragEl) block.removeAttribute('draggable');
                 });
             });
-            document.addEventListener('mouseup', () => {
-                if (!dragEl) block.removeAttribute('draggable');
-            });
-        });
 
-        async function persistOrder() {
-            const ids = [...container.querySelectorAll(blockSelector)]
-                .map(b => b.dataset.blockId)
-                .filter(Boolean);
-            if (!ids.length) return;
-            try {
-                await fetch('/api/site-config/section-order', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ order: ids.join(',') })
-                });
-            } catch (_) { /* best effort */ }
-        }
-    })();
+            async function persistOrder() {
+                const ids = [...container.querySelectorAll(blockSelector)]
+                    .map(b => b.dataset.blockId)
+                    .filter(Boolean);
+                if (!ids.length) return;
+                try {
+                    await fetch('/api/site-config/section-order', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ order: ids.join(',') })
+                    });
+                } catch (_) { /* best effort */ }
+            }
+        })();
+    }
 </script>
 </body>
 </html>

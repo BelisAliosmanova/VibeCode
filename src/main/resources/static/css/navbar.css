@@ -1,0 +1,58 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@100;200;300;400;500;600;700;800&display=swap');
+
+:root {
+    --white:        #ffffff;
+    --radius-pill:  999px;
+    --font: 'Sora', sans-serif;
+    --nav-h:        52px;
+}
+
+/* ── NAV RESET ─────────────────────────────────────────── */
+/* Scoped reset so the navbar looks identical everywhere, regardless of
+   whether the host page happens to define its own global resets. The
+   original design relied on page-wide rules like
+   `a { text-decoration: none; color: inherit; }` and
+   `* { font-family: 'Sora' }` that lived in home.html's <style> block —
+   fine on that page, but any page missing those rules (like explore.html)
+   would render nav links underlined, in the wrong color, or the wrong
+   font. Scoping the reset to `nav *` fixes that without touching anything
+   outside the navbar. */
+nav, nav * {
+    font-family: var(--font);
+    text-decoration: none;
+    color: inherit;
+    box-sizing: border-box;
+}
+nav a {
+    text-decoration: none;
+}
+nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 2rem; height: var(--nav-h);
+    background: rgba(15,22,35,0.92);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    position: fixed; top: 0; left: 0; right: 0; z-index: 300;
+}
+.nav-left  { display: flex; align-items: center; gap: 2rem; }
+.nav-logo  {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #fff; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; overflow: hidden;
+}
+.nav-link  { color: rgba(255,255,255,0.75); font-size: 0.85rem; font-weight: 500; transition: color 0.12s; }
+.nav-link:hover { color: var(--white); }
+.nav-right { display: flex; align-items: center; gap: 0.75rem; }
+.btn-nav-ghost {
+    background: transparent; border: none;
+    color: rgba(255,255,255,0.75); font-size: 0.83rem; font-weight: 500;
+    padding: 0.3rem 0.75rem; border-radius: var(--radius-pill); transition: color 0.12s;
+}
+.btn-nav-ghost:hover { color: var(--white); }
+.btn-nav-solid {
+    background: transparent; border: 1.5px solid rgba(255,255,255,0.5);
+    color: var(--white); font-size: 0.83rem; font-weight: 600;
+    padding: 0.3rem 1rem; border-radius: var(--radius-pill);
+    transition: border-color 0.12s, background 0.12s;
+}
+.btn-nav-solid:hover { border-color: var(--white); background: rgba(255,255,255,0.05); }
