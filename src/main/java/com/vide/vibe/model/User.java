@@ -28,10 +28,12 @@ public class User extends SoftDeletableEntity {
         ACTIVE, PENDING, BANNED
     }
 
+    public enum AuthProvider { LOCAL, GOOGLE }
+
     @Column(name = "email", nullable = false, unique = true, length = 320)
     private String email;
 
-    @Column(name = "password_hash", nullable = false)
+    @Column(name = "password_hash")
     private String passwordHash;
 
     @Enumerated(EnumType.STRING)
@@ -41,6 +43,11 @@ public class User extends SoftDeletableEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
     private Status status;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "auth_provider", nullable = false, length = 20)
+    @Builder.Default
+    private AuthProvider authProvider = AuthProvider.LOCAL;
 
     // ── Relationships ──────────────────────────────────────────────────────────
 

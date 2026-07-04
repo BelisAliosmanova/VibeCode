@@ -16,6 +16,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CategoryService {
 
+    private static final int SLUG_MAX_LENGTH = 255;
+
     private final CategoryRepository categoryRepository;
     private final CategoryEntryRepository categoryEntryRepository;
     private final AppCategoryEntryRepository appCategoryEntryRepository;
@@ -65,6 +67,7 @@ public class CategoryService {
     @Transactional
     public void deleteCategory(UUID id) {
         Category category = findById(id);
+        category.setSlug(mangleSlug(category.getSlug(), category.getId()));
         category.softDelete();
         categoryRepository.save(category);
     }
@@ -138,6 +141,7 @@ public class CategoryService {
     @Transactional
     public void deleteEntry(UUID id) {
         CategoryEntry entry = findEntryById(id);
+        entry.setSlug(mangleSlug(entry.getSlug(), entry.getId()));
         entry.softDelete();
         categoryEntryRepository.save(entry);
     }
@@ -180,5 +184,14 @@ public class CategoryService {
                         row -> (UUID) row[0],
                         row -> (Long) row[1]
                 ));
+    }
+
+    private String mangleSlug(String slug, UUID id) {
+        String suffix = "-deleted-" + id;
+        if (slug.length() + suffix.length() <= SLUG_MAX_LENGTH) {
+            return slug + suffix;
+        }
+        int allowedSlugLength = Math.max(0, SLUG_MAX_LENGTH - suffix.length());
+        return slug.substring(0, allowedSlugLength) + suffix;
     }
 }

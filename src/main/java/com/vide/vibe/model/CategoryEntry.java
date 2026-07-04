@@ -49,4 +49,6 @@ public class CategoryEntry extends SoftDeletableEntity {
     @Column(name = "visibility", nullable = false)
     @Builder.Default
     private Boolean visibility = true;
+
+
 }
