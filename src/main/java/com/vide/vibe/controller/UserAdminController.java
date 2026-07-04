@@ -15,7 +15,6 @@ import java.util.UUID;
 @Controller
 @RequestMapping("/admin/users")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
 public class UserAdminController {
 
     private final UserService userService;
