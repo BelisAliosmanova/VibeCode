@@ -276,6 +276,16 @@
         .section-more:hover { color: rgba(255,255,255,0.9); }
 
         /* ── APP LIST CARD ──────────────────────────────────────── */
+        .app-indicators { display: flex; gap: 0.35rem; margin-top: 0.35rem; }
+        .app-indicator-badge {
+            width: 22px; height: 18px;
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 4px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .app-indicator-badge svg { width: 12px; height: 12px; stroke: rgba(255,255,255,0.85); fill: none; stroke-width: 2; }
+
         .app-list-card {
             display: flex; align-items: center; gap: 0.8rem;
             padding: 0.55rem 0; cursor: pointer; transition: opacity 0.1s;
@@ -521,6 +531,17 @@
                                                             <div class="app-list-name" th:text="${app.name}">App Name</div>
                                                             <div class="app-list-desc"
                                                                  th:text="${app.description != null ? app.description : 'No description'}"></div>
+                                                            <div class="app-indicators">
+                                                                <span class="app-indicator-badge" th:if="${appsWithVideo.contains(app.id)}" title="Has video">
+                                                                    <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+                                                                </span>
+                                                                <span class="app-indicator-badge" th:if="${appsWithImages.contains(app.id)}" title="Has screenshots">
+                                                                    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg>
+                                                                </span>
+                                                                <span class="app-indicator-badge" th:if="${appsWithWorkflows.contains(app.id)}" title="Has workflows">
+                                                                    <svg viewBox="0 0 24 24"><rect x="2" y="4" width="6" height="6" rx="1"/><rect x="16" y="4" width="6" height="6" rx="1"/><rect x="9" y="14" width="6" height="6" rx="1"/><path d="M5 10v2a2 2 0 0 0 2 2h2M19 10v2a2 2 0 0 1-2 2h-2"/></svg>
+                                                                </span>
+                                                            </div>
                                                         </div>
                                                         <div class="app-list-right">
                                                             <span class="price-tag free">FREE</span>

@@ -1,9 +1,8 @@
 package com.vide.vibe.controller;
 
-import com.vide.vibe.model.App;
-import com.vide.vibe.model.Category;
-import com.vide.vibe.model.CategoryEntry;
-import com.vide.vibe.model.HomeSection;
+import com.vide.vibe.model.*;
+import com.vide.vibe.repository.AppMediaRepository;
+import com.vide.vibe.repository.WorkflowRepository;
 import com.vide.vibe.service.AppService;
 import com.vide.vibe.service.CategoryService;
 import com.vide.vibe.service.HomeSectionService;
@@ -34,6 +33,8 @@ public class HomeController {
     private final CategoryService categoryService;
     private final SiteConfigService siteConfigService;
     private final HomeSectionService homeSectionService;
+    private final AppMediaRepository appMediaRepository;
+    private final WorkflowRepository workflowRepository;
 
     @GetMapping
     public String home(Model model) {
@@ -80,6 +81,18 @@ public class HomeController {
         // the /admin/home-sections/** and /api/site-config/** endpoints via
         // Spring Security's hasAnyRole('MANAGER','ADMIN') checks.
         boolean isAdmin = isCurrentUserManagerOrAdmin();
+
+        Set<UUID> allAppIds = new LinkedHashSet<>();
+        sectionListApps.values().forEach(list -> list.forEach(a -> allAppIds.add(a.getId())));
+        sectionFeatured.values().forEach(a -> { if (a != null) allAppIds.add(a.getId()); });
+
+        Set<UUID> appsWithVideo     = appMediaRepository.findAppIdsWithMediaType(allAppIds, AppMedia.MediaType.VIDEO);
+        Set<UUID> appsWithImages    = appMediaRepository.findAppIdsWithMediaType(allAppIds, AppMedia.MediaType.SCREENSHOT);
+        Set<UUID> appsWithWorkflows = workflowRepository.findAppIdsWithWorkflows(allAppIds);
+
+        model.addAttribute("appsWithVideo",     appsWithVideo);
+        model.addAttribute("appsWithImages",    appsWithImages);
+        model.addAttribute("appsWithWorkflows", appsWithWorkflows);
 
         model.addAttribute("blockOrder",      blockOrder);
         model.addAttribute("blockPopular",    BLOCK_POPULAR_FEATURES);
