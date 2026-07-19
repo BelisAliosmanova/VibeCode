@@ -57,7 +57,7 @@ public class UserService {
         return findByEmail(email).orElseGet(() -> {
             User user = User.builder()
                     .email(email)
-                    .passwordHash(null)
+                    .passwordHash("")
                     .role(User.Role.USER)
                     .status(User.Status.PENDING)
                     .authProvider(User.AuthProvider.LOCAL)
