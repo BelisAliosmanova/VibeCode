@@ -4,6 +4,7 @@ import com.vide.vibe.model.AppCategoryEntry;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -39,4 +40,10 @@ public interface AppCategoryEntryRepository extends JpaRepository<AppCategoryEnt
 
     @Query("SELECT ace.entry.id, COUNT(ace) FROM AppCategoryEntry ace GROUP BY ace.entry.id")
     List<Object[]> countGroupedByEntryId();
+
+    @Query("SELECT ace.entry.id, COUNT(DISTINCT ace.app.id) " +
+            "FROM AppCategoryEntry ace " +
+            "WHERE ace.entry.category.id = :categoryId " +
+            "GROUP BY ace.entry.id")
+    List<Object[]> countAppsByEntryForCategory(@Param("categoryId") UUID categoryId);
 }

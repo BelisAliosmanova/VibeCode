@@ -4,168 +4,95 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Submit Your App — Vibe</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@100;200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link th:replace="~{fragments/navbar :: navbar-css}"/>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
         :root {
-            --dark: #5a5a5a;
-            --light: #f5f5f5;
-            --black: #111;
-            --white: #fff;
-            --border: #d0d0d0;
-            --radius: 50px;
-            --font: 'Inter', system-ui, sans-serif;
+            --bg: #233141; --card-bg: #1e2a3a; --border: rgba(255,255,255,0.08);
+            --white: #fff; --gray-200: #b0b8c4; --gray-300: #7a8494;
+            --cyan: #00d4ff; --green: rgba(143,230,4,1); --radius-pill: 999px;
+            --font: 'Sora', sans-serif;
+            /* --nav-h comes from navbar.css, same as every other page */
+        }
+        body { font-family: var(--font); background: var(--bg); color: var(--white); }
+
+        /* ── HERO — identical structure/sizing to the home page hero ──── */
+        .hero { position: relative; height: 380px; overflow: hidden; background: #0d1520; }
+        .hero-bg {
+            position: absolute; inset: 0; z-index: 1;
+            background-image: url(/HOME-hero3.png);
+            background-size: 50%; background-position: center right; background-repeat: no-repeat; opacity: 0.9;
+        }
+        .hero-overlay {
+            position: absolute; inset: 0;
+            background: linear-gradient(to right, rgba(13,21,32,0.88) 0%, rgba(13,21,32,0.65) 35%, rgba(13,21,32,0.15) 65%, transparent 100%);
+        }
+        .hero-fade {
+            position: absolute; bottom: 0; left: 0; right: 0; height: 45%;
+            background: linear-gradient(to bottom, transparent, var(--bg)); pointer-events: none;
+        }
+        .hero-inner { position: relative; height: 100%; max-width: 1100px; margin: 0 auto; padding: 0 2rem; }
+        .hero-content {
+            position: relative; height: 100%; display: flex; flex-direction: column;
+            justify-content: center; padding-top: calc(var(--nav-h) + 0.5rem); max-width: 560px;
+        }
+        .hero-heading { font-size: 3rem; font-weight: 700; color: var(--white); line-height: 1.05; letter-spacing: 0.5px; margin-bottom: 0.6rem; }
+        .hero-subtext { font-size: 0.9rem; color: var(--gray-200); opacity: 0.85; }
+        @media (max-width: 768px) {
+            .hero { height: 280px; }
+            .hero-heading { font-size: 2rem; }
         }
 
-        body {
-            font-family: var(--font);
-            background: var(--white);
-            color: var(--black);
+        .progress-bar { height: 3px; background: rgba(255,255,255,0.08); }
+        .progress-fill { height: 100%; background: var(--cyan); }
+
+        .page { max-width: 420px; margin: 3rem auto; padding: 0 1.5rem; text-align: center; }
+        .page h2 { font-size: 0.95rem; font-weight: 600; color: var(--gray-200); margin-bottom: 1.5rem; letter-spacing: 0.02em; }
+
+        .field input {
+            width: 100%; padding: 0.75rem 1.25rem; border-radius: var(--radius-pill);
+            border: 1.5px solid var(--border); background: var(--card-bg); color: var(--white);
+            font-size: 0.88rem; font-family: var(--font); outline: none; transition: border-color 0.15s;
         }
+        .field input::placeholder { color: var(--gray-300); }
+        .field input:focus { border-color: var(--cyan); }
 
-        /* NAV */
-        nav {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0.85rem 2rem;
-            background: var(--dark);
+        .btn-next {
+            margin-top: 1.5rem; background: var(--green); color: #15280a; border: none;
+            padding: 0.7rem 2.5rem; border-radius: var(--radius-pill); font-size: 0.88rem;
+            font-weight: 700; cursor: pointer; font-family: var(--font); transition: opacity 0.12s;
         }
-
-        .nav-left {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-        }
-
-        .nav-logo {
-            width: 32px;
-            height: 32px;
-            background: #222;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 800;
-            font-size: 0.9rem;
-        }
-
-        .nav-link {
-            color: var(--white);
-            text-decoration: none;
-            font-size: 0.9rem;
-            opacity: 0.9;
-        }
-
-        .nav-right {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .btn-ghost {
-            background: transparent;
-            border: none;
-            color: var(--white);
-            font-size: 0.9rem;
-            cursor: pointer;
-            text-decoration: none;
-        }
-
-        .btn-outline {
-            background: transparent;
-            border: 1.5px solid var(--white);
-            color: var(--white);
-            font-size: 0.85rem;
-            padding: 0.4rem 1rem;
-            border-radius: var(--radius);
-            cursor: pointer;
-            text-decoration: none;
-        }
-
-        /* HERO */
-        .hero {
-            background: var(--dark);
-            color: var(--white);
-            text-align: center;
-            padding: 5rem 2rem 6rem;
-        }
-
-        .hero h1 {
-            font-size: 2.2rem;
-            font-weight: 700;
-            margin-bottom: 0.75rem;
-            letter-spacing: -0.5px;
-        }
-
-        .hero p {
-            font-size: 1rem;
-            opacity: 0.75;
-            margin-bottom: 2rem;
-        }
-
-        .hero-form {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1rem;
-            max-width: 400px;
-            margin: 0 auto;
-        }
-
-        .hero-input {
-            width: 100%;
-            padding: 0.75rem 1.25rem;
-            border-radius: var(--radius);
-            border: none;
-            font-size: 0.9rem;
-            outline: none;
-            background: rgba(255,255,255,0.15);
-            color: var(--white);
-        }
-
-        .hero-input::placeholder { color: rgba(255,255,255,0.6); }
-
-        .btn-black {
-            background: var(--black);
-            color: var(--white);
-            border: none;
-            padding: 0.7rem 2rem;
-            border-radius: var(--radius);
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-        }
-
-        .btn-black:hover { background: #333; }
-
-        /* CONTENT AREA */
-        .content {
-            min-height: 200px;
-            background: var(--white);
-        }
+        .btn-next:hover { opacity: 0.85; }
     </style>
-    <link rel="preconnect" href="https://fonts.googleapis.com"/>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 </head>
 <body>
 
 <nav th:replace="~{fragments/navbar :: navbar}"></nav>
 
-<section class="hero">
-    <h1>Show off your amazing app</h1>
-    <p>get visibility, beta users and pro feedback</p>
+<div class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-overlay"></div>
+    <div class="hero-fade"></div>
+    <div class="hero-inner">
+        <div class="hero-content">
+            <h1 class="hero-heading">Submit your app</h1>
+            <p class="hero-subtext">Get visibility and pro feedback</p>
+        </div>
+    </div>
+</div>
 
-    <form class="hero-form" th:action="@{/submit/start}" method="post">
-        <input class="hero-input" type="url" name="appUrl"
-               placeholder="Your app URL..." required/>
-        <button type="submit" class="btn-black">Submit app</button>
+<div class="progress-bar"><div class="progress-fill" style="width:20%;"></div></div>
+
+<div class="page">
+    <form th:action="@{/submit/start}" method="post">
+        <h2>App URL</h2>
+        <div class="field">
+            <input type="url" name="appUrl" placeholder="Your app URL..." required/>
+        </div>
+        <button type="submit" class="btn-next">Next</button>
     </form>
-</section>
-
-<div class="content"></div>
+</div>
 
 </body>
 </html>

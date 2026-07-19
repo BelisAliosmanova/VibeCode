@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -184,6 +185,15 @@ public class CategoryService {
                         row -> (UUID) row[0],
                         row -> (Long) row[1]
                 ));
+    }
+
+    public Map<UUID, Long> countAppsPerEntry(UUID categoryId) {
+        List<Object[]> rows = appCategoryEntryRepository.countAppsByEntryForCategory(categoryId);
+        Map<UUID, Long> counts = new HashMap<>();
+        for (Object[] row : rows) {
+            counts.put((UUID) row[0], (Long) row[1]);
+        }
+        return counts;
     }
 
     private String mangleSlug(String slug, UUID id) {

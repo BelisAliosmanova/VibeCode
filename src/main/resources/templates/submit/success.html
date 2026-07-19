@@ -4,56 +4,101 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>App Submitted — Vibe</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@100;200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link th:replace="~{fragments/navbar :: navbar-css}"/>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        :root { --dark: #5a5a5a; --black: #111; --white: #fff; --font: 'Inter', system-ui, sans-serif; }
-        body { font-family: var(--font); background: var(--white); color: var(--black); }
+        :root {
+            --bg: #233141; --card-bg: #1e2a3a; --border: rgba(255,255,255,0.08);
+            --white: #fff; --gray-200: #b0b8c4; --gray-300: #7a8494;
+            --cyan: #00d4ff; --green: rgba(143,230,4,1); --radius-pill: 999px;
+            --font: 'Sora', sans-serif;
+        }
+        body { font-family: var(--font); background: var(--bg); color: var(--white); }
 
-        nav { display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 2rem; background: var(--dark); }
-        .nav-left { display: flex; align-items: center; gap: 1.5rem; }
-        .nav-logo { width: 32px; height: 32px; background: #222; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 0.9rem; }
-        .nav-link { color: #fff; text-decoration: none; font-size: 0.9rem; }
-        .nav-right { display: flex; align-items: center; gap: 1rem; }
-        .btn-ghost { background: transparent; border: none; color: #fff; font-size: 0.9rem; cursor: pointer; text-decoration: none; }
-        .btn-outline { background: transparent; border: 1.5px solid #fff; color: #fff; font-size: 0.85rem; padding: 0.4rem 1rem; border-radius: 50px; text-decoration: none; }
-
-        .success {
-            text-align: center;
-            padding: 6rem 2rem;
+        /* ── HERO — identical structure/sizing to the home page hero ──── */
+        .hero { position: relative; height: 380px; overflow: hidden; background: #0d1520; }
+        .hero-bg {
+            position: absolute; inset: 0; z-index: 1;
+            background-image: url(/HOME-hero3.png);
+            background-size: 50%; background-position: center right; background-repeat: no-repeat; opacity: 0.9;
+        }
+        .hero-overlay {
+            position: absolute; inset: 0;
+            background: linear-gradient(to right, rgba(13,21,32,0.88) 0%, rgba(13,21,32,0.65) 35%, rgba(13,21,32,0.15) 65%, transparent 100%);
+        }
+        .hero-fade {
+            position: absolute; bottom: 0; left: 0; right: 0; height: 45%;
+            background: linear-gradient(to bottom, transparent, var(--bg)); pointer-events: none;
+        }
+        .hero-inner { position: relative; height: 100%; max-width: 1100px; margin: 0 auto; padding: 0 2rem; }
+        .hero-content {
+            position: relative; height: 100%; display: flex; flex-direction: column;
+            justify-content: center; padding-top: calc(var(--nav-h) + 0.5rem); max-width: 560px;
+        }
+        .hero-heading { font-size: 3rem; font-weight: 700; color: var(--white); line-height: 1.05; letter-spacing: 0.5px; margin-bottom: 0.6rem; }
+        .hero-subtext { font-size: 0.9rem; color: var(--gray-200); opacity: 0.85; }
+        @media (max-width: 768px) {
+            .hero { height: 280px; }
+            .hero-heading { font-size: 2rem; }
         }
 
-        .checkmark {
-            width: 64px; height: 64px;
-            background: #111;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            margin: 0 auto 1.5rem;
-            font-size: 1.8rem;
-            color: white;
+        .progress-bar { height: 3px; background: rgba(255,255,255,0.08); }
+        .progress-fill { height: 100%; background: var(--cyan); width: 100%; }
+
+        .page {
+            max-width: 480px; margin: 0 auto; padding: 5rem 1.5rem 3rem;
+            text-align: center; display: flex; flex-direction: column; align-items: center;
         }
+        .success-emoji { font-size: 2.2rem; margin-bottom: 0.75rem; }
+        .success-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .success-title span { color: var(--green); }
+        .success-note { font-size: 0.82rem; color: var(--gray-300); margin-bottom: 2rem; max-width: 340px; line-height: 1.5; }
 
-        .success h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.75rem; }
-        .success p { color: #666; font-size: 0.95rem; margin-bottom: 2rem; }
-
-        .btn-row { display: flex; align-items: center; justify-content: center; gap: 0.75rem; flex-wrap: wrap; }
-
-        .btn-black { background: #111; color: #fff; border: none; padding: 0.7rem 2rem; border-radius: 50px; font-size: 0.9rem; font-weight: 600; cursor: pointer; text-decoration: none; }
-        .btn-outline-dark { background: transparent; border: 1.5px solid #ddd; color: #111; padding: 0.7rem 2rem; border-radius: 50px; font-size: 0.9rem; font-weight: 500; text-decoration: none; }
-        .btn-outline-dark:hover { border-color: #aaa; }
+        .actions { display: flex; align-items: center; gap: 0.75rem; }
+        .btn-primary {
+            background: var(--green); color: #15280a; border: none;
+            padding: 0.65rem 1.6rem; border-radius: var(--radius-pill);
+            font-size: 0.84rem; font-weight: 700; cursor: pointer; font-family: var(--font);
+            text-decoration: none; transition: opacity 0.12s;
+        }
+        .btn-primary:hover { opacity: 0.85; }
+        .btn-secondary {
+            background: transparent; color: var(--white); border: 1.5px solid var(--green);
+            padding: 0.63rem 1.6rem; border-radius: var(--radius-pill);
+            font-size: 0.84rem; font-weight: 700; cursor: pointer; font-family: var(--font);
+            text-decoration: none; transition: background 0.12s;
+        }
+        .btn-secondary:hover { background: rgba(255,255,255,0.06); }
     </style>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 </head>
 <body>
+
 <nav th:replace="~{fragments/navbar :: navbar}"></nav>
 
-<div class="success">
-    <div class="checkmark">✓</div>
-    <h1 th:text="'🎉 ' + ${app.name} + ' submitted!'">App submitted!</h1>
-    <p>Your app is under review. We'll notify you once it's approved.</p>
-    <div class="btn-row">
-        <a th:href="@{/apps/{id}/manage(id=${app.id})}" class="btn-black">Manage your listing</a>
-        <a th:href="@{/apps}" class="btn-outline-dark">Explore apps</a>
+<div class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-overlay"></div>
+    <div class="hero-fade"></div>
+    <div class="hero-inner">
+        <div class="hero-content">
+            <h1 class="hero-heading">Submit your app</h1>
+            <p class="hero-subtext">Get visibility and pro feedback</p>
+        </div>
     </div>
 </div>
+
+<div class="progress-bar"><div class="progress-fill"></div></div>
+
+<div class="page">
+    <div class="success-emoji">🚀</div>
+    <div class="success-title"><span th:text="${app.name}">App name</span> submitted!</div>
+    <div class="success-note">Your app is under review. We'll notify you once it's approved.</div>
+    <div class="actions">
+        <a class="btn-primary" th:href="@{/apps/{id}/manage(id=${app.id})}">Manage your listing</a>
+        <a class="btn-secondary" th:href="@{/explore}">Explore apps</a>
+    </div>
+</div>
+
 </body>
 </html>

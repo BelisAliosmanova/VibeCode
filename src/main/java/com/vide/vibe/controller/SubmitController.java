@@ -109,21 +109,25 @@ public class SubmitController {
         List<CategoryEntry> entries = categoryService.findVisibleEntriesByCategoryId(categoryId);
         List<UUID> selectedIds = categoryService.findSelectedEntryIds(appId, categoryId);
 
+        // How many apps are linked to each entry — drives the "Most popular" sort client-side.
+        Map<UUID, Long> entryAppCounts = categoryService.countAppsPerEntry(categoryId);
+
         List<Category> allCategories = categoryService.findAllVisible();
         int currentIndex = findIndexById(allCategories, categoryId);
 
         Category prevCategory = currentIndex > 0 ? allCategories.get(currentIndex - 1) : null;
         Category nextCategory = currentIndex < allCategories.size() - 1 ? allCategories.get(currentIndex + 1) : null;
 
-        model.addAttribute("app",          app);
-        model.addAttribute("category",     category);
-        model.addAttribute("entries",      entries);
-        model.addAttribute("selectedIds",  selectedIds);
-        model.addAttribute("prevCategory", prevCategory);
-        model.addAttribute("nextCategory", nextCategory);
-        model.addAttribute("stepNumber",   currentIndex + 2);
-        model.addAttribute("totalSteps",   allCategories.size() + 1);
-        model.addAttribute("isLastStep",   nextCategory == null);
+        model.addAttribute("app",            app);
+        model.addAttribute("category",       category);
+        model.addAttribute("entries",        entries);
+        model.addAttribute("selectedIds",    selectedIds);
+        model.addAttribute("entryAppCounts", entryAppCounts);
+        model.addAttribute("prevCategory",   prevCategory);
+        model.addAttribute("nextCategory",   nextCategory);
+        model.addAttribute("stepNumber",     currentIndex + 2);
+        model.addAttribute("totalSteps",     allCategories.size() + 1);
+        model.addAttribute("isLastStep",     nextCategory == null);
 
         return "submit/step";
     }
@@ -141,7 +145,7 @@ public class SubmitController {
             for (String name : customEntries) {
                 if (name == null || name.isBlank()) continue;
                 String slug = name.toLowerCase().trim().replaceAll("[^a-z0-9]+", "-")
-                              + "-" + System.currentTimeMillis();
+                        + "-" + System.currentTimeMillis();
                 CategoryEntry custom = CategoryEntry.builder()
                         .name(name.trim()).slug(slug)
                         .visibility(true).interest(0).position(999)
