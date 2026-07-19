@@ -3,6 +3,7 @@ package com.vide.vibe.controller;
 import com.vide.vibe.model.*;
 import com.vide.vibe.repository.AppMediaRepository;
 import com.vide.vibe.repository.AppRepository;
+import com.vide.vibe.repository.UserRepository;
 import com.vide.vibe.security.AppSecurity;
 import com.vide.vibe.service.*;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,7 @@ public class ManageController {
     private final ReviewService      reviewService;
     private final ClaimService       claimService;
     private final AppSecurity        appSecurity;
+    private final UserRepository userRepository;
 
     // ─── The manage page is publicly accessible (guests can view + claim).
     //     We resolve canEdit ourselves instead of using @PreAuthorize so that
@@ -78,6 +80,10 @@ public class ManageController {
         // ownerUnverified is only meaningful to show the "verify email" banner to the actual owner
         boolean ownerUnverified = claimService.isOwnerUnverified(app);
         boolean justClaimed     = "1".equals(claimed);
+
+        boolean isStaff = auth != null && auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_MANAGER"));
+        model.addAttribute("isStaff", isStaff);
 
         model.addAttribute("canEdit",          canEdit);
         model.addAttribute("certifiedAvg",     certifiedAvg);
@@ -134,7 +140,8 @@ public class ManageController {
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String description,
             @RequestParam(required = false) String url,
-            @RequestParam(required = false) String verifiedScore) {
+            @RequestParam(required = false) String verifiedScore,
+            @RequestParam(required = false) String ownerEmail) {
         try {
             App app = appRepository.findById(appId)
                     .orElseThrow(() -> new RuntimeException("App not found: " + appId));
@@ -142,11 +149,12 @@ public class ManageController {
             if (description != null)              app.setDescription(description.trim());
             if (url != null)                      app.setUrl(url.trim().isEmpty() ? null : url.trim());
 
+            Authentication auth    = SecurityContextHolder.getContext().getAuthentication();
+            boolean        isStaff = auth != null && auth.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")
+                            || a.getAuthority().equals("ROLE_MANAGER"));
+
             if (verifiedScore != null) {
-                Authentication auth    = SecurityContextHolder.getContext().getAuthentication();
-                boolean        isStaff = auth != null && auth.getAuthorities().stream()
-                        .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")
-                                || a.getAuthority().equals("ROLE_MANAGER"));
                 if (!isStaff) {
                     return ResponseEntity.status(403)
                             .body(Map.of("error", "Only staff can set verified score"));
@@ -157,6 +165,26 @@ public class ManageController {
                     double score = Double.parseDouble(verifiedScore.trim());
                     if (score < 0 || score > 5) throw new IllegalArgumentException("Score must be 0–5");
                     app.setVerifiedScore(score);
+                }
+            }
+
+            if (ownerEmail != null) {
+                if (!isStaff) {
+                    return ResponseEntity.status(403)
+                            .body(Map.of("error", "Only staff can change the owner's email"));
+                }
+                String normalized = ownerEmail.trim().toLowerCase();
+                if (normalized.isEmpty()) {
+                    return ResponseEntity.badRequest().body(Map.of("error", "Email cannot be empty"));
+                }
+                User owner = app.getOwner();
+                if (!normalized.equals(owner.getEmail())) {
+                    Optional<User> existing = userRepository.findByEmail(normalized);
+                    if (existing.isPresent() && !existing.get().getId().equals(owner.getId())) {
+                        return ResponseEntity.badRequest().body(Map.of("error", "That email is already in use by another user"));
+                    }
+                    owner.setEmail(normalized);
+                    userRepository.save(owner);
                 }
             }
 

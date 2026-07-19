@@ -381,6 +381,11 @@
             </div>
             <span class="app-desc-edit" contenteditable="true" id="editableDescription"
                   th:text="${app.description != null ? app.description : 'Add a description...'}"></span>
+            <div class="app-owner-row" style="display:flex;align-items:center;gap:0.4rem;margin-top:0.3rem;" th:if="${isStaff}">
+                <span class="meta-label" style="font-size:0.58rem;">OWNER EMAIL</span>
+                <span class="app-owner-edit" contenteditable="true" id="editableOwnerEmail"
+                      th:text="${app.owner.email}"></span>
+            </div>
             <div class="app-badges-row">
                 <span class="pricing-badge">PRICING</span>
                 <button class="btn-sm" onclick="saveAppInfo()">Save changes</button>
@@ -1014,6 +1019,10 @@
         const desc = document.getElementById('editableDescription').innerText.trim();
         if (!name) return showToast('Name cannot be empty', true);
         const fd = new FormData(); fd.append('name', name); fd.append('description', desc);
+
+        const ownerEmailEl = document.getElementById('editableOwnerEmail');
+        if (ownerEmailEl) fd.append('ownerEmail', ownerEmailEl.innerText.trim());
+
         try {
             const r = await fetch(`/apps/${APP_ID}/manage/info`, { method: 'POST', body: fd });
             const text = await r.text();
