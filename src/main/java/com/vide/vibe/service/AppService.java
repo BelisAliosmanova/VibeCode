@@ -41,6 +41,25 @@ public class AppService {
         return appRepository.save(app);
     }
 
+    /**
+     * Updates basic listing info. If ownerEmail is provided and non-blank,
+     * reassigns the owner too (find-or-create by email) — used by the
+     * staff-only inline owner field on the manage page.
+     */
+    @Transactional
+    public App updateInfo(UUID id, String name, String description, String ownerEmail) {
+        App app = findById(id);
+        if (name != null && !name.isBlank()) {
+            app.setName(name);
+        }
+        app.setDescription(description); // allow clearing to blank/null
+        if (ownerEmail != null && !ownerEmail.isBlank()) {
+            User newOwner = userService.findOrCreateByEmail(ownerEmail);
+            app.setOwner(newOwner);
+        }
+        return appRepository.save(app);
+    }
+
     @Transactional
     public App save(App app) {
         return appRepository.save(app);
@@ -78,6 +97,19 @@ public class AppService {
         }
         App app = findById(id);
         app.setVerifiedScore(score);
+        return appRepository.save(app);
+    }
+
+    /**
+     * Admin-only: reassign the app's owner by email. If a user with that
+     * email exists, the app is linked to them. If not, a new bare-bones
+     * account is created (no password) and linked instead.
+     */
+    @Transactional
+    public App changeOwnerByEmail(UUID appId, String email) {
+        App app = findById(appId);
+        User newOwner = userService.findOrCreateByEmail(email);
+        app.setOwner(newOwner);
         return appRepository.save(app);
     }
 

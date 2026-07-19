@@ -4,10 +4,13 @@ import com.vide.vibe.model.App;
 import com.vide.vibe.service.AppService;
 import com.vide.vibe.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.UUID;
 
 @Controller
@@ -59,6 +62,28 @@ public class AppController {
     public String update(@PathVariable UUID id, @ModelAttribute App app) {
         appService.update(id, app);
         return "redirect:/apps";
+    }
+
+    /**
+     * Inline admin edit: reassign app owner by email. Locked to
+     * MANAGER/ADMIN — this is more sensitive than a homepage title edit,
+     * so it gets its own explicit check rather than relying on the
+     * client-side isAdmin flag used for UI affordances.
+     */
+    @PostMapping("/{id}/owner")
+    @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
+    @ResponseBody
+    public ResponseEntity<?> changeOwner(@PathVariable UUID id,
+                                         @RequestParam String email) {
+        try {
+            App app = appService.changeOwnerByEmail(id, email);
+            return ResponseEntity.ok(Map.of(
+                    "ownerId", app.getOwner().getId().toString(),
+                    "ownerEmail", app.getOwner().getEmail()
+            ));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     @PostMapping("/{id}/approve")

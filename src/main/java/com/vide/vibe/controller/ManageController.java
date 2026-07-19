@@ -177,14 +177,18 @@ public class ManageController {
                 if (normalized.isEmpty()) {
                     return ResponseEntity.badRequest().body(Map.of("error", "Email cannot be empty"));
                 }
-                User owner = app.getOwner();
-                if (!normalized.equals(owner.getEmail())) {
-                    Optional<User> existing = userRepository.findByEmail(normalized);
-                    if (existing.isPresent() && !existing.get().getId().equals(owner.getId())) {
-                        return ResponseEntity.badRequest().body(Map.of("error", "That email is already in use by another user"));
-                    }
-                    owner.setEmail(normalized);
-                    userRepository.save(owner);
+                if (!normalized.equals(app.getOwner().getEmail())) {
+                    User newOwner = userRepository.findByEmail(normalized)
+                            .orElseGet(() -> userRepository.save(
+                                    User.builder()
+                                            .email(normalized)
+                                            .passwordHash(null)
+                                            .role(User.Role.USER)
+                                            .status(User.Status.PENDING)
+                                            .authProvider(User.AuthProvider.LOCAL)
+                                            .build()
+                            ));
+                    app.setOwner(newOwner);
                 }
             }
 

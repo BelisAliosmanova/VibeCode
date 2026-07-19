@@ -16,14 +16,6 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    // ── NOTE ──────────────────────────────────────────────────────────────
-    // Merge this with your existing UserService rather than replacing it
-    // wholesale if you already have other methods on there (e.g. anything
-    // used by registration or OAuth2 login) — I don't have your original
-    // file, so this reconstructs findByEmail/create/save plus the new
-    // admin-management methods below.
-    // ─────────────────────────────────────────────────────────────────────
-
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
@@ -41,6 +33,37 @@ public class UserService {
     @Transactional
     public User save(User user) {
         return userRepository.save(user);
+    }
+
+    /**
+     * Looks up a user by exact email match; if none exists, creates a
+     * bare-bones account (no password, LOCAL provider, PENDING status) so
+     * it can be assigned as an app owner right away. The user can claim
+     * the account later via normal signup/password-reset flow.
+     */
+    @Transactional
+    public User findOrCreateByEmail(String rawEmail) {
+        if (rawEmail == null) {
+            throw new IllegalArgumentException("Email cannot be blank");
+        }
+        String email = rawEmail.trim();
+        if (email.isEmpty()) {
+            throw new IllegalArgumentException("Email cannot be blank");
+        }
+        if (!email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
+            throw new IllegalArgumentException("Not a valid email address: " + email);
+        }
+
+        return findByEmail(email).orElseGet(() -> {
+            User user = User.builder()
+                    .email(email)
+                    .passwordHash(null)
+                    .role(User.Role.USER)
+                    .status(User.Status.PENDING)
+                    .authProvider(User.AuthProvider.LOCAL)
+                    .build();
+            return userRepository.save(user);
+        });
     }
 
     // ── Admin user management ───────────────────────────────────────────
