@@ -65,6 +65,16 @@
         .entry-pill-name { font-weight: 500; }
         .entry-pill-interest { font-size: 0.72rem; color: #aaa; }
 
+        /* Move-to select, styled to sit inline in the pill */
+        .entry-move-select {
+            border: 1.5px solid var(--border); border-radius: var(--radius-pill);
+            font-size: 0.68rem; font-family: var(--font); color: #888;
+            padding: 0.12rem 0.5rem; background: var(--white);
+            cursor: pointer; max-width: 92px; outline: none;
+        }
+        .entry-move-select:hover { border-color: #aaa; color: var(--black); }
+        .entry-move-select:focus { border-color: var(--black); }
+
         .btn-delete {
             background: transparent; border: none; color: #ccc;
             cursor: pointer; font-size: 0.8rem; padding: 0;
@@ -144,12 +154,26 @@
 
         .btn-black { background: var(--black); color: #fff; border: none; padding: 0.65rem 0; border-radius: var(--radius-pill); font-size: 0.88rem; font-weight: 600; cursor: pointer; width: 100%; }
         .btn-black:hover { background: #333; }
+
+        /* Move confirmation toast */
+        .toast {
+            position: fixed; bottom: 1.5rem; left: 50%;
+            transform: translateX(-50%) translateY(0);
+            background: var(--black); color: #fff;
+            font-size: 0.82rem; font-weight: 500;
+            padding: 0.65rem 1.2rem; border-radius: var(--radius-pill);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            z-index: 1000; opacity: 1; transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .toast.hide { opacity: 0; transform: translateX(-50%) translateY(8px); }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 </head>
 <body>
 
 <nav th:replace="~{fragments/navbar :: navbar}"></nav>
+
+<div th:if="${moveMessage != null}" class="toast" id="moveToast" th:text="${moveMessage}"></div>
 
 <div class="page">
 
@@ -202,6 +226,19 @@
 
                     <span class="entry-pill-name" th:text="${entry.name}">Name</span>
                     <span class="entry-pill-interest" th:text="'↑' + ${entry.interest}">↑0</span>
+
+                    <!-- Move to another category -->
+                    <form th:if="${!#lists.isEmpty(otherCategories)}"
+                          th:action="@{/categories/{cId}/entries/{eId}/move(cId=${category.id},eId=${entry.id})}"
+                          method="post" style="display:inline; margin:0;">
+                        <select name="targetCategoryId" class="entry-move-select"
+                                th:data-name="${entry.name}"
+                                onchange="if(this.value &amp;&amp; confirm('Move ' + this.dataset.name + ' to ' + this.options[this.selectedIndex].text + '?')) { this.form.submit(); } else { this.selectedIndex = 0; }">
+                            <option value="" selected>Move to…</option>
+                            <option th:each="oc : ${otherCategories}"
+                                    th:value="${oc.id}" th:text="${oc.name}"></option>
+                        </select>
+                    </form>
 
                     <form th:action="@{/categories/{cId}/entries/{eId}/delete(cId=${category.id},eId=${entry.id})}"
                           method="post" style="display:inline; margin:0;">
@@ -284,6 +321,15 @@
             .replace(/[^a-z0-9]+/g, '-')
             .replace(/^-|-$/g, '');
     });
+
+    // Auto-dismiss move confirmation toast
+    const moveToast = document.getElementById('moveToast');
+    if (moveToast) {
+        setTimeout(() => {
+            moveToast.classList.add('hide');
+            setTimeout(() => moveToast.remove(), 300);
+        }, 2500);
+    }
 
     // Icon preview
     document.getElementById('iconFileInput').addEventListener('change', function() {

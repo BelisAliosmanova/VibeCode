@@ -139,6 +139,35 @@ public class CategoryService {
         return categoryEntryRepository.save(existing);
     }
 
+    /**
+     * Move a single entry to a different category.
+     */
+    @Transactional
+    public CategoryEntry moveEntry(UUID entryId, UUID targetCategoryId) {
+        CategoryEntry entry = findEntryById(entryId);
+        Category target = findById(targetCategoryId);
+        entry.setCategory(target);
+        return categoryEntryRepository.save(entry);
+    }
+
+    /**
+     * Merge one category into another: moves all of its entries onto the
+     * target category, then soft-deletes the now-empty source category.
+     */
+    @Transactional
+    public void mergeCategories(UUID sourceCategoryId, UUID targetCategoryId) {
+        if (sourceCategoryId.equals(targetCategoryId)) {
+            throw new RuntimeException("Cannot merge a category into itself");
+        }
+        Category target = findById(targetCategoryId);
+
+        List<CategoryEntry> sourceEntries = findEntriesByCategoryId(sourceCategoryId);
+        sourceEntries.forEach(entry -> entry.setCategory(target));
+        categoryEntryRepository.saveAll(sourceEntries);
+
+        deleteCategory(sourceCategoryId);
+    }
+
     @Transactional
     public void deleteEntry(UUID id) {
         CategoryEntry entry = findEntryById(id);

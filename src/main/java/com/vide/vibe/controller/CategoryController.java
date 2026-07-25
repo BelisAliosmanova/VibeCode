@@ -9,7 +9,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/categories")
@@ -56,13 +58,29 @@ public class CategoryController {
         return "redirect:/categories";
     }
 
+    /**
+     * Merge one category into another: moves all of its entries onto the
+     * target category, then removes the now-empty source category.
+     */
+    @PostMapping("/{id}/merge")
+    public String merge(@PathVariable UUID id, @RequestParam UUID targetCategoryId) {
+        categoryService.mergeCategories(id, targetCategoryId);
+        return "redirect:/categories";
+    }
+
     // ── Entries CRUD ───────────────────────────────────────────────────────────
 
     @GetMapping("/{id}/entries")
     public String entries(@PathVariable UUID id, Model model) {
+        List<Category> allCategories = categoryService.findAll();
+
         model.addAttribute("category", categoryService.findById(id));
         model.addAttribute("entries", categoryService.findEntriesByCategoryId(id));
         model.addAttribute("newEntry", new CategoryEntry());
+        // Used to populate the "Move to…" dropdown on each entry pill
+        model.addAttribute("otherCategories", allCategories.stream()
+                .filter(c -> !c.getId().equals(id))
+                .collect(Collectors.toList()));
         return "categories/entries";
     }
 
@@ -96,6 +114,23 @@ public class CategoryController {
             @PathVariable UUID entryId,
             @RequestParam MultipartFile icon) {
         categoryService.updateEntryIcon(entryId, icon);
+        return "redirect:/categories/" + categoryId + "/entries";
+    }
+
+    /**
+     * Move a single entry to a different category. Stays on the source
+     * category's entries page and shows a flash confirmation instead of
+     * jumping over to the target category.
+     */
+    @PostMapping("/{categoryId}/entries/{entryId}/move")
+    public String moveEntry(
+            @PathVariable UUID categoryId,
+            @PathVariable UUID entryId,
+            @RequestParam UUID targetCategoryId,
+            org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
+        CategoryEntry moved = categoryService.moveEntry(entryId, targetCategoryId);
+        redirectAttributes.addFlashAttribute("moveMessage",
+                "\"" + moved.getName() + "\" moved to \"" + moved.getCategory().getName() + "\"");
         return "redirect:/categories/" + categoryId + "/entries";
     }
 

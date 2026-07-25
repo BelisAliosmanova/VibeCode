@@ -20,7 +20,7 @@
         .nav-right { display: flex; align-items: center; gap: 1rem; }
         .btn-outline-nav { background: transparent; border: 1.5px solid #fff; color: #fff; font-size: 0.85rem; padding: 0.4rem 1rem; border-radius: var(--radius-pill); text-decoration: none; }
 
-        .page { max-width: 820px; margin: 2.5rem auto; padding: 0 1.5rem; }
+        .page { max-width: 900px; margin: 2.5rem auto; padding: 0 1.5rem; }
 
         .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; }
         .page-title { font-size: 1.4rem; font-weight: 700; }
@@ -34,7 +34,7 @@
             display: flex; align-items: center; justify-content: space-between;
             padding: 0.85rem 1.25rem;
             border: 1.5px solid var(--border); border-radius: var(--radius-pill);
-            transition: border-color 0.12s; gap: 0.75rem;
+            transition: border-color 0.12s; gap: 0.75rem; flex-wrap: wrap;
         }
         .category-row:hover { border-color: #bbb; }
 
@@ -80,6 +80,28 @@
         }
         .btn-del:hover { border-color: var(--danger); color: var(--danger); }
 
+        /* Merge control */
+        .merge-form {
+            display: inline-flex; align-items: center; gap: 0.35rem;
+        }
+        .merge-select {
+            border: 1.5px solid var(--border); border-radius: var(--radius-pill);
+            font-size: 0.76rem; font-family: var(--font); color: var(--black);
+            padding: 0.28rem 0.7rem; background: var(--white);
+            cursor: pointer; max-width: 130px; outline: none;
+        }
+        .merge-select:hover { border-color: #aaa; }
+        .merge-select:focus { border-color: var(--black); }
+
+        .btn-merge {
+            background: transparent; border: 1.5px solid #93c5fd;
+            color: #2563eb; font-size: 0.78rem; font-weight: 500;
+            padding: 0.3rem 0.85rem; border-radius: var(--radius-pill);
+            cursor: pointer; font-family: var(--font);
+            transition: all 0.12s; white-space: nowrap;
+        }
+        .btn-merge:hover { background: #eff6ff; border-color: #2563eb; }
+
         .empty-state { text-align: center; padding: 4rem 0; color: #bbb; font-size: 0.95rem; }
         .empty-state a { color: var(--black); font-weight: 600; text-decoration: none; }
         .empty-state a:hover { text-decoration: underline; }
@@ -102,6 +124,7 @@
     <p class="table-hint">
         Use <strong>Show in submit flow</strong> to include a category in the app submission steps.
         Use <strong>Explore filter</strong> to show it as a sidebar filter group on the Explore page.
+        Use <strong>Merge into…</strong> to move all of a category's entries into another category and remove this one.
     </p>
 
     <div class="category-list">
@@ -142,6 +165,26 @@
             <div class="cat-actions">
                 <a th:href="@{/categories/{id}/entries(id=${category.id})}" class="btn-link">Entries</a>
                 <a th:href="@{/categories/{id}/edit(id=${category.id})}" class="btn-link">Edit</a>
+
+                <!-- Merge this category into another -->
+                <form th:if="${#lists.size(categories) > 1}"
+                      th:action="@{/categories/{id}/merge(id=${category.id})}"
+                      method="post" class="merge-form">
+                    <select name="targetCategoryId" class="merge-select" required
+                            th:data-name="${category.name}">
+                        <option value="" disabled selected>Merge into…</option>
+                        <th:block th:each="oc : ${categories}">
+                            <option th:if="${oc.id != category.id}"
+                                    th:value="${oc.id}" th:text="${oc.name}"></option>
+                        </th:block>
+                    </select>
+                    <button type="submit" class="btn-merge"
+                            th:data-name="${category.name}"
+                            onclick="const sel=this.previousElementSibling; if(!sel.value){alert('Pick a target category first.'); return false;} return confirm('Merge &quot;' + this.dataset.name + '&quot; into &quot;' + sel.options[sel.selectedIndex].text + '&quot;? All entries move over and this category is removed.');">
+                        Merge
+                    </button>
+                </form>
+
                 <form th:action="@{/categories/{id}/delete(id=${category.id})}" method="post" style="display:inline;">
                     <button type="submit" class="btn-del"
                             th:data-name="${category.name}"
