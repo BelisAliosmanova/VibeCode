@@ -41,6 +41,8 @@ public class ExploreController {
             List<CategoryEntry> catEntries = categoryService.findVisibleEntriesByCategoryId(cat.getId())
                     .stream()
                     .filter(e -> entryAppCounts.getOrDefault(e.getId(), 0L) > 0)
+                    .sorted(Comparator.comparingLong(
+                            (CategoryEntry e) -> entryAppCounts.getOrDefault(e.getId(), 0L)).reversed())
                     .collect(Collectors.toList());
 
             if (!catEntries.isEmpty()) {
