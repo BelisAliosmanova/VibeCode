@@ -31,11 +31,25 @@ public class ExploreController {
             @RequestParam(required = false, defaultValue = "top-rated") String tab,
             Model model) {
 
-        // ── Sidebar filter categories ──────────────────────────────────────────
+        // ── Sidebar filter categories (only ones with at least one app) ────────
         List<Category> filterCategories = categoryService.findAllFilterVisible();
+        Map<UUID, Long> entryAppCounts = categoryService.getAppCountByEntry();
+
         Map<Category, List<CategoryEntry>> filterEntries = new LinkedHashMap<>();
+        Map<UUID, Long> categoryAppCounts = new LinkedHashMap<>();
         for (Category cat : filterCategories) {
-            filterEntries.put(cat, categoryService.findVisibleEntriesByCategoryId(cat.getId()));
+            List<CategoryEntry> catEntries = categoryService.findVisibleEntriesByCategoryId(cat.getId())
+                    .stream()
+                    .filter(e -> entryAppCounts.getOrDefault(e.getId(), 0L) > 0)
+                    .collect(Collectors.toList());
+
+            if (!catEntries.isEmpty()) {
+                long sum = catEntries.stream()
+                        .mapToLong(e -> entryAppCounts.getOrDefault(e.getId(), 0L))
+                        .sum();
+                filterEntries.put(cat, catEntries);
+                categoryAppCounts.put(cat.getId(), sum);
+            }
         }
 
         // ── Selected sidebar entry IDs ─────────────────────────────────────────
@@ -139,15 +153,6 @@ public class ExploreController {
         model.addAttribute("section2Title",   section2Title);
         model.addAttribute("section2Apps",    section2Apps);
 
-
-        Map<UUID, Long> entryAppCounts = categoryService.getAppCountByEntry();
-        Map<UUID, Long> categoryAppCounts = new LinkedHashMap<>();
-        for (Map.Entry<Category, List<CategoryEntry>> catEntry : filterEntries.entrySet()) {
-            long sum = catEntry.getValue().stream()
-                    .mapToLong(e -> entryAppCounts.getOrDefault(e.getId(), 0L))
-                    .sum();
-            categoryAppCounts.put(catEntry.getKey().getId(), sum);
-        }
         model.addAttribute("entryAppCounts",    entryAppCounts);
         model.addAttribute("categoryAppCounts", categoryAppCounts);
 
