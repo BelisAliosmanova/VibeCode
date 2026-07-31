@@ -1,8 +1,11 @@
 package com.vide.vibe.controller;
 
 import com.vide.vibe.model.App;
+import com.vide.vibe.model.AppMedia;
 import com.vide.vibe.model.Category;
 import com.vide.vibe.model.CategoryEntry;
+import com.vide.vibe.repository.AppMediaRepository;
+import com.vide.vibe.repository.WorkflowRepository;
 import com.vide.vibe.service.AppService;
 import com.vide.vibe.service.CategoryService;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +27,8 @@ public class ExploreController {
 
     private final AppService appService;
     private final CategoryService categoryService;
+    private final AppMediaRepository appMediaRepository;
+    private final WorkflowRepository workflowRepository;
 
     @GetMapping
     public String explore(
@@ -146,6 +151,16 @@ public class ExploreController {
                     .limit(5).collect(Collectors.toList());
         }
 
+        // ── App indicator badges (video / screenshots / workflows) ─────────────
+        // Only need to look these up for the apps actually rendered on the page.
+        Set<UUID> visibleAppIds = new LinkedHashSet<>();
+        section1Apps.forEach(a -> visibleAppIds.add(a.getId()));
+        section2Apps.forEach(a -> visibleAppIds.add(a.getId()));
+
+        Set<UUID> appsWithVideo     = appMediaRepository.findAppIdsWithMediaType(visibleAppIds, AppMedia.MediaType.VIDEO);
+        Set<UUID> appsWithImages    = appMediaRepository.findAppIdsWithMediaType(visibleAppIds, AppMedia.MediaType.SCREENSHOT);
+        Set<UUID> appsWithWorkflows = workflowRepository.findAppIdsWithWorkflows(visibleAppIds);
+
         // ── Model ──────────────────────────────────────────────────────────────
         model.addAttribute("filterEntries",   filterEntries);
         model.addAttribute("selectedEntryIds", selectedIdStrings);
@@ -157,6 +172,10 @@ public class ExploreController {
 
         model.addAttribute("entryAppCounts",    entryAppCounts);
         model.addAttribute("categoryAppCounts", categoryAppCounts);
+
+        model.addAttribute("appsWithVideo",     appsWithVideo);
+        model.addAttribute("appsWithImages",    appsWithImages);
+        model.addAttribute("appsWithWorkflows", appsWithWorkflows);
 
         return "explore";
     }
