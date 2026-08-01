@@ -1,9 +1,6 @@
 package com.vide.vibe.controller;
 
-import com.vide.vibe.model.App;
-import com.vide.vibe.model.AppMedia;
-import com.vide.vibe.model.Category;
-import com.vide.vibe.model.CategoryEntry;
+import com.vide.vibe.model.*;
 import com.vide.vibe.repository.AppMediaRepository;
 import com.vide.vibe.repository.WorkflowRepository;
 import com.vide.vibe.service.AppService;
@@ -140,8 +137,13 @@ public class ExploreController {
                     .limit(5).collect(Collectors.toList());
 
         } else if ("ranked".equals(tab)) {
+            RankingConfig cfg = rankingService.getConfig();
+
+            Map<UUID, Integer> scoresById = pool.stream()
+                    .collect(Collectors.toMap(App::getId, a -> rankingService.computeScore(a, cfg)));
+
             List<App> byScore = pool.stream()
-                    .sorted(Comparator.comparingInt((App a) -> rankingService.computeScore(a)).reversed())
+                    .sorted(Comparator.comparingInt((App a) -> scoresById.get(a.getId())).reversed())
                     .collect(Collectors.toList());
 
             section1Title = "TOP RANKED APPS";
