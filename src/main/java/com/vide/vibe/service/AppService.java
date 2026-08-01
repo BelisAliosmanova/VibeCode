@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.text.Normalizer;
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +21,18 @@ public class AppService {
 
     public List<App> findAll() {
         return appRepository.findAllByDeletedAtIsNull();
+    }
+
+    private static final Pattern GITHUB_URL_PATTERN =
+            Pattern.compile("^https://github\\.com/[\\w.-]+/[\\w.-]+/?$");
+
+    private String normalizeGithubUrl(String githubUrl) {
+        if (githubUrl == null || githubUrl.isBlank()) return null;
+        String trimmed = githubUrl.trim();
+        if (!GITHUB_URL_PATTERN.matcher(trimmed).matches()) {
+            throw new IllegalArgumentException("Please enter a valid GitHub repository URL, e.g. https://github.com/owner/repo");
+        }
+        return trimmed;
     }
 
     public App findById(UUID id) {
@@ -47,7 +60,7 @@ public class AppService {
      * staff-only inline owner field on the manage page.
      */
     @Transactional
-    public App updateInfo(UUID id, String name, String description, String ownerEmail) {
+    public App updateInfo(UUID id, String name, String description, String ownerEmail, String githubUrl) {
         App app = findById(id);
         if (name != null && !name.isBlank()) {
             app.setName(name);
@@ -57,6 +70,7 @@ public class AppService {
             User newOwner = userService.findOrCreateByEmail(ownerEmail);
             app.setOwner(newOwner);
         }
+        app.setGithubUrl(normalizeGithubUrl(githubUrl));
         return appRepository.save(app);
     }
 

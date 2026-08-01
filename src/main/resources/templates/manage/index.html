@@ -386,6 +386,11 @@
                 <span class="app-owner-edit" contenteditable="true" id="editableOwnerEmail"
                       th:text="${app.owner.email}"></span>
             </div>
+            <div class="app-github-row" style="display:flex;align-items:center;gap:0.4rem;margin-top:0.3rem;" th:if="${canEdit}">
+                <span class="meta-label" style="font-size:0.58rem;">GITHUB REPO</span>
+                <span class="app-github-edit" contenteditable="true" id="editableGithubUrl"
+                      th:text="${app.githubUrl != null ? app.githubUrl : 'Add a GitHub URL...'}"></span>
+            </div>
             <div class="app-badges-row">
                 <span class="pricing-badge">PRICING</span>
                 <button class="btn-sm" onclick="saveAppInfo()">Save changes</button>
@@ -1014,6 +1019,11 @@
 
     // ─── APP INFO (editors only) ─────────────────────────────────────────────
     async function saveAppInfo() {
+        const githubEl = document.getElementById('editableGithubUrl');
+        if (githubEl) {
+            const val = githubEl.innerText.trim();
+            fd.append('githubUrl', val === 'Add a GitHub URL...' ? '' : val);
+        }
         if (!CAN_EDIT) return;
         const name = document.getElementById('editableName').innerText.trim();
         const desc = document.getElementById('editableDescription').innerText.trim();

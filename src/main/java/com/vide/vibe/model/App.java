@@ -129,4 +129,7 @@ public class App extends SoftDeletableEntity {
             orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private List<AppCategoryEntry> categorySelections = new ArrayList<>();
+
+    @Column(name = "github_url", length = 2048)
+    private String githubUrl;
 }

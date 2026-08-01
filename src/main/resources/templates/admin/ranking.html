@@ -1,0 +1,58 @@
+<!-- templates/admin/ranking.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Ranking Config — Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" rel="stylesheet"/>
+    <link th:replace="~{fragments/navbar :: navbar-css}"/>
+    <style>
+        body { background:#233141; color:#fff; font-family:'Sora',sans-serif; }
+        .wrap { max-width:640px; margin:2rem auto; padding:0 1.5rem 4rem; }
+        h1 { font-weight:700; margin-bottom:0.25rem; }
+        p.hint { color:#b0b8c4; font-size:0.85rem; margin-bottom:1.5rem; }
+        .saved { background:rgba(143,230,4,0.15); color:#8fe604; padding:0.6rem 1rem; border-radius:8px; margin-bottom:1rem; font-size:0.85rem; }
+        table { width:100%; border-collapse:collapse; background:#1e2a3a; border-radius:12px; overflow:hidden; }
+        th, td { padding:0.75rem 1rem; text-align:left; font-size:0.85rem; border-bottom:1px solid rgba(255,255,255,0.08); }
+        th { background:#2a3849; font-weight:700; }
+        input[type=number] { width:80px; padding:0.35rem 0.5rem; border-radius:6px; border:1px solid rgba(255,255,255,0.2); background:#151e2b; color:#fff; }
+        button { margin-top:1.5rem; padding:0.65rem 1.5rem; border:none; border-radius:999px; background:#8fe604; color:#111; font-weight:700; }
+    </style>
+</head>
+<body>
+<nav th:replace="~{fragments/navbar :: navbar}"></nav>
+<div class="wrap">
+    <h1>App Ranking Points</h1>
+    <p class="hint">Apps earn points for each condition below. Higher total = higher placement on the "Ranked" tab.</p>
+    <div class="saved" th:if="${saved}">Saved.</div>
+
+    <form th:action="@{/admin/ranking}" th:object="${config}" method="post">
+        <input type="hidden" th:field="*{id}"/>
+        <table>
+            <tr><th>Condition</th><th>Points</th></tr>
+            <tr><td>Description longer than 150 characters</td>
+                <td><input type="number" th:field="*{descriptionLengthPoints}"/></td></tr>
+            <tr><td>Has fav icon</td>
+                <td><input type="number" th:field="*{favIconPoints}"/></td></tr>
+            <tr><td>Has a video</td>
+                <td><input type="number" th:field="*{videoPoints}"/></td></tr>
+            <tr><td>Has a workflow (+ per additional)</td>
+                <td><input type="number" th:field="*{workflowPoints}"/> / <input type="number" th:field="*{additionalWorkflowPoints}"/></td></tr>
+            <tr><td>Has an image (+ per additional)</td>
+                <td><input type="number" th:field="*{imagePoints}"/> / <input type="number" th:field="*{additionalImagePoints}"/></td></tr>
+            <tr><td>Has a listing on GitHub</td>
+                <td><input type="number" th:field="*{githubListingPoints}"/></td></tr>
+            <tr><td>Has at least 2 tags</td>
+                <td><input type="number" th:field="*{tagsPoints}"/></td></tr>
+            <tr><td>Is claimed</td>
+                <td><input type="number" th:field="*{claimedPoints}"/></td></tr>
+            <tr><td>Is verified</td>
+                <td><input type="number" th:field="*{verifiedPoints}"/></td></tr>
+            <tr><td>Rating &gt; 4 stars, min 5 raters</td>
+                <td><input type="number" th:field="*{highRatingPoints}"/></td></tr>
+        </table>
+        <button type="submit">Save</button>
+    </form>
+</div>
+</body>
+</html>

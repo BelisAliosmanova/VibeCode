@@ -8,6 +8,7 @@ import com.vide.vibe.repository.AppMediaRepository;
 import com.vide.vibe.repository.WorkflowRepository;
 import com.vide.vibe.service.AppService;
 import com.vide.vibe.service.CategoryService;
+import com.vide.vibe.service.RankingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -29,6 +30,7 @@ public class ExploreController {
     private final CategoryService categoryService;
     private final AppMediaRepository appMediaRepository;
     private final WorkflowRepository workflowRepository;
+    private final RankingService rankingService;
 
     @GetMapping
     public String explore(
@@ -73,7 +75,8 @@ public class ExploreController {
                 CategoryEntry entry = categoryService.findEntryById(entryId);
                 UUID catId = entry.getCategory().getId();
                 selectedByCategoryId.computeIfAbsent(catId, k -> new ArrayList<>()).add(entryId);
-            } catch (RuntimeException ignored) { }
+            } catch (RuntimeException ignored) {
+            }
         }
 
         // ── Base pool: all non-deleted apps, filtered by sidebar ───────────────
@@ -104,18 +107,18 @@ public class ExploreController {
 
         if ("new".equals(tab)) {
             // Section 1: apps created in the last 7 days
-            Instant oneWeekAgo  = now.minus(7,  ChronoUnit.DAYS);
+            Instant oneWeekAgo = now.minus(7, ChronoUnit.DAYS);
             Instant oneMonthAgo = now.minus(30, ChronoUnit.DAYS);
 
             section1Title = "LAST WEEK";
-            section1Apps  = pool.stream()
+            section1Apps = pool.stream()
                     .filter(a -> a.getCreatedAt() != null && a.getCreatedAt().isAfter(oneWeekAgo))
                     .sorted(Comparator.comparing(App::getCreatedAt).reversed())
                     .limit(5).collect(Collectors.toList());
 
             // Section 2: apps created 8–30 days ago
             section2Title = "LAST MONTH";
-            section2Apps  = pool.stream()
+            section2Apps = pool.stream()
                     .filter(a -> a.getCreatedAt() != null
                             && a.getCreatedAt().isBefore(oneWeekAgo)
                             && a.getCreatedAt().isAfter(oneMonthAgo))
@@ -125,27 +128,38 @@ public class ExploreController {
         } else if ("verified".equals(tab)) {
             // Verified tab: top verified first, then top user-rated
             section1Title = "TOP VERIFIED APPS";
-            section1Apps  = pool.stream()
+            section1Apps = pool.stream()
                     .filter(a -> a.getVerifiedScore() != null)
                     .sorted(Comparator.comparingDouble(App::getVerifiedScore).reversed())
                     .limit(5).collect(Collectors.toList());
 
             section2Title = "TOP USER RATED APPS";
-            section2Apps  = pool.stream()
+            section2Apps = pool.stream()
                     .sorted(Comparator.comparingDouble(App::getUserRatingAvg).reversed()
                             .thenComparingInt(App::getUserRatingCount).reversed())
                     .limit(5).collect(Collectors.toList());
 
+        } else if ("ranked".equals(tab)) {
+            List<App> byScore = pool.stream()
+                    .sorted(Comparator.comparingInt((App a) -> rankingService.computeScore(a)).reversed())
+                    .collect(Collectors.toList());
+
+            section1Title = "TOP RANKED APPS";
+            section1Apps = byScore.stream().limit(5).collect(Collectors.toList());
+
+            section2Title = "ALSO HIGHLY RANKED";
+            section2Apps = byScore.stream().skip(5).limit(5).collect(Collectors.toList());
+
         } else {
             // Default "top-rated": top user-rated first, then top verified
             section1Title = "TOP USER RATED APPS";
-            section1Apps  = pool.stream()
+            section1Apps = pool.stream()
                     .sorted(Comparator.comparingDouble(App::getUserRatingAvg).reversed()
                             .thenComparingInt(App::getUserRatingCount).reversed())
                     .limit(5).collect(Collectors.toList());
 
             section2Title = "TOP VERIFIED APPS";
-            section2Apps  = pool.stream()
+            section2Apps = pool.stream()
                     .filter(a -> a.getVerifiedScore() != null)
                     .sorted(Comparator.comparingDouble(App::getVerifiedScore).reversed())
                     .limit(5).collect(Collectors.toList());
@@ -157,24 +171,24 @@ public class ExploreController {
         section1Apps.forEach(a -> visibleAppIds.add(a.getId()));
         section2Apps.forEach(a -> visibleAppIds.add(a.getId()));
 
-        Set<UUID> appsWithVideo     = appMediaRepository.findAppIdsWithMediaType(visibleAppIds, AppMedia.MediaType.VIDEO);
-        Set<UUID> appsWithImages    = appMediaRepository.findAppIdsWithMediaType(visibleAppIds, AppMedia.MediaType.SCREENSHOT);
+        Set<UUID> appsWithVideo = appMediaRepository.findAppIdsWithMediaType(visibleAppIds, AppMedia.MediaType.VIDEO);
+        Set<UUID> appsWithImages = appMediaRepository.findAppIdsWithMediaType(visibleAppIds, AppMedia.MediaType.SCREENSHOT);
         Set<UUID> appsWithWorkflows = workflowRepository.findAppIdsWithWorkflows(visibleAppIds);
 
         // ── Model ──────────────────────────────────────────────────────────────
-        model.addAttribute("filterEntries",   filterEntries);
+        model.addAttribute("filterEntries", filterEntries);
         model.addAttribute("selectedEntryIds", selectedIdStrings);
-        model.addAttribute("tab",             tab);
-        model.addAttribute("section1Title",   section1Title);
-        model.addAttribute("section1Apps",    section1Apps);
-        model.addAttribute("section2Title",   section2Title);
-        model.addAttribute("section2Apps",    section2Apps);
+        model.addAttribute("tab", tab);
+        model.addAttribute("section1Title", section1Title);
+        model.addAttribute("section1Apps", section1Apps);
+        model.addAttribute("section2Title", section2Title);
+        model.addAttribute("section2Apps", section2Apps);
 
-        model.addAttribute("entryAppCounts",    entryAppCounts);
+        model.addAttribute("entryAppCounts", entryAppCounts);
         model.addAttribute("categoryAppCounts", categoryAppCounts);
 
-        model.addAttribute("appsWithVideo",     appsWithVideo);
-        model.addAttribute("appsWithImages",    appsWithImages);
+        model.addAttribute("appsWithVideo", appsWithVideo);
+        model.addAttribute("appsWithImages", appsWithImages);
         model.addAttribute("appsWithWorkflows", appsWithWorkflows);
 
         return "explore";

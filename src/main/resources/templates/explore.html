@@ -305,6 +305,12 @@
            data-tab="verified"
            onclick="return handleTabClick(event, this)"
            id="tabVerified">Verified</a>
+        <a class="tab-pill"
+           th:classappend="${tab == 'ranked'} ? ' active' : ''"
+           th:href="@{/explore(tab='ranked')}"
+           data-tab="ranked"
+           onclick="return handleTabClick(event, this)"
+           id="tabRanked">Ranked</a>
 
         <div class="search-wrap">
             <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none"
