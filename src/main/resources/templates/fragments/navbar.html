@@ -17,6 +17,9 @@
     </div>
     <div class="nav-right">
     <span sec:authorize="hasAnyRole('MANAGER','ADMIN')">
+        <a class="nav-link" th:href="@{/admin/ranking}">Ranking Apps</a>
+    </span>
+    <span sec:authorize="hasAnyRole('MANAGER','ADMIN')">
         <a class="nav-link" th:href="@{/apps}">Manage Apps</a>
     </span>
         <span sec:authorize="hasAnyRole('MANAGER','ADMIN')">

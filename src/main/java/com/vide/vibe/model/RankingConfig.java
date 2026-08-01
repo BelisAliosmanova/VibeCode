@@ -17,7 +17,7 @@ public class RankingConfig {
     private Long id = SINGLETON_ID;
 
     @Column(name = "description_length_points", nullable = false)
-    private int descriptionLengthPoints;   // description > 150 chars
+    private int descriptionLengthPoints;
 
     @Column(name = "fav_icon_points", nullable = false)
     private int favIconPoints;
@@ -26,20 +26,20 @@ public class RankingConfig {
     private int videoPoints;
 
     @Column(name = "workflow_points", nullable = false)
-    private int workflowPoints;            // 1st workflow
+    private int workflowPoints;
     @Column(name = "additional_workflow_points", nullable = false)
-    private int additionalWorkflowPoints;  // each workflow after the 1st
+    private int additionalWorkflowPoints;
 
     @Column(name = "image_points", nullable = false)
-    private int imagePoints;               // 1st screenshot
+    private int imagePoints;
     @Column(name = "additional_image_points", nullable = false)
-    private int additionalImagePoints;     // each screenshot after the 1st
+    private int additionalImagePoints;
 
     @Column(name = "github_listing_points", nullable = false)
     private int githubListingPoints;
 
     @Column(name = "tags_points", nullable = false)
-    private int tagsPoints;                // >= 2 category tags
+    private int tagsPoints;
 
     @Column(name = "claimed_points", nullable = false)
     private int claimedPoints;
@@ -48,10 +48,20 @@ public class RankingConfig {
     private int verifiedPoints;
 
     @Column(name = "high_rating_points", nullable = false)
-    private int highRatingPoints;          // > 4.0 avg, >= 5 raters
+    private int highRatingPoints;
 
-    @Column(name = "paid_review_points", nullable = false)
-    private int paidReviewPoints;
+    // ── thresholds (previously hardcoded static finals in RankingService) ──
+    @Column(name = "min_description_length", nullable = false)
+    private int minDescriptionLength;
+
+    @Column(name = "min_tags_for_bonus", nullable = false)
+    private int minTagsForBonus;
+
+    @Column(name = "min_rating_for_bonus", nullable = false)
+    private double minRatingForBonus;
+
+    @Column(name = "min_raters_for_bonus", nullable = false)
+    private int minRatersForBonus;
 
     public static RankingConfig defaults() {
         RankingConfig c = new RankingConfig();
@@ -67,7 +77,11 @@ public class RankingConfig {
         c.claimedPoints = 5;
         c.verifiedPoints = 10;
         c.highRatingPoints = 10;
-        c.paidReviewPoints = 15;
+
+        c.minDescriptionLength = 150;
+        c.minTagsForBonus = 2;
+        c.minRatingForBonus = 4.0;
+        c.minRatersForBonus = 5;
         return c;
     }
 
@@ -84,6 +98,10 @@ public class RankingConfig {
         this.claimedPoints = other.claimedPoints;
         this.verifiedPoints = other.verifiedPoints;
         this.highRatingPoints = other.highRatingPoints;
-        this.paidReviewPoints = other.paidReviewPoints;
+
+        this.minDescriptionLength = other.minDescriptionLength;
+        this.minTagsForBonus = other.minTagsForBonus;
+        this.minRatingForBonus = other.minRatingForBonus;
+        this.minRatersForBonus = other.minRatersForBonus;
     }
 }

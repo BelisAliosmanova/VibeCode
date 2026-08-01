@@ -8,7 +8,7 @@
     <link th:replace="~{fragments/navbar :: navbar-css}"/>
     <style>
         body { background:#233141; color:#fff; font-family:'Sora',sans-serif; }
-        .wrap { max-width:640px; margin:2rem auto; padding:0 1.5rem 4rem; }
+        .wrap { max-width:700px; margin:5rem auto; padding:0 1.5rem 4rem; }
         h1 { font-weight:700; margin-bottom:0.25rem; }
         p.hint { color:#b0b8c4; font-size:0.85rem; margin-bottom:1.5rem; }
         .saved { background:rgba(143,230,4,0.15); color:#8fe604; padding:0.6rem 1rem; border-radius:8px; margin-bottom:1rem; font-size:0.85rem; }
@@ -16,6 +16,7 @@
         th, td { padding:0.75rem 1rem; text-align:left; font-size:0.85rem; border-bottom:1px solid rgba(255,255,255,0.08); }
         th { background:#2a3849; font-weight:700; }
         input[type=number] { width:80px; padding:0.35rem 0.5rem; border-radius:6px; border:1px solid rgba(255,255,255,0.2); background:#151e2b; color:#fff; }
+        input.threshold-input { background:#3b82f6; border-color:#3b82f6; color:#fff; font-weight:700; text-align:center; }
         button { margin-top:1.5rem; padding:0.65rem 1.5rem; border:none; border-radius:999px; background:#8fe604; color:#111; font-weight:700; }
     </style>
 </head>
@@ -30,26 +31,56 @@
         <input type="hidden" th:field="*{id}"/>
         <table>
             <tr><th>Condition</th><th>Points</th></tr>
-            <tr><td>Description longer than 150 characters</td>
-                <td><input type="number" th:field="*{descriptionLengthPoints}"/></td></tr>
+
+            <tr>
+                <td>
+                    Description longer than
+                    <input type="number" class="threshold-input" th:field="*{minDescriptionLength}"/>
+                    characters
+                </td>
+                <td><input type="number" th:field="*{descriptionLengthPoints}"/></td>
+            </tr>
+
             <tr><td>Has fav icon</td>
                 <td><input type="number" th:field="*{favIconPoints}"/></td></tr>
+
             <tr><td>Has a video</td>
                 <td><input type="number" th:field="*{videoPoints}"/></td></tr>
+
             <tr><td>Has a workflow (+ per additional)</td>
                 <td><input type="number" th:field="*{workflowPoints}"/> / <input type="number" th:field="*{additionalWorkflowPoints}"/></td></tr>
+
             <tr><td>Has an image (+ per additional)</td>
                 <td><input type="number" th:field="*{imagePoints}"/> / <input type="number" th:field="*{additionalImagePoints}"/></td></tr>
+
             <tr><td>Has a listing on GitHub</td>
                 <td><input type="number" th:field="*{githubListingPoints}"/></td></tr>
-            <tr><td>Has at least 2 tags</td>
-                <td><input type="number" th:field="*{tagsPoints}"/></td></tr>
+
+            <tr>
+                <td>
+                    Has at least
+                    <input type="number" class="threshold-input" th:field="*{minTagsForBonus}"/>
+                    tags
+                </td>
+                <td><input type="number" th:field="*{tagsPoints}"/></td>
+            </tr>
+
             <tr><td>Is claimed</td>
                 <td><input type="number" th:field="*{claimedPoints}"/></td></tr>
+
             <tr><td>Is verified</td>
                 <td><input type="number" th:field="*{verifiedPoints}"/></td></tr>
-            <tr><td>Rating &gt; 4 stars, min 5 raters</td>
-                <td><input type="number" th:field="*{highRatingPoints}"/></td></tr>
+
+            <tr>
+                <td>
+                    Rating &gt;
+                    <input type="number" step="0.1" class="threshold-input" th:field="*{minRatingForBonus}"/>
+                    stars, min
+                    <input type="number" class="threshold-input" th:field="*{minRatersForBonus}"/>
+                    raters
+                </td>
+                <td><input type="number" th:field="*{highRatingPoints}"/></td>
+            </tr>
         </table>
         <button type="submit">Save</button>
     </form>

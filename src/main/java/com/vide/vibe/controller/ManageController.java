@@ -140,6 +140,7 @@ public class ManageController {
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String description,
             @RequestParam(required = false) String url,
+            @RequestParam(required = false) String githubUrl,
             @RequestParam(required = false) String verifiedScore,
             @RequestParam(required = false) String ownerEmail) {
         try {
@@ -148,6 +149,7 @@ public class ManageController {
             if (name != null && !name.isBlank())  app.setName(name.trim());
             if (description != null)              app.setDescription(description.trim());
             if (url != null)                      app.setUrl(url.trim().isEmpty() ? null : url.trim());
+            if (githubUrl != null)                app.setGithubUrl(githubUrl.trim().isEmpty() ? null : githubUrl.trim());
 
             Authentication auth    = SecurityContextHolder.getContext().getAuthentication();
             boolean        isStaff = auth != null && auth.getAuthorities().stream()

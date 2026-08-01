@@ -12,11 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class RankingService {
 
-    private static final int MIN_DESCRIPTION_LENGTH = 150;
-    private static final int MIN_TAGS_FOR_BONUS = 2;
-    private static final double MIN_RATING_FOR_BONUS = 4.0;
-    private static final int MIN_RATERS_FOR_BONUS = 5;
-
     private final RankingConfigRepository rankingConfigRepository;
 
     @Transactional
@@ -39,7 +34,7 @@ public class RankingService {
     public int computeScore(App app, RankingConfig cfg) {
         int score = 0;
 
-        if (app.getDescription() != null && app.getDescription().length() > MIN_DESCRIPTION_LENGTH) {
+        if (app.getDescription() != null && app.getDescription().length() > cfg.getMinDescriptionLength()) {
             score += cfg.getDescriptionLengthPoints();
         }
 
@@ -70,7 +65,7 @@ public class RankingService {
             score += cfg.getGithubListingPoints();
         }
 
-        if (app.getCategorySelections() != null && app.getCategorySelections().size() >= MIN_TAGS_FOR_BONUS) {
+        if (app.getCategorySelections() != null && app.getCategorySelections().size() >= cfg.getMinTagsForBonus()) {
             score += cfg.getTagsPoints();
         }
 
@@ -82,8 +77,8 @@ public class RankingService {
             score += cfg.getVerifiedPoints();
         }
 
-        if (app.getUserRatingAvg() != null && app.getUserRatingAvg() > MIN_RATING_FOR_BONUS
-                && app.getUserRatingCount() != null && app.getUserRatingCount() >= MIN_RATERS_FOR_BONUS) {
+        if (app.getUserRatingAvg() != null && app.getUserRatingAvg() > cfg.getMinRatingForBonus()
+                && app.getUserRatingCount() != null && app.getUserRatingCount() >= cfg.getMinRatersForBonus()) {
             score += cfg.getHighRatingPoints();
         }
 

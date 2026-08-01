@@ -1019,19 +1019,23 @@
 
     // ─── APP INFO (editors only) ─────────────────────────────────────────────
     async function saveAppInfo() {
+        if (!CAN_EDIT) return;
+        const name = document.getElementById('editableName').innerText.trim();
+        const desc = document.getElementById('editableDescription').innerText.trim();
+        if (!name) return showToast('Name cannot be empty', true);
+
+        const fd = new FormData();
+        fd.append('name', name);
+        fd.append('description', desc);
+
+        const ownerEmailEl = document.getElementById('editableOwnerEmail');
+        if (ownerEmailEl) fd.append('ownerEmail', ownerEmailEl.innerText.trim());
+
         const githubEl = document.getElementById('editableGithubUrl');
         if (githubEl) {
             const val = githubEl.innerText.trim();
             fd.append('githubUrl', val === 'Add a GitHub URL...' ? '' : val);
         }
-        if (!CAN_EDIT) return;
-        const name = document.getElementById('editableName').innerText.trim();
-        const desc = document.getElementById('editableDescription').innerText.trim();
-        if (!name) return showToast('Name cannot be empty', true);
-        const fd = new FormData(); fd.append('name', name); fd.append('description', desc);
-
-        const ownerEmailEl = document.getElementById('editableOwnerEmail');
-        if (ownerEmailEl) fd.append('ownerEmail', ownerEmailEl.innerText.trim());
 
         try {
             const r = await fetch(`/apps/${APP_ID}/manage/info`, { method: 'POST', body: fd });
@@ -1104,20 +1108,50 @@
         }
     }
 
-    function removePill(pill) {
+    // Removing a selected pill now persists to the server immediately —
+    // no need to open the picker and hit "Update" afterward.
+    async function removePill(pill) {
         if (!CAN_EDIT) return;
         const entryId = pill.dataset.entryId;
         const catId   = pill.dataset.categoryId;
+
         document.querySelector(`#picker-pills-${catId} .opt-pill[data-entry-id="${entryId}"]`)
             ?.classList.remove('selected');
         pill.remove();
+
+        await persistCategorySelections(catId);
+    }
+
+    // Shared save logic: reads the pills currently shown in the selected row
+    // and pushes that set to the server. Used by both removePill() and the
+    // picker's "Update" button.
+    async function persistCategorySelections(categoryId, btn) {
+        if (!CAN_EDIT) return;
+        const selRow = document.getElementById('sel-row-' + categoryId);
+        const ids = [...selRow.querySelectorAll('.sel-pill')].map(p => p.dataset.entryId);
+
+        if (btn) { btn.textContent = 'Saving…'; btn.classList.add('saving'); }
+        const fd = new FormData();
+        ids.forEach(id => fd.append('entryIds', id));
+
+        try {
+            await apiFetch(`/apps/${APP_ID}/manage/categories/${categoryId}`, fd);
+            if (btn) {
+                btn.textContent = 'Update'; btn.classList.remove('saving'); btn.classList.add('saved');
+                setTimeout(() => btn.classList.remove('saved'), 1500);
+                closePicker(categoryId);
+            }
+            showToast('Updated');
+        } catch (e) {
+            if (btn) { btn.textContent = 'Update'; btn.classList.remove('saving'); }
+            showToast(e.message, true);
+        }
     }
 
     async function saveCategorySelections(categoryId, btn) {
         if (!CAN_EDIT) return;
-        const pickerPills     = document.getElementById('picker-pills-' + categoryId);
+        const pickerPills      = document.getElementById('picker-pills-' + categoryId);
         const selectedOptPills = [...pickerPills.querySelectorAll('.opt-pill.selected')];
-        const ids             = selectedOptPills.map(p => p.dataset.entryId);
 
         const selRow = document.getElementById('sel-row-' + categoryId);
         const addBtn = selRow.querySelector('.pill-add-btn');
@@ -1129,18 +1163,7 @@
             );
         });
 
-        btn.textContent = 'Saving…'; btn.classList.add('saving');
-        const fd = new FormData(); ids.forEach(id => fd.append('entryIds', id));
-        try {
-            await apiFetch(`/apps/${APP_ID}/manage/categories/${categoryId}`, fd);
-            btn.textContent = 'Update'; btn.classList.remove('saving'); btn.classList.add('saved');
-            setTimeout(() => btn.classList.remove('saved'), 1500);
-            closePicker(categoryId);
-            showToast('Updated');
-        } catch (e) {
-            btn.textContent = 'Update'; btn.classList.remove('saving');
-            showToast(e.message, true);
-        }
+        await persistCategorySelections(categoryId, btn);
     }
 
     function buildSelPill(entryId, catId, name, iconUrl, description) {
@@ -1157,11 +1180,7 @@
         span.appendChild(label);
         const removeBtn = document.createElement('button');
         removeBtn.className = 'sel-pill-remove'; removeBtn.type = 'button'; removeBtn.textContent = '✕';
-        removeBtn.onclick = () => {
-            document.querySelector(`#picker-pills-${catId} .opt-pill[data-entry-id="${entryId}"]`)
-                ?.classList.remove('selected');
-            span.remove();
-        };
+        removeBtn.onclick = () => removePill(span);
         span.appendChild(removeBtn);
         return span;
     }
