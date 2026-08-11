@@ -492,9 +492,15 @@
         const select = document.getElementById('contentSource');
         if (select.value === 'filters') {
             autoSelectFromFilters();
-            select.value = 'manual';
         }
     }
+
+    document.getElementById('contentSource').addEventListener('mousedown', function() {
+        // if it's already on "filters" and user picks it again, force a change event
+        if (this.value === 'filters') {
+            this._forceReTrigger = true;
+        }
+    });
 
     /* ── Auto-select from filters ─────────────────────────────────────── */
     function autoSelectFromFilters() {
