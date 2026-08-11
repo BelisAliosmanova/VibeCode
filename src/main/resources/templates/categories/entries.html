@@ -166,6 +166,31 @@
             z-index: 1000; opacity: 1; transition: opacity 0.3s ease, transform 0.3s ease;
         }
         .toast.hide { opacity: 0; transform: translateX(-50%) translateY(8px); }
+
+        .entry-pill-name {
+            cursor: text;
+            border-radius: 3px;
+            padding: 0 2px;
+        }
+        .entry-pill-name.editing {
+            outline: 1px dashed #999;
+            outline-offset: 2px;
+            background: #fafafa;
+        }
+        .entry-merge-select {
+            border-color: #93c5fd;
+            color: #2563eb;
+        }
+
+        .entry-pill-appcount {
+            font-size: 0.68rem;
+            color: #aaa;
+            background: #f5f5f5;
+            border-radius: var(--radius-pill);
+            padding: 0.05rem 0.45rem;
+            white-space: nowrap;
+        }
+        .entry-merge-select:hover { border-color: #2563eb; }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 </head>
@@ -224,8 +249,17 @@
                         </form>
                     </span>
 
-                    <span class="entry-pill-name" th:text="${entry.name}">Name</span>
+                    <span class="entry-pill-name"
+                          th:text="${entry.name}"
+                          th:data-entry-id="${entry.id}"
+                          th:data-category-id="${category.id}"
+                          title="Double-click to rename"
+                          ondblclick="startEntryEdit(this)"
+                          onkeydown="handleEntryEditKey(event, this)"
+                          onblur="finishEntryEdit(this)">Name</span>
                     <span class="entry-pill-interest" th:text="'↑' + ${entry.interest}">↑0</span>
+                    <span class="entry-pill-appcount"
+                          th:text="(${appCounts.get(entry.id)} ?: 0) + ' apps'">0 apps</span>
 
                     <!-- Move to another category -->
                     <form th:if="${!#lists.isEmpty(otherCategories)}"
@@ -237,6 +271,19 @@
                             <option value="" selected>Move to…</option>
                             <option th:each="oc : ${otherCategories}"
                                     th:value="${oc.id}" th:text="${oc.name}"></option>
+                        </select>
+                    </form>
+                    <!-- Merge into another entry in this category -->
+                    <form th:if="${#lists.size(entries) > 1}"
+                          th:action="@{/categories/{cId}/entries/{eId}/merge(cId=${category.id},eId=${entry.id})}"
+                          method="post" style="display:inline; margin:0;">
+                        <select name="targetEntryId" class="entry-move-select entry-merge-select"
+                                th:data-name="${entry.name}"
+                                onchange="if(this.value &amp;&amp; confirm('Merge ' + this.dataset.name + ' into ' + this.options[this.selectedIndex].text + '? This entry will be removed and its app selections moved over.')) { this.form.submit(); } else { this.selectedIndex = 0; }">
+                            <option value="" selected>Merge into…</option>
+                            <th:block th:each="oe : ${entries}">
+                                <option th:if="${oe.id != entry.id}" th:value="${oe.id}" th:text="${oe.name}"></option>
+                            </th:block>
                         </select>
                     </form>
 
@@ -345,6 +392,54 @@
         };
         reader.readAsDataURL(file);
     });
+
+    function startEntryEdit(el) {
+    el.dataset.original = el.textContent;
+    el.contentEditable = 'true';
+    el.classList.add('editing');
+    el.focus();
+    document.execCommand('selectAll', false, null);
+}
+
+function handleEntryEditKey(e, el) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        el.blur();
+    } else if (e.key === 'Escape') {
+        el.textContent = el.dataset.original;
+        el.contentEditable = 'false';
+        el.classList.remove('editing');
+        el.blur();
+    }
+}
+
+function finishEntryEdit(el) {
+    if (el.contentEditable !== 'true') return;
+    el.contentEditable = 'false';
+    el.classList.remove('editing');
+
+    const newName = el.textContent.trim();
+    const original = el.dataset.original;
+    if (!newName || newName === original) {
+        el.textContent = original;
+        return;
+    }
+
+    const params = new URLSearchParams();
+    params.set('name', newName);
+
+    fetch(`/categories/${el.dataset.categoryId}/entries/${el.dataset.entryId}/rename`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params.toString()
+    })
+    .then(res => { if (!res.ok) throw new Error(); return res.json(); })
+    .then(data => { el.textContent = data.name; })
+    .catch(() => {
+        el.textContent = original;
+        alert('Failed to rename entry.');
+    });
+}
 </script>
 
 </body>

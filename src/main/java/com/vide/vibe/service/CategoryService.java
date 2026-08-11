@@ -225,6 +225,51 @@ public class CategoryService {
         return counts;
     }
 
+    @Transactional
+    public CategoryEntry updateEntryName(UUID id, String name) {
+        if (name == null || name.isBlank()) {
+            throw new RuntimeException("Entry name cannot be blank");
+        }
+        CategoryEntry existing = findEntryById(id);
+        existing.setName(name.trim());
+        return categoryEntryRepository.save(existing);
+    }
+
+    /**
+     * Merge one entry into another within the same category: moves any
+     * app selections pointing at the source entry onto the target entry
+     * (dropping duplicates where an app already picked the target), then
+     * soft-deletes the now-empty source entry.
+     */
+    @Transactional
+    public CategoryEntry mergeEntries(UUID sourceEntryId, UUID targetEntryId) {
+        if (sourceEntryId.equals(targetEntryId)) {
+            throw new RuntimeException("Cannot merge an entry into itself");
+        }
+
+        CategoryEntry source = findEntryById(sourceEntryId);
+        CategoryEntry target = findEntryById(targetEntryId);
+
+        if (!source.getCategory().getId().equals(target.getCategory().getId())) {
+            throw new RuntimeException("Can only merge entries within the same category");
+        }
+
+        List<AppCategoryEntry> sourceSelections = appCategoryEntryRepository.findAllByEntryId(sourceEntryId);
+        for (AppCategoryEntry selection : sourceSelections) {
+            boolean alreadySelected = appCategoryEntryRepository
+                    .existsByAppIdAndEntryId(selection.getApp().getId(), targetEntryId);
+            if (alreadySelected) {
+                appCategoryEntryRepository.delete(selection);
+            } else {
+                selection.setEntry(target);
+                appCategoryEntryRepository.save(selection);
+            }
+        }
+
+        deleteEntry(sourceEntryId);
+        return target;
+    }
+
     private String mangleSlug(String slug, UUID id) {
         String suffix = "-deleted-" + id;
         if (slug.length() + suffix.length() <= SLUG_MAX_LENGTH) {

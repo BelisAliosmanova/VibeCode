@@ -77,10 +77,11 @@ public class CategoryController {
         model.addAttribute("category", categoryService.findById(id));
         model.addAttribute("entries", categoryService.findEntriesByCategoryId(id));
         model.addAttribute("newEntry", new CategoryEntry());
-        // Used to populate the "Move to…" dropdown on each entry pill
         model.addAttribute("otherCategories", allCategories.stream()
                 .filter(c -> !c.getId().equals(id))
                 .collect(Collectors.toList()));
+
+        model.addAttribute("appCounts", categoryService.countAppsPerEntry(id));
         return "categories/entries";
     }
 
@@ -139,4 +140,35 @@ public class CategoryController {
         categoryService.deleteEntry(entryId);
         return "redirect:/categories/" + categoryId + "/entries";
     }
+
+    /**
+     * Merge one entry into another within the same category. Moves app
+     * selections over and removes the source entry.
+     */
+    @PostMapping("/{categoryId}/entries/{entryId}/merge")
+    public String mergeEntry(
+            @PathVariable UUID categoryId,
+            @PathVariable UUID entryId,
+            @RequestParam UUID targetEntryId,
+            org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
+        CategoryEntry target = categoryService.mergeEntries(entryId, targetEntryId);
+        redirectAttributes.addFlashAttribute("moveMessage",
+                "Merged into \"" + target.getName() + "\"");
+        return "redirect:/categories/" + categoryId + "/entries";
+    }
+
+    /**
+     * Inline-rename an entry. Called via fetch() from the entries page,
+     * returns JSON so the pill can update without a full page reload.
+     */
+    @PostMapping("/{categoryId}/entries/{entryId}/rename")
+    @org.springframework.web.bind.annotation.ResponseBody
+    public java.util.Map<String, String> renameEntry(
+            @PathVariable UUID categoryId,
+            @PathVariable UUID entryId,
+            @RequestParam String name) {
+        CategoryEntry updated = categoryService.updateEntryName(entryId, name);
+        return java.util.Map.of("id", updated.getId().toString(), "name", updated.getName());
+    }
+
 }

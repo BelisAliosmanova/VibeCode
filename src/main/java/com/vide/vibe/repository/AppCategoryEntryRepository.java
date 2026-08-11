@@ -46,4 +46,6 @@ public interface AppCategoryEntryRepository extends JpaRepository<AppCategoryEnt
             "WHERE ace.entry.category.id = :categoryId " +
             "GROUP BY ace.entry.id")
     List<Object[]> countAppsByEntryForCategory(@Param("categoryId") UUID categoryId);
+
+    List<AppCategoryEntry> findAllByEntryId(UUID entryId);
 }
