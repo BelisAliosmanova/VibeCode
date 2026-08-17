@@ -30,6 +30,18 @@
         .page-title { font-size: 1.4rem; font-weight: 700; }
         .page-subtitle { font-size: 0.9rem; color: #aaa; }
 
+        /* ── Sort bar ── */
+        .sort-bar { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.25rem; }
+        .sort-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #aaa; margin-right: 0.25rem; }
+        .sort-btn {
+            background: var(--white); border: 1.5px solid var(--border); color: #888;
+            font-family: var(--font); font-size: 0.78rem; font-weight: 600;
+            padding: 0.35rem 0.9rem; border-radius: var(--radius-pill); cursor: pointer;
+            transition: border-color 0.15s, color 0.15s, background 0.15s;
+        }
+        .sort-btn:hover { border-color: #aaa; color: var(--black); }
+        .sort-btn.active { background: var(--black); border-color: var(--black); color: #fff; }
+
         .layout { display: grid; grid-template-columns: 1fr 310px; gap: 2rem; align-items: start; }
 
         /* ── Entry pills list ── */
@@ -213,18 +225,28 @@
         <span class="page-subtitle" th:text="${#lists.size(entries)} + ' entries'">0 entries</span>
     </div>
 
+    <div class="sort-bar">
+        <span class="sort-label">Sort</span>
+        <button type="button" class="sort-btn active" data-sort="default" onclick="sortEntries('default', this)">Default</button>
+        <button type="button" class="sort-btn" data-sort="az" onclick="sortEntries('az', this)">A–Z</button>
+        <button type="button" class="sort-btn" data-sort="popularity" onclick="sortEntries('popularity', this)">Popularity</button>
+    </div>
+
     <div class="layout">
 
         <!-- LEFT: existing entries as pills -->
         <div>
-            <div class="entries-list">
+            <div class="entries-list" id="entriesList">
                 <p th:if="${#lists.isEmpty(entries)}" class="empty-state">
                     No entries yet — add one using the form.
                 </p>
 
-                <span th:each="entry : ${entries}"
+                <span th:each="entry, iterStat : ${entries}"
                       class="entry-pill"
-                      th:classappend="${!entry.visibility} ? ' entry-pill-hidden' : ''">
+                      th:classappend="${!entry.visibility} ? ' entry-pill-hidden' : ''"
+                      th:data-order="${iterStat.index}"
+                      th:data-name="${entry.name}"
+                      th:data-appcount="${appCounts.get(entry.id)} ?: 0">
                      <span th:if="${entry.description != null and !entry.description.isBlank()}"
                            class="entry-tooltip"
                            th:text="${entry.description}"></span>
@@ -440,6 +462,30 @@ function finishEntryEdit(el) {
         alert('Failed to rename entry.');
     });
 }
+
+    // ── Sorting ──
+    function sortEntries(mode, btn) {
+        const list = document.getElementById('entriesList');
+        if (!list) return;
+        const pills = Array.from(list.querySelectorAll('.entry-pill'));
+        if (pills.length === 0) return;
+
+        pills.sort((a, b) => {
+            if (mode === 'az') {
+                return a.dataset.name.localeCompare(b.dataset.name, undefined, { sensitivity: 'base' });
+            }
+            if (mode === 'popularity') {
+                return (parseInt(b.dataset.appcount, 10) || 0) - (parseInt(a.dataset.appcount, 10) || 0);
+            }
+            // default: original server order
+            return (parseInt(a.dataset.order, 10) || 0) - (parseInt(b.dataset.order, 10) || 0);
+        });
+
+        pills.forEach(pill => list.appendChild(pill));
+
+        document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+    }
 </script>
 
 </body>
