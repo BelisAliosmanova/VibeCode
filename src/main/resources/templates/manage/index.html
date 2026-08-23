@@ -115,6 +115,12 @@
         .app-desc-edit { font-size: 0.8rem; color: var(--gray-200); opacity: 0.75; line-height: 1.5; outline: none; border-radius: 6px; padding: 2px 6px; margin-left: -6px; display: block; min-height: 1.5em; margin-top: 0.3rem; max-width: 480px; }
         .app-desc-edit:focus { background: rgba(255,255,255,0.06); }
         .app-desc-static { font-size: 0.8rem; color: var(--gray-200); opacity: 0.75; line-height: 1.5; display: block; margin-top: 0.3rem; max-width: 480px; }
+        .desc-more-btn {
+            background: none; border: none; color: var(--cyan); font-size: 0.72rem;
+            font-weight: 600; cursor: pointer; padding: 0; margin-top: 0.15rem;
+            font-family: var(--font); text-decoration: underline; display: inline-block;
+        }
+        .desc-more-btn:hover { color: var(--white); }
         .save-inline-badge { display: none; font-size: 0.7rem; color: var(--green); font-weight: 700; margin-left: 6px; text-transform: uppercase; letter-spacing: 0.06em; }
         .save-inline-badge.show { display: inline; }
 
@@ -379,6 +385,7 @@
                       th:text="${app.name}"></span>
                 <span class="save-inline-badge" id="saveBadge">✓ Saved</span>
             </div>
+            <!-- Editors always see and edit the FULL description — no truncation here. -->
             <span class="app-desc-edit" contenteditable="true" id="editableDescription"
                   th:text="${app.description != null ? app.description : 'Add a description...'}"></span>
             <div class="app-owner-row" style="display:flex;align-items:center;gap:0.4rem;margin-top:0.3rem;" th:if="${isStaff}">
@@ -401,7 +408,14 @@
             <div class="app-title-row">
                 <span class="app-name-static" th:text="${app.name}"></span>
             </div>
-            <span class="app-desc-static" th:text="${app.description}"></span>
+            <!--
+                Read-only description — truncated client-side to the first
+                two sentences via truncateReadonlyDescription() below, with
+                a "more"/"less" toggle for the full text. The full raw
+                description is still rendered server-side (nothing sensitive
+                is trimmed), truncation is purely a display concern.
+            -->
+            <span class="app-desc-static" id="appDescStatic" th:text="${app.description}"></span>
             <div class="app-badges-row">
                 <span class="pricing-badge">PRICING</span>
             </div>
@@ -862,6 +876,7 @@
     const APP_ID  = /*[[${app.id.toString()}]]*/ '';
     const CAN_EDIT = /*[[${canEdit}]]*/ false;
     const STEP_MAX = 70;
+    const DESC_MAX_SENTENCES = 2;
 
     // ─── TOAST ──────────────────────────────────────────────────────────────
     function showToast(msg, err = false) {
@@ -870,6 +885,43 @@
         t.className = 'toast' + (err ? ' error' : '');
         t.classList.add('show');
         setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    // ─── READ-ONLY DESCRIPTION TRUNCATION ────────────────────────────────────
+    // Only applies to the non-editable view (.app-desc-static). The editable
+    // description (.app-desc-edit) always shows the full text so owners/staff
+    // can see and edit everything they typed.
+    function truncateReadonlyDescription() {
+        const el = document.getElementById('appDescStatic');
+        if (!el) return;
+
+        const full = el.textContent.trim();
+        if (!full) return;
+
+        // Split into sentences, keeping the trailing punctuation with each one.
+        // Falls back to treating the whole string as one "sentence" if there's
+        // no clear sentence-ending punctuation (e.g. a description with no
+        // periods at all).
+        const sentences = full.match(/[^.!?]+[.!?]+(\s+|$)/g) || [full];
+
+        if (sentences.length <= DESC_MAX_SENTENCES) return; // nothing to truncate
+
+        const short = sentences.slice(0, DESC_MAX_SENTENCES).join('').trim();
+        el.textContent = short;
+
+        const toggleBtn = document.createElement('button');
+        toggleBtn.type = 'button';
+        toggleBtn.className = 'desc-more-btn';
+        toggleBtn.textContent = 'more';
+
+        let expanded = false;
+        toggleBtn.addEventListener('click', () => {
+            expanded = !expanded;
+            el.textContent = expanded ? full : short;
+            toggleBtn.textContent = expanded ? 'less' : 'more';
+        });
+
+        el.after(toggleBtn);
     }
 
     // ─── MODAL helpers ──────────────────────────────────────────────────────
@@ -1486,6 +1538,7 @@
     }
 
     // ─── INIT ────────────────────────────────────────────────────────────────
+    truncateReadonlyDescription();
     document.querySelectorAll('.step-box').forEach(applyMultilineClass);
     document.querySelectorAll('.steps-diagram').forEach(diagram => {
         redrawDiagram(diagram.id.replace('steps-', ''));
