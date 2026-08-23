@@ -6,6 +6,7 @@ import com.vide.vibe.repository.WorkflowRepository;
 import com.vide.vibe.service.AppService;
 import com.vide.vibe.service.CategoryService;
 import com.vide.vibe.service.RankingService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -23,6 +24,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ExploreController {
 
+    private static final int PAGE_SIZE = 5;
+
     private final AppService appService;
     private final CategoryService categoryService;
     private final AppMediaRepository appMediaRepository;
@@ -35,7 +38,6 @@ public class ExploreController {
             @RequestParam(required = false, defaultValue = "top-rated") String tab,
             Model model) {
 
-        // ── Sidebar filter categories (only ones with at least one app) ────────
         List<Category> filterCategories = categoryService.findAllFilterVisible();
         Map<UUID, Long> entryAppCounts = categoryService.getAppCountByEntry();
 
@@ -58,14 +60,86 @@ public class ExploreController {
             }
         }
 
-        // ── Selected sidebar entry IDs ─────────────────────────────────────────
-        List<UUID> selectedUuids = entries != null ? entries : new ArrayList<>();
-        // Convert to String for safe Thymeleaf JS inlining
-        List<String> selectedIdStrings = selectedUuids.stream()
+        List<String> selectedIdStrings = (entries != null ? entries : List.<UUID>of()).stream()
                 .map(UUID::toString)
                 .collect(Collectors.toList());
 
-        // Group by category for AND-across-categories, OR-within-category logic
+        SectionsResult sections = computeSections(tab, entries);
+
+        List<App> section1Apps = firstPage(sections.list1());
+        List<App> section2Apps = firstPage(sections.list2());
+        boolean hasMoreSection1 = sections.list1().size() > PAGE_SIZE;
+        boolean hasMoreSection2 = sections.list2().size() > PAGE_SIZE;
+
+        Set<UUID> visibleAppIds = new LinkedHashSet<>();
+        section1Apps.forEach(a -> visibleAppIds.add(a.getId()));
+        section2Apps.forEach(a -> visibleAppIds.add(a.getId()));
+
+        Set<UUID> appsWithVideo = appMediaRepository.findAppIdsWithMediaType(visibleAppIds, AppMedia.MediaType.VIDEO);
+        Set<UUID> appsWithImages = appMediaRepository.findAppIdsWithMediaType(visibleAppIds, AppMedia.MediaType.SCREENSHOT);
+        Set<UUID> appsWithWorkflows = workflowRepository.findAppIdsWithWorkflows(visibleAppIds);
+
+        // ── Model ──────────────────────────────────────────────────────────────
+        model.addAttribute("filterEntries", filterEntries);
+        model.addAttribute("selectedEntryIds", selectedIdStrings);
+        model.addAttribute("tab", tab);
+        model.addAttribute("section1Title", sections.title1());
+        model.addAttribute("section1Apps", section1Apps);
+        model.addAttribute("section2Title", sections.title2());
+        model.addAttribute("section2Apps", section2Apps);
+        model.addAttribute("hasMoreSection1", hasMoreSection1);
+        model.addAttribute("hasMoreSection2", hasMoreSection2);
+
+        model.addAttribute("entryAppCounts", entryAppCounts);
+        model.addAttribute("categoryAppCounts", categoryAppCounts);
+
+        model.addAttribute("appsWithVideo", appsWithVideo);
+        model.addAttribute("appsWithImages", appsWithImages);
+        model.addAttribute("appsWithWorkflows", appsWithWorkflows);
+
+        return "explore";
+    }
+
+    @GetMapping("/more")
+    public String more(
+            @RequestParam(required = false) List<UUID> entries,
+            @RequestParam(required = false, defaultValue = "top-rated") String tab,
+            @RequestParam int section,
+            @RequestParam(defaultValue = "0") int offset,
+            Model model,
+            HttpServletResponse response) {
+
+        SectionsResult sections = computeSections(tab, entries);
+        List<App> full = (section == 2) ? sections.list2() : sections.list1();
+
+        int safeOffset = Math.max(offset, 0);
+        List<App> batch = full.stream()
+                .skip(safeOffset)
+                .limit(PAGE_SIZE)
+                .collect(Collectors.toList());
+
+        boolean hasMore = full.size() > safeOffset + PAGE_SIZE;
+        int nextOffset = safeOffset + PAGE_SIZE;
+
+        response.setHeader("X-Has-More", Boolean.toString(hasMore));
+        response.setHeader("X-Next-Offset", Integer.toString(nextOffset));
+
+        Set<UUID> visibleAppIds = batch.stream().map(App::getId).collect(Collectors.toCollection(LinkedHashSet::new));
+        Set<UUID> appsWithVideo = appMediaRepository.findAppIdsWithMediaType(visibleAppIds, AppMedia.MediaType.VIDEO);
+        Set<UUID> appsWithImages = appMediaRepository.findAppIdsWithMediaType(visibleAppIds, AppMedia.MediaType.SCREENSHOT);
+        Set<UUID> appsWithWorkflows = workflowRepository.findAppIdsWithWorkflows(visibleAppIds);
+
+        model.addAttribute("apps", batch);
+        model.addAttribute("appsWithVideo", appsWithVideo);
+        model.addAttribute("appsWithImages", appsWithImages);
+        model.addAttribute("appsWithWorkflows", appsWithWorkflows);
+
+        return "fragments/app-cards :: cards(apps=${apps},appsWithVideo=${appsWithVideo},appsWithImages=${appsWithImages},appsWithWorkflows=${appsWithWorkflows})";
+    }
+
+    private SectionsResult computeSections(String tab, List<UUID> entries) {
+        List<UUID> selectedUuids = entries != null ? entries : new ArrayList<>();
+
         Map<UUID, List<UUID>> selectedByCategoryId = new LinkedHashMap<>();
         for (UUID entryId : selectedUuids) {
             try {
@@ -76,7 +150,6 @@ public class ExploreController {
             }
         }
 
-        // ── Base pool: all non-deleted apps, filtered by sidebar ───────────────
         List<App> allApps = appService.findAll();
         List<App> pool;
         if (selectedByCategoryId.isEmpty()) {
@@ -94,7 +167,6 @@ public class ExploreController {
                     .collect(Collectors.toList());
         }
 
-        // ── Two sections, determined by active tab ─────────────────────────────
         String section1Title;
         List<App> section1Apps;
         String section2Title;
@@ -103,7 +175,6 @@ public class ExploreController {
         Instant now = Instant.now();
 
         if ("new".equals(tab)) {
-            // Section 1: apps created in the last 7 days
             Instant oneWeekAgo = now.minus(7, ChronoUnit.DAYS);
             Instant oneMonthAgo = now.minus(30, ChronoUnit.DAYS);
 
@@ -111,30 +182,28 @@ public class ExploreController {
             section1Apps = pool.stream()
                     .filter(a -> a.getCreatedAt() != null && a.getCreatedAt().isAfter(oneWeekAgo))
                     .sorted(Comparator.comparing(App::getCreatedAt).reversed())
-                    .limit(5).collect(Collectors.toList());
+                    .collect(Collectors.toList());
 
-            // Section 2: apps created 8–30 days ago
             section2Title = "LAST MONTH";
             section2Apps = pool.stream()
                     .filter(a -> a.getCreatedAt() != null
                             && a.getCreatedAt().isBefore(oneWeekAgo)
                             && a.getCreatedAt().isAfter(oneMonthAgo))
                     .sorted(Comparator.comparing(App::getCreatedAt).reversed())
-                    .limit(5).collect(Collectors.toList());
+                    .collect(Collectors.toList());
 
         } else if ("verified".equals(tab)) {
-            // Verified tab: top verified first, then top user-rated
             section1Title = "TOP VERIFIED APPS";
             section1Apps = pool.stream()
                     .filter(a -> a.getVerifiedScore() != null)
                     .sorted(Comparator.comparingDouble(App::getVerifiedScore).reversed())
-                    .limit(5).collect(Collectors.toList());
+                    .collect(Collectors.toList());
 
             section2Title = "TOP USER RATED APPS";
             section2Apps = pool.stream()
                     .sorted(Comparator.comparingDouble(App::getUserRatingAvg).reversed()
                             .thenComparingInt(App::getUserRatingCount).reversed())
-                    .limit(5).collect(Collectors.toList());
+                    .collect(Collectors.toList());
 
         } else if ("ranked".equals(tab)) {
             RankingConfig cfg = rankingService.getConfig();
@@ -147,52 +216,32 @@ public class ExploreController {
                     .collect(Collectors.toList());
 
             section1Title = "TOP RANKED APPS";
-            section1Apps = byScore.stream().limit(5).collect(Collectors.toList());
+            section1Apps = byScore.stream().limit(PAGE_SIZE).collect(Collectors.toList());
 
             section2Title = "ALSO HIGHLY RANKED";
-            section2Apps = byScore.stream().skip(5).limit(5).collect(Collectors.toList());
+            section2Apps = byScore.stream().skip(PAGE_SIZE).collect(Collectors.toList());
 
         } else {
-            // Default "top-rated": top user-rated first, then top verified
             section1Title = "TOP USER RATED APPS";
             section1Apps = pool.stream()
                     .sorted(Comparator.comparingDouble(App::getUserRatingAvg).reversed()
                             .thenComparingInt(App::getUserRatingCount).reversed())
-                    .limit(5).collect(Collectors.toList());
+                    .collect(Collectors.toList());
 
             section2Title = "TOP VERIFIED APPS";
             section2Apps = pool.stream()
                     .filter(a -> a.getVerifiedScore() != null)
                     .sorted(Comparator.comparingDouble(App::getVerifiedScore).reversed())
-                    .limit(5).collect(Collectors.toList());
+                    .collect(Collectors.toList());
         }
 
-        // ── App indicator badges (video / screenshots / workflows) ─────────────
-        // Only need to look these up for the apps actually rendered on the page.
-        Set<UUID> visibleAppIds = new LinkedHashSet<>();
-        section1Apps.forEach(a -> visibleAppIds.add(a.getId()));
-        section2Apps.forEach(a -> visibleAppIds.add(a.getId()));
+        return new SectionsResult(section1Title, section1Apps, section2Title, section2Apps);
+    }
 
-        Set<UUID> appsWithVideo = appMediaRepository.findAppIdsWithMediaType(visibleAppIds, AppMedia.MediaType.VIDEO);
-        Set<UUID> appsWithImages = appMediaRepository.findAppIdsWithMediaType(visibleAppIds, AppMedia.MediaType.SCREENSHOT);
-        Set<UUID> appsWithWorkflows = workflowRepository.findAppIdsWithWorkflows(visibleAppIds);
+    private List<App> firstPage(List<App> full) {
+        return full.stream().limit(PAGE_SIZE).collect(Collectors.toList());
+    }
 
-        // ── Model ──────────────────────────────────────────────────────────────
-        model.addAttribute("filterEntries", filterEntries);
-        model.addAttribute("selectedEntryIds", selectedIdStrings);
-        model.addAttribute("tab", tab);
-        model.addAttribute("section1Title", section1Title);
-        model.addAttribute("section1Apps", section1Apps);
-        model.addAttribute("section2Title", section2Title);
-        model.addAttribute("section2Apps", section2Apps);
-
-        model.addAttribute("entryAppCounts", entryAppCounts);
-        model.addAttribute("categoryAppCounts", categoryAppCounts);
-
-        model.addAttribute("appsWithVideo", appsWithVideo);
-        model.addAttribute("appsWithImages", appsWithImages);
-        model.addAttribute("appsWithWorkflows", appsWithWorkflows);
-
-        return "explore";
+    private record SectionsResult(String title1, List<App> list1, String title2, List<App> list2) {
     }
 }

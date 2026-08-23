@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+    Reusable app-card list, parameterized so it can be called both for the
+    initial page render (explore.html, section 1 & 2) and for the
+    /explore/more AJAX "load more" responses — one source of markup instead
+    of two copies that can quietly drift apart.
+-->
+<th:block th:fragment="cards(apps, appsWithVideo, appsWithImages, appsWithWorkflows)">
+    <th:block th:each="app : ${apps}">
+        <a class="app-card"
+           th:href="@{/apps/{id}/manage(id=${app.id})}"
+           th:data-name="${app.name.toLowerCase()}"
+           th:data-desc="${app.description != null ? app.description.toLowerCase() : ''}">
+
+            <div class="app-icon">
+                <img th:if="${app.iconUrl != null}" th:src="${app.iconUrl}" alt=""/>
+                <span th:if="${app.iconUrl == null}">🖼</span>
+            </div>
+
+            <div class="app-body">
+                <div class="app-name" th:text="${app.name}">App Name</div>
+                <div class="app-desc"
+                     th:text="${app.description != null ? app.description : 'No description'}">
+                </div>
+                <div class="app-indicators">
+                    <span class="app-indicator-badge" th:if="${appsWithVideo.contains(app.id)}" title="Has video">
+                        <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+                    </span>
+                    <span class="app-indicator-badge" th:if="${appsWithImages.contains(app.id)}" title="Has screenshots">
+                        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg>
+                    </span>
+                    <span class="app-indicator-badge" th:if="${appsWithWorkflows.contains(app.id)}" title="Has workflows">
+                        <svg viewBox="0 0 24 24"><rect x="2" y="4" width="6" height="6" rx="1"/><rect x="16" y="4" width="6" height="6" rx="1"/><rect x="9" y="14" width="6" height="6" rx="1"/><path d="M5 10v2a2 2 0 0 0 2 2h2M19 10v2a2 2 0 0 1-2 2h-2"/></svg>
+                    </span>
+                </div>
+            </div>
+
+            <div class="app-card-right">
+                <div class="rating-row">
+                    <!-- User rating (gold stars) -->
+                    <div class="rating-block">
+                        <div class="stars">
+                            <span th:each="i : ${#numbers.sequence(1,5)}"
+                                  class="star"
+                                  th:classappend="${app.userRatingAvg >= i} ? ' lit-user' : ''">★</span>
+                        </div>
+                        <span class="rating-count"
+                              th:text="${#numbers.formatDecimal(app.userRatingAvg,1,1)} + ' (' + ${app.userRatingCount} + ')'">0</span>
+                    </div>
+                    <span class="rating-sep">|</span>
+                    <!-- Verified rating (blue stars) -->
+                    <div class="rating-block">
+                        <div class="stars" th:if="${app.verifiedScore != null}">
+                            <span th:each="i : ${#numbers.sequence(1,5)}"
+                                  class="star"
+                                  th:classappend="${app.verifiedScore >= i} ? ' lit-verified' : ''">★</span>
+                        </div>
+                        <span th:if="${app.verifiedScore != null}"
+                              style="font-size:0.64rem;color:var(--blue);font-weight:700;"
+                              th:text="${#numbers.formatDecimal(app.verifiedScore,1,1)}"></span>
+                        <span th:if="${app.verifiedScore == null}"
+                              style="font-size:0.64rem;color:var(--gray-400);">—</span>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </th:block>
+</th:block>
+
+</body>
+</html>
