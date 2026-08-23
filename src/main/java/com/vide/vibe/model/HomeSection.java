@@ -22,6 +22,7 @@ public class HomeSection extends SoftDeletableEntity {
 
     public enum Layout {
         FIVE_PLUS_ONE,
+        THREE_PLUS_ONE,
         SIX_GRID
     }
 

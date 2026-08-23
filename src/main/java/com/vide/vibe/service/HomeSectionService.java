@@ -32,7 +32,7 @@ public class HomeSectionService {
                 .orElseThrow(() -> new RuntimeException("Home section not found: " + id));
     }
 
-    /** apps in LIST slot, in order (max enforced on the way in: 5 for FIVE_PLUS_ONE, 6 for SIX_GRID). */
+    /** apps in LIST slot, in order (max enforced on the way in: 3 for THREE_PLUS_ONE, 5 for FIVE_PLUS_ONE, 6 for SIX_GRID). */
     public List<App> findListApps(UUID sectionId) {
         return homeSectionAppRepository.findAllByHomeSectionIdOrderByPositionAsc(sectionId)
                 .stream()
@@ -75,7 +75,7 @@ public class HomeSectionService {
 
         HomeSection section = HomeSection.builder()
                 .title(title)
-                .featuredTitle(resolvedLayout == HomeSection.Layout.FIVE_PLUS_ONE ? featuredTitle : null)
+                .featuredTitle(resolvedLayout != HomeSection.Layout.SIX_GRID ? featuredTitle : null)
                 .layout(resolvedLayout)
                 .position(existing.size())
                 .build();
@@ -113,7 +113,7 @@ public class HomeSectionService {
     public HomeSection updateTitles(UUID id, String title, String featuredTitle) {
         HomeSection section = findById(id);
         if (title != null && !title.isBlank()) section.setTitle(title.trim());
-        if (section.getLayout() == HomeSection.Layout.FIVE_PLUS_ONE && featuredTitle != null) {
+        if (section.getLayout() != HomeSection.Layout.SIX_GRID && featuredTitle != null) {
             section.setFeaturedTitle(featuredTitle.trim());
         }
         return homeSectionRepository.save(section);
@@ -124,7 +124,11 @@ public class HomeSectionService {
         HomeSection section = findById(sectionId);
         homeSectionAppRepository.deleteAllByHomeSectionId(sectionId);
 
-        int maxList = section.getLayout() == HomeSection.Layout.SIX_GRID ? 6 : 5;
+        int maxList = switch (section.getLayout()) {
+            case SIX_GRID -> 6;
+            case THREE_PLUS_ONE -> 3;
+            default -> 5; // FIVE_PLUS_ONE
+        };
 
         List<UUID> ids = listAppIds != null ? new ArrayList<>(listAppIds) : new ArrayList<>();
         if (ids.size() > maxList) ids = ids.subList(0, maxList);

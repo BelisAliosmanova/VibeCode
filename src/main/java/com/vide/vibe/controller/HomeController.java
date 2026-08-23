@@ -40,12 +40,10 @@ public class HomeController {
     public String home(Model model) {
         List<App> allApps = appService.findAll();
 
-        // ── Dynamic custom sections ───────────────────────────────────────────
         List<HomeSection> sections = homeSectionService.findAllOrdered();
         Map<UUID, List<App>> sectionListApps = homeSectionService.findAllListAppsBySection();
         Map<UUID, App> sectionFeatured = homeSectionService.findAllFeaturedAppsBySection();
 
-        // ── Most popular feature entries ──────────────────────────────────────
         List<CategoryEntry> popularFeatures = new ArrayList<>();
         try {
             for (Category cat : categoryService.findAll()) {
@@ -59,27 +57,17 @@ public class HomeController {
             }
         } catch (Exception ignored) {}
 
-        // ── Vibe apps (random hourly seed) ───────────────────────────────────
         List<App> vibeApps = new ArrayList<>(allApps);
         Collections.shuffle(vibeApps, new Random(Instant.now().getEpochSecond() / 3600));
         vibeApps = vibeApps.stream().limit(6).collect(Collectors.toList());
 
-        // ── Entry app counts ─────────────────────────────────────────────────
         Map<UUID, Long> entryAppCounts = categoryService.getAppCountByEntry();
 
-        // ── Merge custom sections + the two fixed blocks into one drag order ──
         List<String> blockOrder = resolveBlockOrder(sections);
 
-        // Lookup map so the template can resolve a blockId straight to its
-        // HomeSection without SpEL collection-selection in the markup.
         Map<String, HomeSection> sectionsById = new LinkedHashMap<>();
         for (HomeSection s : sections) sectionsById.put(s.getId().toString(), s);
 
-        // ── Is the current user allowed to see/use the homepage editing UI? ───
-        // This only controls whether the edit affordances render. The actual
-        // security boundary is (and must remain) enforced independently on
-        // the /admin/home-sections/** and /api/site-config/** endpoints via
-        // Spring Security's hasAnyRole('MANAGER','ADMIN') checks.
         boolean isAdmin = isCurrentUserManagerOrAdmin();
 
         Set<UUID> allAppIds = new LinkedHashSet<>();
@@ -90,10 +78,21 @@ public class HomeController {
         Set<UUID> appsWithImages    = appMediaRepository.findAppIdsWithMediaType(allAppIds, AppMedia.MediaType.SCREENSHOT);
         Set<UUID> appsWithWorkflows = workflowRepository.findAppIdsWithWorkflows(allAppIds);
 
+        Map<UUID, List<CategoryEntry>> featuredAppCategories = new HashMap<>();
+        for (App featApp : sectionFeatured.values()) {
+            if (featApp == null) continue;
+            List<CategoryEntry> entries = featApp.getCategorySelections().stream()
+                    .map(AppCategoryEntry::getEntry)
+                    .filter(Objects::nonNull)
+                    .limit(20)
+                    .collect(Collectors.toList());
+            featuredAppCategories.put(featApp.getId(), entries);
+        }
+
+        model.addAttribute("featuredAppCategories", featuredAppCategories);
         model.addAttribute("appsWithVideo",     appsWithVideo);
         model.addAttribute("appsWithImages",    appsWithImages);
         model.addAttribute("appsWithWorkflows", appsWithWorkflows);
-
         model.addAttribute("blockOrder",      blockOrder);
         model.addAttribute("blockPopular",    BLOCK_POPULAR_FEATURES);
         model.addAttribute("blockVibe",       BLOCK_DIFFERENT_VIBE);
