@@ -26,15 +26,27 @@
                      th:text="${app.description != null ? app.description : 'No description'}">
                 </div>
                 <div class="app-indicators">
-                    <span class="app-indicator-badge" th:if="${appsWithVideo.contains(app.id)}" title="Has video">
-                        <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
-                    </span>
-                    <span class="app-indicator-badge" th:if="${appsWithImages.contains(app.id)}" title="Has screenshots">
-                        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg>
-                    </span>
-                    <span class="app-indicator-badge" th:if="${appsWithWorkflows.contains(app.id)}" title="Has workflows">
-                        <svg viewBox="0 0 24 24"><rect x="2" y="4" width="6" height="6" rx="1"/><rect x="16" y="4" width="6" height="6" rx="1"/><rect x="9" y="14" width="6" height="6" rx="1"/><path d="M5 10v2a2 2 0 0 0 2 2h2M19 10v2a2 2 0 0 1-2 2h-2"/></svg>
-                    </span>
+    <span th:if="${appsWithVideo.contains(app.id)}" title="Has video">
+        <svg width="22" height="16" viewBox="0 0 26 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="0.5" y="0.5" width="25" height="15" rx="2.5" fill="#D9D9D9" fill-opacity="0.01" stroke="white"/>
+            <path d="M18 8L10.5 12.3301L10.5 3.66987L18 8Z" fill="white"/>
+        </svg>
+    </span>
+                    <span th:if="${appsWithImages.contains(app.id)}" title="Has screenshots">
+        <svg width="22" height="16" viewBox="0 0 26 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="0.5" y="0.5" width="25" height="15" rx="2.5" fill="#D9D9D9" fill-opacity="0.01" stroke="white"/>
+            <path d="M4 14L6.70888 11.3418C7.51226 10.5534 8.80773 10.583 9.57426 11.4073L9.61721 11.4535C10.4352 12.333 11.8384 12.2983 12.6119 11.3794L16.2694 7.03422C17.1265 6.01593 18.7206 6.10334 19.4613 7.20925L22 11" stroke="white" stroke-linecap="round"/>
+            <circle cx="9.5" cy="5.5" r="3" stroke="white"/>
+        </svg>
+    </span>
+                    <span th:if="${appsWithWorkflows.contains(app.id)}" title="Has workflows">
+        <svg width="22" height="16" viewBox="0 0 26 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="0.5" y="0.5" width="25" height="15" rx="2.5" fill="#D9D9D9" fill-opacity="0.01" stroke="white"/>
+            <path d="M4 5L8 5C9.10457 5 10 5.89543 10 7V9C10 10.1046 9.10457 11 8 11H4" stroke="white" stroke-linecap="round"/>
+            <path d="M22 5L18 5C16.8954 5 16 5.89543 16 7V9C16 10.1046 16.8954 11 18 11H22" stroke="white" stroke-linecap="round"/>
+            <line x1="16" y1="8" x2="10" y2="8" stroke="white"/>
+        </svg>
+    </span>
                 </div>
             </div>
 

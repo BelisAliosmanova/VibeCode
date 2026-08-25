@@ -253,16 +253,21 @@
 
         /* ── MORE BUTTON ─────────────────────────────────────────── */
         .section-more {
-            display: block; font-size: 0.72rem; color: rgba(255,255,255,0.6); font-weight: 600;
-            padding: 0.55rem 1.4rem 0.9rem; text-align: right;
+            display: block;
+            font-size: 0.72rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 600;
+            padding: 0.8rem 1.4rem 0.8rem;
+            text-align: right;
             transition: color 0.12s, opacity 0.12s;
             background: linear-gradient(49deg, #233141 0%, #233141 67%, #17212F 80%, #000000 100%);
-            border-radius: 0px 0px 20px 0px; margin-top: auto;
+            border-radius: 0px 0px 20px 0px;
+            margin-top: auto;
         }
         .section-more:hover { color: rgba(255,255,255,0.9); }
 
         /* ── APP LIST CARD ──────────────────────────────────────── */
-        .app-indicators { display: flex; gap: 0.35rem; margin-top: 0.35rem; }
+        .app-indicators { }
         .app-indicator-badge {
             width: 22px; height: 18px;
             border: 1px solid rgba(255,255,255,0.25);
@@ -278,15 +283,37 @@
         }
         .app-list-card:hover { opacity: 0.8; }
         .app-list-icon {
-            width: 42px; height: 42px; border-radius: var(--radius-md);
-            background: rgba(255,255,255,0.08); flex-shrink: 0; overflow: hidden;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 0.9rem; color: var(--gray-300);
+            width: 46px;
+            height: 46px;
+            border-radius: var(--radius-md);
+            background: rgba(255, 255, 255, 0.08);
+            flex-shrink: 0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            color: var(--gray-300);
         }
         .app-list-icon img { width: 100%; height: 100%; object-fit: cover; }
         .app-list-body { flex: 1; min-width: 0; }
-        .app-list-name { font-size: 0.8rem; font-weight: 700; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 0.08rem; }
-        .app-list-desc { font-size: 0.67rem; color: var(--gray-200); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.65; }
+        .app-list-name {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--white);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: -0.2rem;
+        }
+        .app-list-desc {
+            font-size: 0.77rem;
+            color: var(--gray-200);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            opacity: 0.65;
+        }
         .app-list-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.3rem; flex-shrink: 0; }
         .stars-xs { display: flex; gap: 1px; }
         .star-xs { font-size: 0.58rem; color: var(--gray-400); }
@@ -304,18 +331,36 @@
             display: flex; align-items: flex-start; gap: 0.85rem; margin-bottom: 0.7rem;
         }
         .featured-icon {
-            width: 56px; height: 56px; border-radius: 16px;
-            background: var(--white); flex-shrink: 0; overflow: hidden;
-            display: flex; align-items: center; justify-content: center; font-size: 1.4rem;
+            width: 46px;
+            height: 46px;
+            border-radius: 16px;
+            background: var(--white);
+            flex-shrink: 0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
         }
         .featured-icon img { width: 100%; height: 100%; object-fit: cover; }
         .featured-icon svg { width: 26px; height: 26px; }
         .featured-text { min-width: 0; padding-top: 0.1rem; }
-        .featured-name { font-size: 1.05rem; font-weight: 700; color: var(--white); margin-bottom: 0.25rem; }
+        .featured-name {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--white);
+            margin-bottom: -0.03rem;
+        }
         .featured-desc {
-            font-size: 0.72rem; color: var(--gray-200); line-height: 1.45; opacity: 0.7;
-            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-            margin-bottom: 0.5rem;
+            font-size: 0.77rem;
+            color: var(--gray-200);
+            line-height: 1;
+            opacity: 0.7;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 0.2rem;
         }
 
         .featured-divider {
@@ -566,30 +611,32 @@
                                                             <div class="app-list-desc"
                                                                  th:text="${app.description != null ? app.description : 'No description'}"></div>
                                                             <div class="app-indicators">
-                                                                <span class="app-indicator-badge"
+                                                                <span
                                                                       th:if="${appsWithVideo.contains(app.id)}"
                                                                       title="Has video">
-                                                                    <svg viewBox="0 0 24 24"><polygon
-                                                                            points="5,3 19,12 5,21"/></svg>
+                                                                    <svg width="22" height="16" viewBox="0 0 26 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                            <rect x="0.5" y="0.5" width="25" height="15" rx="2.5" fill="#D9D9D9" fill-opacity="0.01" stroke="white"/>
+                                                                            <path d="M18 8L10.5 12.3301L10.5 3.66987L18 8Z" fill="white"/>
+                                                                    </svg>
                                                                 </span>
-                                                                <span class="app-indicator-badge"
+                                                                <span
                                                                       th:if="${appsWithImages.contains(app.id)}"
                                                                       title="Has screenshots">
-                                                                    <svg viewBox="0 0 24 24"><rect height="18" rx="2"
-                                                                                                   width="18"
-                                                                                                   x="3" y="3"/><circle
-                                                                            cx="8.5" cy="8.5" r="1.5"/><polyline
-                                                                            points="21,15 16,10 5,21"/></svg>
+                                                                    <svg width="22" height="16" viewBox="0 0 26 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect x="0.5" y="0.5" width="25" height="15" rx="2.5" fill="#D9D9D9" fill-opacity="0.01" stroke="white"/>
+<path d="M4 14L6.70888 11.3418C7.51226 10.5534 8.80773 10.583 9.57426 11.4073L9.61721 11.4535C10.4352 12.333 11.8384 12.2983 12.6119 11.3794L16.2694 7.03422C17.1265 6.01593 18.7206 6.10334 19.4613 7.20925L22 11" stroke="white" stroke-linecap="round"/>
+<circle cx="9.5" cy="5.5" r="3" stroke="white"/>
+</svg>
                                                                 </span>
-                                                                <span class="app-indicator-badge"
+                                                                <span
                                                                       th:if="${appsWithWorkflows.contains(app.id)}"
                                                                       title="Has workflows">
-                                                                    <svg viewBox="0 0 24 24"><rect height="6" rx="1"
-                                                                                                   width="6"
-                                                                                                   x="2" y="4"/><rect
-                                                                            height="6" rx="1" width="6" x="16" y="4"/><rect
-                                                                            height="6" rx="1" width="6" x="9" y="14"/><path
-                                                                            d="M5 10v2a2 2 0 0 0 2 2h2M19 10v2a2 2 0 0 1-2 2h-2"/></svg>
+                                                                    <svg width="22" height="16" viewBox="0 0 26 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect x="0.5" y="0.5" width="25" height="15" rx="2.5" fill="#D9D9D9" fill-opacity="0.01" stroke="white"/>
+<path d="M4 5L8 5C9.10457 5 10 5.89543 10 7V9C10 10.1046 9.10457 11 8 11H4" stroke="white" stroke-linecap="round"/>
+<path d="M22 5L18 5C16.8954 5 16 5.89543 16 7V9C16 10.1046 16.8954 11 18 11H22" stroke="white" stroke-linecap="round"/>
+<line x1="16" y1="8" x2="10" y2="8" stroke="white"/>
+</svg>
                                                                 </span>
                                                             </div>
                                                         </div>
@@ -678,7 +725,7 @@
 
                                                 <hr class="featured-divider"/>
 
-                                                <div class="featured-features-label">Top features:</div>
+                                                <div class="featured-features-label">Top tags:</div>
 
                                                 <div class="featured-cat-pills"
                                                      th:if="${featuredAppCategories.get(feat.id) != null and !#lists.isEmpty(featuredAppCategories.get(feat.id))}">
