@@ -6,10 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.OptionalDouble;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -17,10 +15,12 @@ public class ReviewService {
 
     private final ReviewCategoryRepository reviewCategoryRepository;
     private final ReviewSubCategoryRepository reviewSubCategoryRepository;
+    private final AppReviewSubmissionRepository appReviewSubmissionRepository;
     private final AppReviewRepository appReviewRepository;
     private final AppSubReviewRepository appSubReviewRepository;
     private final AppService appService;
 
+    // ── Review Categories ────────────────────────────────────────────────
     public List<ReviewCategory> findAllCategories() {
         return reviewCategoryRepository.findAllByDeletedAtIsNullOrderByPositionAsc();
     }
@@ -51,8 +51,7 @@ public class ReviewService {
         reviewCategoryRepository.save(cat);
     }
 
-    // ── Review Sub-Categories ──────────────────────────────────────────────
-
+    // ── Review Sub-Categories ─────────────────────────────────────────────
     public List<ReviewSubCategory> findSubCategoriesByCategoryId(UUID categoryId) {
         return reviewSubCategoryRepository
                 .findAllByReviewCategoryIdAndDeletedAtIsNullOrderByPositionAsc(categoryId);
@@ -86,110 +85,99 @@ public class ReviewService {
         reviewSubCategoryRepository.save(sub);
     }
 
-    public List<AppReview> findReviewsForApp(UUID appId) {
-        return appReviewRepository.findAllByAppId(appId);
-    }
-
-    public List<AppReview> findVisibleReviewsForApp(UUID appId) {
-        return appReviewRepository.findAllByAppIdAndVisibleTrue(appId);
-    }
-
-    public Optional<AppReview> findAppReview(UUID appId, UUID reviewCategoryId) {
-        return appReviewRepository.findByAppIdAndReviewCategoryId(appId, reviewCategoryId);
-    }
-
-    public AppReview findAppReviewById(UUID id) {
-        return appReviewRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("AppReview not found: " + id));
-    }
-
     @Transactional
-    public AppReview saveAppReview(UUID appId, UUID reviewCategoryId,
-                                   boolean visible,
-                                   java.util.Map<UUID, Integer> subScores,
-                                   java.util.Map<UUID, String> subDescriptions) {
+    public AppReviewSubmission submitReview(UUID appId,
+                                            String submitterName,
+                                            Map<UUID, Map<UUID, Integer>> scoresByCategory,
+                                            Map<UUID, Map<UUID, String>> descriptionsByCategory) {
+
+        boolean hasAnyScore = scoresByCategory != null &&
+                scoresByCategory.values().stream().anyMatch(m -> m != null && !m.isEmpty());
+        if (!hasAnyScore) {
+            throw new IllegalArgumentException("Please rate at least one item before submitting.");
+        }
 
         App app = appService.findById(appId);
-        ReviewCategory cat = findCategoryById(reviewCategoryId);
 
-        AppReview review = appReviewRepository
-                .findByAppIdAndReviewCategoryId(appId, reviewCategoryId)
-                .orElseGet(() -> AppReview.builder().app(app).reviewCategory(cat).build());
+        AppReviewSubmission submission = AppReviewSubmission.builder()
+                .app(app)
+                .submitterName(blankToNull(submitterName))
+                .visible(true)
+                .build();
+        submission = appReviewSubmissionRepository.save(submission);
 
-        review.setVisible(visible);
+        for (var catEntry : scoresByCategory.entrySet()) {
+            Map<UUID, Integer> subScores = catEntry.getValue();
+            if (subScores == null || subScores.isEmpty()) continue;
 
-        for (var entry : subScores.entrySet()) {
-            UUID subCatId = entry.getKey();
-            int score = clampScore(entry.getValue());
-            String desc = subDescriptions != null ? subDescriptions.get(subCatId) : null;
+            UUID categoryId = catEntry.getKey();
+            ReviewCategory category = findCategoryById(categoryId);
+            Map<UUID, String> subDescs = descriptionsByCategory != null
+                    ? descriptionsByCategory.getOrDefault(categoryId, Map.of())
+                    : Map.of();
 
-            ReviewSubCategory subCat = findSubCategoryById(subCatId);
+            AppReview review = appReviewRepository.save(
+                    AppReview.builder().submission(submission).reviewCategory(category).build());
 
-            AppSubReview subReview = appSubReviewRepository
-                    .findByAppReviewIdAndReviewSubCategoryId(
-                            review.getId() != null ? review.getId() : UUID.randomUUID(),
-                            subCatId)
-                    .orElseGet(() -> AppSubReview.builder()
-                            .appReview(review)
-                            .reviewSubCategory(subCat)
-                            .build());
+            List<Integer> saved = new ArrayList<>();
+            for (var subEntry : subScores.entrySet()) {
+                ReviewSubCategory subCat = findSubCategoryById(subEntry.getKey());
+                int score = clampScore(subEntry.getValue());
+                String desc = subDescs.get(subEntry.getKey());
 
-            subReview.setScore(score);
-            subReview.setDescription(desc);
-            review.getSubReviews().add(subReview);
+                appSubReviewRepository.save(AppSubReview.builder()
+                        .appReview(review)
+                        .reviewSubCategory(subCat)
+                        .score(score)
+                        .description(blankToNull(desc))
+                        .build());
+                saved.add(score);
+            }
+
+            review.setScore(saved.stream().mapToInt(Integer::intValue).average().orElse(0.0));
+            appReviewRepository.save(review);
         }
-
-        AppReview saved = appReviewRepository.save(review);
-
-        // Now upsert sub-reviews properly (review ID is stable now)
-        for (var entry : subScores.entrySet()) {
-            UUID subCatId = entry.getKey();
-            int score = clampScore(entry.getValue());
-            String desc = subDescriptions != null ? subDescriptions.get(subCatId) : null;
-
-            ReviewSubCategory subCat = findSubCategoryById(subCatId);
-
-            AppReview finalSaved = saved;
-            AppSubReview subReview = appSubReviewRepository
-                    .findByAppReviewIdAndReviewSubCategoryId(saved.getId(), subCatId)
-                    .orElseGet(() -> AppSubReview.builder()
-                            .appReview(finalSaved)
-                            .reviewSubCategory(subCat)
-                            .build());
-
-            subReview.setScore(score);
-            subReview.setDescription(desc);
-            appSubReviewRepository.save(subReview);
-        }
-
-        List<AppSubReview> allSubs = appSubReviewRepository.findAllByAppReviewId(saved.getId());
-        if (!allSubs.isEmpty()) {
-            double avg = allSubs.stream()
-                    .mapToInt(AppSubReview::getScore)
-                    .average()
-                    .orElse(0.0);
-            saved.setScore(avg);
-        } else {
-            saved.setScore(null);
-        }
-
-        saved = appReviewRepository.save(saved);
 
         recomputeVerifiedScore(appId);
-
-        return saved;
+        return submission;
     }
 
+    public List<AppReviewSubmission> findSubmissionsForApp(UUID appId) {
+        return appReviewSubmissionRepository.findAllByAppIdOrderByCreatedAtDesc(appId);
+    }
+
+    public List<AppReviewSubmission> findVisibleSubmissionsForApp(UUID appId) {
+        return appReviewSubmissionRepository.findAllByAppIdAndVisibleTrueOrderByCreatedAtDesc(appId);
+    }
+
+    /** Admin-only in the controller layer — deletes one person's whole review. */
     @Transactional
-    public void updateVisibility(UUID appReviewId, boolean visible) {
-        AppReview review = findAppReviewById(appReviewId);
-        review.setVisible(visible);
-        appReviewRepository.save(review);
-        recomputeVerifiedScore(review.getApp().getId());
+    public void deleteSubmission(UUID submissionId) {
+        AppReviewSubmission submission = appReviewSubmissionRepository.findById(submissionId)
+                .orElseThrow(() -> new RuntimeException("Review not found: " + submissionId));
+        UUID appId = submission.getApp().getId();
+        appReviewSubmissionRepository.delete(submission); // cascades to AppReview + AppSubReview
+        recomputeVerifiedScore(appId);
+    }
+
+    /** One averaged score per category across all visible submissions — for the app page's review chips. */
+    public List<CategoryScoreView> categoryAverages(UUID appId) {
+        List<AppReview> reviews = appReviewRepository.findAllVisibleByAppId(appId);
+
+        Map<ReviewCategory, List<Double>> byCategory = reviews.stream()
+                .filter(r -> r.getScore() != null)
+                .collect(Collectors.groupingBy(AppReview::getReviewCategory,
+                        Collectors.mapping(AppReview::getScore, Collectors.toList())));
+
+        return byCategory.entrySet().stream()
+                .map(e -> new CategoryScoreView(e.getKey(),
+                        e.getValue().stream().mapToDouble(Double::doubleValue).average().orElse(0.0)))
+                .sorted(Comparator.comparing(v -> v.reviewCategory().getPosition()))
+                .toList();
     }
 
     private void recomputeVerifiedScore(UUID appId) {
-        List<AppReview> reviews = appReviewRepository.findAllByAppId(appId);
+        List<AppReview> reviews = appReviewRepository.findAllVisibleByAppId(appId);
         OptionalDouble avg = reviews.stream()
                 .filter(r -> r.getScore() != null)
                 .mapToDouble(AppReview::getScore)
@@ -205,7 +193,11 @@ public class ReviewService {
     }
 
     private int clampScore(Integer score) {
-        if (score == null) return 0;
-        return Math.max(0, Math.min(5, score));
+        if (score == null) return 1;
+        return Math.max(1, Math.min(5, score));
+    }
+
+    private String blankToNull(String s) {
+        return (s == null || s.isBlank()) ? null : s.trim();
     }
 }

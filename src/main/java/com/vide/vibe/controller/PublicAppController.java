@@ -28,19 +28,13 @@ public class PublicAppController {
 
         App app = appService.findBySlug(slug);
 
-        // ── Certified reviews ──────────────────────────────────────────────
-        List<AppReview> visibleReviews = reviewService.findVisibleReviewsForApp(app.getId());
-        Map<UUID, List<AppSubReview>> subReviewMap = new LinkedHashMap<>();
-        for (AppReview rev : visibleReviews) {
-            subReviewMap.put(rev.getId(), reviewService.findSubReviews(rev.getId()));
-        }
+        // ── Certified reviews: one averaged score per category, across all
+        //    visible guest/staff submissions ─────────────────────────────
+        List<CategoryScoreView> categoryAverages = reviewService.categoryAverages(app.getId());
 
-        // Overall certified rating = average of visible category scores
-        double certifiedRating = visibleReviews.stream()
-                .filter(r -> r.getScore() != null)
-                .mapToDouble(AppReview::getScore)
-                .average()
-                .orElse(0.0);
+        // Overall certified rating — kept in sync on App.verifiedScore
+        // every time a review is submitted or deleted (see ReviewService).
+        double certifiedRating = app.getVerifiedScore() != null ? app.getVerifiedScore() : 0.0;
 
         // ── Category selections (features, pricing, "made with", etc.) ────
         List<AppCategoryEntry> allSelections = categoryService.findAllSelectionsForApp(app.getId());
@@ -64,8 +58,7 @@ public class PublicAppController {
         }
 
         model.addAttribute("app",                  app);
-        model.addAttribute("visibleReviews",        visibleReviews);
-        model.addAttribute("subReviewMap",          subReviewMap);
+        model.addAttribute("categoryAverages",      categoryAverages);
         model.addAttribute("certifiedRating",       certifiedRating);
         model.addAttribute("selectionsByCategory",  selectionsByCategory);
         model.addAttribute("media",                 media);

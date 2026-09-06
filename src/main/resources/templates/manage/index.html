@@ -536,26 +536,25 @@
         <div class="section-title">Certified review</div>
         <div class="meta-row" style="border-top:none;padding-top:0;">
             <div class="stars">
-                <span th:each="i : ${#numbers.sequence(1,5)}" class="star"
-                      th:style="${certifiedAvg >= i} ? 'font-size:0.95rem;color:var(--cyan);' : 'font-size:0.95rem;color:var(--gray-400);'">★</span>
+            <span th:each="i : ${#numbers.sequence(1,5)}" class="star"
+                  th:style="${certifiedAvg >= i} ? 'font-size:0.95rem;color:var(--cyan);' : 'font-size:0.95rem;color:var(--gray-400);'">★</span>
             </div>
             <span class="score-label"
                   th:text="${#numbers.formatDecimal(certifiedAvg,1,1)} + '/5'">0/5</span>
-            <!-- Edit reviews link: editors only -->
-            <a th:if="${canEdit}"
-               th:href="@{/apps/{id}/reviews(id=${app.id})}"
+            <!-- Now visible to everyone — guests need this link to read/write reviews -->
+            <a th:href="@{/apps/{id}/reviews(id=${app.id})}"
                class="edit-reviews-link"
                style="margin-left:auto;">
-                Edit reviews
+                See all reviews
             </a>
         </div>
-        <div th:if="${visibleReviews != null and !#lists.isEmpty(visibleReviews)}"
+        <div th:if="${categoryAverages != null and !#lists.isEmpty(categoryAverages)}"
              class="review-chips-row">
-            <div th:each="rev : ${visibleReviews}" class="review-chip">
-                <span class="review-chip-label" th:text="${rev.reviewCategory.name}"></span>
+            <div th:each="cs : ${categoryAverages}" class="review-chip">
+                <span class="review-chip-label" th:text="${cs.reviewCategory.name}"></span>
                 <div class="stars-xs">
-                    <span th:each="i : ${#numbers.sequence(1,5)}" class="star-xs"
-                          th:classappend="${rev.score != null and rev.score >= i} ? ' lit-blue' : ''">★</span>
+                <span th:each="i : ${#numbers.sequence(1,5)}" class="star-xs"
+                      th:classappend="${cs.score >= i} ? ' lit-blue' : ''">★</span>
                 </div>
             </div>
         </div>

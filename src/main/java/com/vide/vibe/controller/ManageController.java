@@ -65,17 +65,9 @@ public class ManageController {
             workflowSteps.put(wf.getId(), workflowService.findStepsByWorkflowId(wf.getId()));
         }
 
-        List<AppReview>              visibleReviews = reviewService.findVisibleReviewsForApp(appId);
-        Map<UUID, List<AppSubReview>> subReviewMap  = new LinkedHashMap<>();
-        for (AppReview rev : visibleReviews) {
-            subReviewMap.put(rev.getId(), reviewService.findSubReviews(rev.getId()));
-        }
-
-        double certifiedAvg = visibleReviews.stream()
-                .filter(r -> r.getScore() != null)
-                .mapToDouble(AppReview::getScore)
-                .average()
-                .orElse(0.0);
+        // ── Reviews: one averaged score per category across all guest/staff submissions ──
+        List<CategoryScoreView> categoryAverages = reviewService.categoryAverages(appId);
+        double certifiedAvg = app.getVerifiedScore() != null ? app.getVerifiedScore() : 0.0;
 
         // ownerUnverified is only meaningful to show the "verify email" banner to the actual owner
         boolean ownerUnverified = claimService.isOwnerUnverified(app);
@@ -94,8 +86,7 @@ public class ManageController {
         model.addAttribute("workflows",        workflows);
         model.addAttribute("workflowSteps",    workflowSteps);
         model.addAttribute("media",            appMediaRepository.findAllByAppIdOrderByPositionAsc(appId));
-        model.addAttribute("visibleReviews",   visibleReviews);
-        model.addAttribute("subReviewMap",     subReviewMap);
+        model.addAttribute("categoryAverages", categoryAverages);
         model.addAttribute("ownerUnverified",  ownerUnverified);
         model.addAttribute("justClaimed",      justClaimed);
 

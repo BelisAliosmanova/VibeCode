@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <th:block th:fragment="favicons">
+        <link rel="icon" th:href="@{/favico-b.svg}" type="image/svg+xml" media="(prefers-color-scheme: light)"/>
+        <link rel="icon" th:href="@{/favico-w.svg}" type="image/svg+xml" media="(prefers-color-scheme: dark)"/>
+        <link rel="alternate icon" th:href="@{/favicon.ico}"/>
+    </th:block>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="${app.name} + ' — Reviews'">Reviews</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --dark: #5a5a5a; --black: #111; --white: #fff;
+            --border: #ddd; --light: #f8f8f8; --danger: #e05c5c;
+            --accent: #2563eb; --gold: #f4a118; --green: #2d9e6b;
+            --radius-pill: 50px; --font: 'Inter', system-ui, sans-serif;
+        }
+        body { font-family: var(--font); background: #f5f5f5; color: var(--black); font-size: 14px; }
+
+        nav { display: flex; align-items: center; justify-content: space-between; padding: 0.7rem 1.5rem; background: var(--dark); }
+        .nav-left { display: flex; align-items: center; gap: 1.25rem; }
+        .nav-logo { width: 28px; height: 28px; background: #222; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 0.8rem; }
+        .nav-link { color: #fff; text-decoration: none; font-size: 0.85rem; opacity: 0.9; }
+        .nav-right { display: flex; align-items: center; gap: 0.75rem; }
+        .btn-ghost-nav { background: transparent; border: none; color: #fff; font-size: 0.82rem; cursor: pointer; text-decoration: none; }
+        .btn-outline-nav { background: transparent; border: 1.5px solid #fff; color: #fff; font-size: 0.78rem; padding: 0.32rem 0.85rem; border-radius: var(--radius-pill); text-decoration: none; }
+
+        .header-band { background: var(--dark); color: white; text-align: center; padding: 1.5rem; }
+        .header-band h1 { font-size: 1.4rem; font-weight: 600; }
+        .header-band p { font-size: 0.82rem; opacity: 0.7; margin-top: 0.25rem; }
+        .page { max-width: 680px; margin: 0 auto; padding: 1.75rem 1.5rem 4rem; }
+        .app-strip { display: flex; align-items: center; gap: 0.85rem; margin-bottom: 1.5rem; padding: 0.85rem 1rem; border: 1.5px solid var(--border); border-radius: 14px; background: var(--white); }
+        .app-icon { width: 44px; height: 44px; border-radius: 10px; border: 1.5px solid var(--border); overflow: hidden; flex-shrink: 0; background: var(--light); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; color: #ccc; }
+        .app-icon img { width: 100%; height: 100%; object-fit: cover; }
+        .app-name { font-size: 0.95rem; font-weight: 700; }
+        .app-url { font-size: 0.75rem; color: #aaa; }
+        .back-link { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.82rem; color: #888; text-decoration: none; margin-bottom: 1.25rem; }
+        .back-link:hover { color: var(--black); }
+
+        .write-review-btn { display: block; width: 100%; background: var(--black); color: #fff; border: none; padding: 0.75rem 0; border-radius: var(--radius-pill); font-size: 0.9rem; font-weight: 600; cursor: pointer; margin-bottom: 1.5rem; font-family: var(--font); }
+        .write-review-btn:hover { background: #333; }
+
+        .write-panel { display: none; background: var(--white); border: 1.5px solid var(--border); border-radius: 16px; padding: 1.25rem; margin-bottom: 1.75rem; }
+        .write-panel.open { display: block; }
+        .write-panel-title { font-size: 1rem; font-weight: 700; margin-bottom: 1rem; }
+        .field { margin-bottom: 1rem; }
+        .field label { display: block; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #aaa; margin-bottom: 0.35rem; }
+        .field input[type="text"] {
+            width: 100%; padding: 0.6rem 0.9rem; border: 1.5px solid var(--border); border-radius: 10px;
+            font-size: 0.86rem; font-family: var(--font); outline: none; color: var(--black); background: var(--white);
+        }
+        .field input:focus { border-color: var(--black); }
+
+        .write-cat-block { margin-bottom: 1.1rem; padding-bottom: 1.1rem; border-bottom: 1px solid #f0f0f0; }
+        .write-cat-block:last-of-type { border-bottom: none; }
+        .write-cat-name { font-size: 0.82rem; font-weight: 700; margin-bottom: 0.6rem; }
+        .write-sub-row { padding: 0.5rem 0; }
+        .write-sub-top { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+        .write-sub-name { font-size: 0.8rem; }
+        .star-picker { display: flex; gap: 3px; cursor: pointer; }
+        .star-picker .sp { font-size: 1.15rem; color: #ddd; transition: color 0.1s; user-select: none; }
+        .star-picker .sp.lit { color: var(--gold); }
+        .star-picker .sp:hover { color: var(--gold); }
+        .write-sub-desc {
+            margin-top: 0.5rem; width: 100%; padding: 0.5rem 0.8rem;
+            border: 1.5px solid var(--border); border-radius: 10px;
+            font-size: 0.82rem; font-family: var(--font); outline: none;
+            resize: vertical; min-height: 50px; color: var(--black);
+        }
+        .write-sub-desc:focus { border-color: var(--black); }
+        .write-sub-desc::placeholder { color: #bbb; }
+
+        .btn-submit-review { background: var(--black); color: #fff; border: none; padding: 0.65rem 1.6rem; border-radius: var(--radius-pill); font-size: 0.88rem; font-weight: 600; cursor: pointer; font-family: var(--font); margin-top: 0.5rem; }
+        .btn-submit-review:hover { background: #333; }
+        .btn-submit-review:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .review-card { background: var(--white); border: 1.5px solid var(--border); border-radius: 16px; padding: 1.1rem 1.25rem; margin-bottom: 0.9rem; }
+        .review-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 0.75rem; }
+        .reviewer-name { font-size: 0.86rem; font-weight: 700; }
+        .review-date { font-size: 0.72rem; color: #aaa; margin-top: 1px; }
+        .btn-del-review { background: transparent; border: 1.5px solid #eee; color: #ccc; font-size: 0.72rem; padding: 0.25rem 0.7rem; border-radius: var(--radius-pill); cursor: pointer; font-family: var(--font); transition: all 0.12s; flex-shrink: 0; }
+        .btn-del-review:hover { border-color: var(--danger); color: var(--danger); }
+
+        .review-cat-group { margin-bottom: 0.9rem; }
+        .review-cat-group:last-child { margin-bottom: 0; }
+        .review-cat-label { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #aaa; margin-bottom: 0.4rem; }
+        .review-sub-item { padding: 0.35rem 0; }
+        .review-sub-top { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+        .review-sub-name { font-size: 0.8rem; font-weight: 600; }
+        .stars-xs { display: flex; gap: 1px; }
+        .stars-xs .s { font-size: 0.75rem; color: #ddd; }
+        .stars-xs .s.lit { color: var(--gold); }
+        .review-sub-desc { font-size: 0.8rem; color: #555; margin-top: 0.25rem; line-height: 1.45; }
+
+        .empty-state { text-align: center; padding: 3rem 0; color: #bbb; font-size: 0.9rem; }
+        .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--black); color: #fff; padding: 0.55rem 1.25rem; border-radius: var(--radius-pill); font-size: 0.82rem; font-weight: 500; opacity: 0; transition: opacity 0.2s, transform 0.2s; pointer-events: none; z-index: 999; }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .toast.error { background: var(--danger); }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+<nav th:replace="~{fragments/navbar :: navbar}"></nav>
+<div class="header-band">
+    <h1>Reviews</h1>
+    <p th:text="${app.name}">App Name</p>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="page">
+    <a class="back-link" th:href="@{/apps/{id}/manage(id=${app.id})}">← Back to app page</a>
+
+    <div class="app-strip">
+        <div class="app-icon">
+            <img th:if="${app.iconUrl != null}" th:src="${app.iconUrl}" alt="icon"/>
+            <span th:if="${app.iconUrl == null}">🖼</span>
+        </div>
+        <div>
+            <div class="app-name" th:text="${app.name}">App Name</div>
+            <div class="app-url" th:text="${app.url}">https://...</div>
+        </div>
+    </div>
+
+    <button class="write-review-btn" onclick="toggleWritePanel()">+ Write a review</button>
+
+    <!-- Anyone, including guests, can submit -->
+    <div class="write-panel" id="writePanel">
+        <div class="write-panel-title">Rate this app</div>
+
+        <div class="field">
+            <label for="submitterName">Your name (optional)</label>
+            <input type="text" id="submitterName" placeholder="Anonymous" maxlength="120"/>
+        </div>
+
+        <div th:each="cat : ${allCategories}" class="write-cat-block">
+            <div class="write-cat-name" th:text="${cat.name}">Category</div>
+
+            <div th:each="sub : ${subCatMap.get(cat.id)}" class="write-sub-row">
+                <div class="write-sub-top">
+                    <span class="write-sub-name" th:text="${sub.name}">Sub-criterion</span>
+                    <div class="star-picker" th:data-sub-id="${sub.id}" data-score="0">
+                        <span th:each="i : ${#numbers.sequence(1,5)}" class="sp" th:data-val="${i}" onclick="setStar(this)">★</span>
+                    </div>
+                </div>
+                <!-- Comment belongs to THIS criterion, not the whole review -->
+                <textarea th:if="${sub.hasDescriptionBox}"
+                          class="write-sub-desc"
+                          th:id="'desc-' + ${sub.id}"
+                          th:placeholder="'Say something about ' + ${sub.name} + '...'"
+                          maxlength="1000"></textarea>
+            </div>
+
+            <div th:if="${#lists.isEmpty(subCatMap.get(cat.id))}" style="font-size:0.78rem;color:#ccc;">
+                No sub-criteria in this category yet.
+            </div>
+        </div>
+
+        <button class="btn-submit-review" id="submitReviewBtn" onclick="submitReview()">Submit review</button>
+    </div>
+
+    <!-- Submitted reviews -->
+    <div th:if="${#lists.isEmpty(submissions)}" class="empty-state">
+        No reviews yet — be the first to write one.
+    </div>
+
+    <div th:each="sub : ${submissions}" class="review-card" th:id="'review-' + ${sub.id}">
+        <div class="review-card-top">
+            <div>
+                <div class="reviewer-name"
+                     th:text="${sub.submitterName != null and !sub.submitterName.isEmpty()} ? ${sub.submitterName} : 'Anonymous'">
+                    Anonymous
+                </div>
+                <div class="review-date" th:text="${#temporals.format(sub.createdAt, 'MMM d, yyyy')}">Jan 1, 2026</div>
+            </div>
+            <!-- Delete: editors/staff only -->
+            <button th:if="${canEdit}" class="btn-del-review"
+                    th:onclick="'deleteReview(\'' + ${sub.id} + '\', this)'">
+                Delete
+            </button>
+        </div>
+
+        <div th:each="rev : ${sub.reviews}" class="review-cat-group">
+            <div class="review-cat-label" th:text="${rev.reviewCategory.name}">Category</div>
+
+            <div th:each="sr : ${rev.subReviews}" class="review-sub-item">
+                <div class="review-sub-top">
+                    <span class="review-sub-name" th:text="${sr.reviewSubCategory.name}">Sub-criterion</span>
+                    <div class="stars-xs">
+                        <span th:each="i : ${#numbers.sequence(1,5)}" class="s"
+                              th:classappend="${sr.score != null and sr.score >= i} ? ' lit' : ''">★</span>
+                    </div>
+                </div>
+                <p th:if="${sr.description != null and !sr.description.isEmpty()}"
+                   class="review-sub-desc" th:text="${sr.description}"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    const APP_ID = /*[[${app.id.toString()}]]*/ '';
+
+    function showToast(msg, err = false) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = 'toast' + (err ? ' error' : '');
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    function toggleWritePanel() {
+        document.getElementById('writePanel').classList.toggle('open');
+    }
+
+    function setStar(el) {
+        const picker = el.closest('.star-picker');
+        const val = parseInt(el.dataset.val);
+        picker.dataset.score = val;
+        picker.querySelectorAll('.sp').forEach(s => s.classList.toggle('lit', parseInt(s.dataset.val) <= val));
+    }
+
+    async function submitReview() {
+        const btn = document.getElementById('submitReviewBtn');
+        const fd = new FormData();
+        fd.append('submitterName', document.getElementById('submitterName').value.trim());
+
+        let anyRated = false;
+        document.querySelectorAll('.star-picker[data-sub-id]').forEach(picker => {
+            const subId = picker.dataset.subId;
+            const score = parseInt(picker.dataset.score || '0');
+            if (score > 0) anyRated = true;
+            fd.append('score_' + subId, score);
+
+            const descBox = document.getElementById('desc-' + subId);
+            if (descBox && descBox.value.trim()) {
+                fd.append('desc_' + subId, descBox.value.trim());
+            }
+        });
+
+        if (!anyRated) return showToast('Rate at least one item first', true);
+
+        btn.disabled = true;
+        btn.textContent = 'Submitting…';
+        try {
+            const r = await fetch(`/apps/${APP_ID}/reviews`, { method: 'POST', body: fd });
+            const data = await r.json();
+            if (!r.ok) throw new Error(data.error || `HTTP ${r.status}`);
+            showToast('Thanks for your review!');
+            setTimeout(() => location.reload(), 800);
+        } catch (e) {
+            btn.disabled = false;
+            btn.textContent = 'Submit review';
+            showToast(e.message, true);
+        }
+    }
+
+    async function deleteReview(submissionId, btn) {
+        if (!confirm('Delete this review?')) return;
+        btn.disabled = true;
+        try {
+            const r = await fetch(`/apps/${APP_ID}/reviews/${submissionId}/delete`, { method: 'POST' });
+            const data = await r.json();
+            if (!r.ok) throw new Error(data.error || `HTTP ${r.status}`);
+            document.getElementById('review-' + submissionId)?.remove();
+            showToast('Review deleted');
+        } catch (e) {
+            btn.disabled = false;
+            showToast(e.message, true);
+        }
+    }
+</script>
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+</body>
+</html>
