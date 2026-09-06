@@ -87,7 +87,7 @@
         /* ── ACTIVE FILTER STRIP ────────────────────────────────────── */
         .active-filters-strip {
             display: none; align-items: center; gap: 0.4rem; flex-wrap: wrap;
-            padding: 0.6rem 2rem; max-width: 1100px; margin: 0 auto;
+            padding: 1rem 2rem; max-width: 1100px; margin: 0 auto;
             font-size: 0.74rem;
         }
         .active-filters-strip.show { display: flex; }
@@ -147,10 +147,15 @@
         .filter-group-clear:hover { text-decoration: underline; }
 
         .filter-item {
-            display: flex; align-items: center; gap: 0.5rem;
-            padding: 0.34rem 0.5rem; border-radius: var(--radius-pill);
-            cursor: pointer; user-select: none;
-            font-size: 0.78rem; color: var(--gray-200);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.34rem 0.5rem;
+            border-radius: var(--radius-pill);
+            cursor: pointer;
+            user-select: none;
+            font-size: 0.80rem;
+            color: #ffffff;
             transition: background 0.1s, color 0.1s;
         }
         .filter-item:hover { background: rgba(255,255,255,0.05); color: var(--white); }
@@ -167,7 +172,13 @@
 
         .filter-item-icon { width: 14px; height: 14px; border-radius: 3px; object-fit: contain; flex-shrink: 0; }
         .filter-item-name { flex: 1; min-width: 0; }
-        .filter-item-count { font-size: 0.62rem; color: var(--gray-400); font-weight: 500; flex-shrink: 0; margin-left: auto; }
+        .filter-item-count {
+            font-size: 0.68rem;
+            color: #8f8f8f;
+            font-weight: 500;
+            flex-shrink: 0;
+            margin-left: auto;
+        }
         .filter-item.active .filter-item-count { color: rgba(255,255,255,0.7); }
 
         .filter-group-more {
