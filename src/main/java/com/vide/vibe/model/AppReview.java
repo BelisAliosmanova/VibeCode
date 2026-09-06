@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * One category's star rating within a single AppReviewSubmission
@@ -16,8 +17,7 @@ import java.util.List;
         name = "app_reviews",
         indexes = {
                 @Index(name = "idx_app_review_submission_id", columnList = "app_review_submission_id"),
-                @Index(name = "idx_app_review_cat_id",         columnList = "review_category_id"),
-                @Index(name = "idx_app_review_submission_cat", columnList = "app_review_submission_id, review_category_id", unique = true)
+                @Index(name = "idx_app_review_cat_id",         columnList = "review_category_id")
         }
 )
 @Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor
@@ -36,6 +36,22 @@ public class AppReview extends BaseEntity {
     /** Average of this category's sub-review scores, within THIS submission only. */
     @Column(name = "score")
     private Double score;
+
+    // Legacy columns kept ONLY to satisfy the old app_reviews schema's!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    @Column(name = "app_id", insertable = true, updatable = false)
+    private UUID legacyAppId;
+
+    @Column(name = "visible", insertable = true, updatable = false)
+    @Builder.Default
+    private Boolean legacyVisible = true;
+
+    @PrePersist
+    private void fillLegacyColumns() {
+        if (legacyVisible == null) legacyVisible = true;
+        if (legacyAppId == null && submission != null && submission.getApp() != null) {
+            legacyAppId = submission.getApp().getId();
+        }
+    }
 
     @OneToMany(mappedBy = "appReview", cascade = CascadeType.ALL,
             orphanRemoval = true, fetch = FetchType.LAZY)

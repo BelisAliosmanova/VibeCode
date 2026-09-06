@@ -48,7 +48,7 @@ public class SecurityConfig {
                         .requestMatchers("/admin/users/**").hasRole("ADMIN")
                         .requestMatchers("/admin/home-sections/**", "/api/site-config/**").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers("/admin/ranking/**").hasAnyRole("MANAGER", "ADMIN")
-                        .requestMatchers("/apps/**").authenticated()
+                        .requestMatchers("/apps/**").permitAll()
                         .requestMatchers("/media/**").authenticated()
                         .anyRequest().permitAll()
                 )
