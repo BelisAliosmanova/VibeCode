@@ -14,8 +14,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,7 +22,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ExploreController {
 
-    private static final int PAGE_SIZE = 5;
+    private static final int PAGE_SIZE = 50;
+    private static final String MADE_WITH_CATEGORY = "Made with";
 
     private final AppService appService;
     private final CategoryService categoryService;
@@ -35,10 +34,9 @@ public class ExploreController {
     @GetMapping
     public String explore(
             @RequestParam(required = false) List<UUID> entries,
-            @RequestParam(required = false, defaultValue = "top-rated") String tab,
             Model model) {
 
-        List<Category> filterCategories = categoryService.findAllFilterVisible();
+        List<Category> filterCategories = orderCategoriesMadeWithLast(categoryService.findAllFilterVisible());
         Map<UUID, Long> entryAppCounts = categoryService.getAppCountByEntry();
 
         Map<Category, List<CategoryEntry>> filterEntries = new LinkedHashMap<>();
@@ -64,16 +62,13 @@ public class ExploreController {
                 .map(UUID::toString)
                 .collect(Collectors.toList());
 
-        SectionsResult sections = computeSections(tab, entries);
+        List<App> rankedApps = computeRankedApps(entries);
+        List<App> pageApps = firstPage(rankedApps);
+        boolean hasMore = rankedApps.size() > PAGE_SIZE;
 
-        List<App> section1Apps = firstPage(sections.list1());
-        List<App> section2Apps = firstPage(sections.list2());
-        boolean hasMoreSection1 = sections.list1().size() > PAGE_SIZE;
-        boolean hasMoreSection2 = sections.list2().size() > PAGE_SIZE;
-
-        Set<UUID> visibleAppIds = new LinkedHashSet<>();
-        section1Apps.forEach(a -> visibleAppIds.add(a.getId()));
-        section2Apps.forEach(a -> visibleAppIds.add(a.getId()));
+        Set<UUID> visibleAppIds = pageApps.stream()
+                .map(App::getId)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
 
         Set<UUID> appsWithVideo = appMediaRepository.findAppIdsWithMediaType(visibleAppIds, AppMedia.MediaType.VIDEO);
         Set<UUID> appsWithImages = appMediaRepository.findAppIdsWithMediaType(visibleAppIds, AppMedia.MediaType.SCREENSHOT);
@@ -82,13 +77,8 @@ public class ExploreController {
         // ── Model ──────────────────────────────────────────────────────────────
         model.addAttribute("filterEntries", filterEntries);
         model.addAttribute("selectedEntryIds", selectedIdStrings);
-        model.addAttribute("tab", tab);
-        model.addAttribute("section1Title", sections.title1());
-        model.addAttribute("section1Apps", section1Apps);
-        model.addAttribute("section2Title", sections.title2());
-        model.addAttribute("section2Apps", section2Apps);
-        model.addAttribute("hasMoreSection1", hasMoreSection1);
-        model.addAttribute("hasMoreSection2", hasMoreSection2);
+        model.addAttribute("apps", pageApps);
+        model.addAttribute("hasMore", hasMore);
 
         model.addAttribute("entryAppCounts", entryAppCounts);
         model.addAttribute("categoryAppCounts", categoryAppCounts);
@@ -103,28 +93,28 @@ public class ExploreController {
     @GetMapping("/more")
     public String more(
             @RequestParam(required = false) List<UUID> entries,
-            @RequestParam(required = false, defaultValue = "top-rated") String tab,
-            @RequestParam int section,
             @RequestParam(defaultValue = "0") int offset,
             Model model,
             HttpServletResponse response) {
 
-        SectionsResult sections = computeSections(tab, entries);
-        List<App> full = (section == 2) ? sections.list2() : sections.list1();
+        List<App> rankedApps = computeRankedApps(entries);
 
         int safeOffset = Math.max(offset, 0);
-        List<App> batch = full.stream()
+        List<App> batch = rankedApps.stream()
                 .skip(safeOffset)
                 .limit(PAGE_SIZE)
                 .collect(Collectors.toList());
 
-        boolean hasMore = full.size() > safeOffset + PAGE_SIZE;
+        boolean hasMore = rankedApps.size() > safeOffset + PAGE_SIZE;
         int nextOffset = safeOffset + PAGE_SIZE;
 
         response.setHeader("X-Has-More", Boolean.toString(hasMore));
         response.setHeader("X-Next-Offset", Integer.toString(nextOffset));
 
-        Set<UUID> visibleAppIds = batch.stream().map(App::getId).collect(Collectors.toCollection(LinkedHashSet::new));
+        Set<UUID> visibleAppIds = batch.stream()
+                .map(App::getId)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
         Set<UUID> appsWithVideo = appMediaRepository.findAppIdsWithMediaType(visibleAppIds, AppMedia.MediaType.VIDEO);
         Set<UUID> appsWithImages = appMediaRepository.findAppIdsWithMediaType(visibleAppIds, AppMedia.MediaType.SCREENSHOT);
         Set<UUID> appsWithWorkflows = workflowRepository.findAppIdsWithWorkflows(visibleAppIds);
@@ -137,7 +127,13 @@ public class ExploreController {
         return "fragments/app-cards :: cards(apps=${apps},appsWithVideo=${appsWithVideo},appsWithImages=${appsWithImages},appsWithWorkflows=${appsWithWorkflows})";
     }
 
-    private SectionsResult computeSections(String tab, List<UUID> entries) {
+    /**
+     * Single source of truth for app ordering on the whole Explore page.
+     * There are no more tabs — every list (initial page and every "load more"
+     * batch) is sorted by the ranking score, always, using whatever filters
+     * (category entries) are currently selected.
+     */
+    private List<App> computeRankedApps(List<UUID> entries) {
         List<UUID> selectedUuids = entries != null ? entries : new ArrayList<>();
 
         Map<UUID, List<UUID>> selectedByCategoryId = new LinkedHashMap<>();
@@ -167,81 +163,35 @@ public class ExploreController {
                     .collect(Collectors.toList());
         }
 
-        String section1Title;
-        List<App> section1Apps;
-        String section2Title;
-        List<App> section2Apps;
+        RankingConfig cfg = rankingService.getConfig();
+        Map<UUID, Integer> scoresById = pool.stream()
+                .collect(Collectors.toMap(App::getId, a -> rankingService.computeScore(a, cfg)));
 
-        Instant now = Instant.now();
+        return pool.stream()
+                .sorted(Comparator.comparingInt((App a) -> scoresById.get(a.getId())).reversed())
+                .collect(Collectors.toList());
+    }
 
-        if ("new".equals(tab)) {
-            Instant oneWeekAgo = now.minus(7, ChronoUnit.DAYS);
-            Instant oneMonthAgo = now.minus(30, ChronoUnit.DAYS);
-
-            section1Title = "LAST WEEK";
-            section1Apps = pool.stream()
-                    .filter(a -> a.getCreatedAt() != null && a.getCreatedAt().isAfter(oneWeekAgo))
-                    .sorted(Comparator.comparing(App::getCreatedAt).reversed())
-                    .collect(Collectors.toList());
-
-            section2Title = "LAST MONTH";
-            section2Apps = pool.stream()
-                    .filter(a -> a.getCreatedAt() != null
-                            && a.getCreatedAt().isBefore(oneWeekAgo)
-                            && a.getCreatedAt().isAfter(oneMonthAgo))
-                    .sorted(Comparator.comparing(App::getCreatedAt).reversed())
-                    .collect(Collectors.toList());
-
-        } else if ("verified".equals(tab)) {
-            section1Title = "TOP VERIFIED APPS";
-            section1Apps = pool.stream()
-                    .filter(a -> a.getVerifiedScore() != null)
-                    .sorted(Comparator.comparingDouble(App::getVerifiedScore).reversed())
-                    .collect(Collectors.toList());
-
-            section2Title = "TOP USER RATED APPS";
-            section2Apps = pool.stream()
-                    .sorted(Comparator.comparingDouble(App::getUserRatingAvg).reversed()
-                            .thenComparingInt(App::getUserRatingCount).reversed())
-                    .collect(Collectors.toList());
-
-        } else if ("ranked".equals(tab)) {
-            RankingConfig cfg = rankingService.getConfig();
-
-            Map<UUID, Integer> scoresById = pool.stream()
-                    .collect(Collectors.toMap(App::getId, a -> rankingService.computeScore(a, cfg)));
-
-            List<App> byScore = pool.stream()
-                    .sorted(Comparator.comparingInt((App a) -> scoresById.get(a.getId())).reversed())
-                    .collect(Collectors.toList());
-
-            section1Title = "TOP RANKED APPS";
-            section1Apps = byScore.stream().limit(PAGE_SIZE).collect(Collectors.toList());
-
-            section2Title = "ALSO HIGHLY RANKED";
-            section2Apps = byScore.stream().skip(PAGE_SIZE).collect(Collectors.toList());
-
-        } else {
-            section1Title = "TOP USER RATED APPS";
-            section1Apps = pool.stream()
-                    .sorted(Comparator.comparingDouble(App::getUserRatingAvg).reversed()
-                            .thenComparingInt(App::getUserRatingCount).reversed())
-                    .collect(Collectors.toList());
-
-            section2Title = "TOP VERIFIED APPS";
-            section2Apps = pool.stream()
-                    .filter(a -> a.getVerifiedScore() != null)
-                    .sorted(Comparator.comparingDouble(App::getVerifiedScore).reversed())
-                    .collect(Collectors.toList());
+    /**
+     * The "Made with" filter category is always pushed to the bottom of the
+     * sidebar, after every other filter card. Everything else keeps whatever
+     * order categoryService.findAllFilterVisible() already returns.
+     */
+    private List<Category> orderCategoriesMadeWithLast(List<Category> categories) {
+        List<Category> ordered = new ArrayList<>();
+        List<Category> madeWith = new ArrayList<>();
+        for (Category c : categories) {
+            if (MADE_WITH_CATEGORY.equalsIgnoreCase(c.getName())) {
+                madeWith.add(c);
+            } else {
+                ordered.add(c);
+            }
         }
-
-        return new SectionsResult(section1Title, section1Apps, section2Title, section2Apps);
+        ordered.addAll(madeWith);
+        return ordered;
     }
 
     private List<App> firstPage(List<App> full) {
         return full.stream().limit(PAGE_SIZE).collect(Collectors.toList());
-    }
-
-    private record SectionsResult(String title1, List<App> list1, String title2, List<App> list2) {
     }
 }
