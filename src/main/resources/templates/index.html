@@ -28,7 +28,7 @@
             --orange:       #f97316;
             --accent-green: rgba(143,230,4,1);
             --radius-sm:    6px;
-            --radius-md:    10px;
+            --radius-md:    15px;
             --radius-lg:    14px;
             --radius-xl:    16px;
             --radius-pill:  999px;
@@ -73,12 +73,17 @@
             justify-content: center; padding-top: calc(var(--nav-h) + 0.5rem); max-width: 560px;
         }
         .hero-heading {
-            font-size: 3rem; font-weight: 700; color: var(--white);
-            line-height: 1.05; letter-spacing: 0.5px; margin-bottom: 1.6rem;
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--white);
+            line-height: 1.05;
+            margin-top: -3rem;
+            letter-spacing: 0.5px;
+            margin-bottom: 3rem;
         }
         .hero-search-bar {
             display: flex; align-items: center; gap: 0.5rem;
-            background: rgb(0 192 255); border: 1.5px solid rgb(0 112 255);
+            border: 1.6px solid rgb(0 112 255);
             border-radius: var(--radius-pill); padding: 0.45rem 0.45rem 0.45rem 1rem;
             z-index: 1; max-width: 400px; backdrop-filter: blur(8px);
         }
@@ -283,8 +288,8 @@
         }
         .app-list-card:hover { opacity: 0.8; }
         .app-list-icon {
-            width: 46px;
-            height: 46px;
+            width: 52px;
+            height: 52px;
             border-radius: var(--radius-md);
             background: rgba(255, 255, 255, 0.08);
             flex-shrink: 0;
@@ -331,8 +336,8 @@
             display: flex; align-items: flex-start; gap: 0.85rem; margin-bottom: 0.7rem;
         }
         .featured-icon {
-            width: 46px;
-            height: 46px;
+            width: 52px;
+            height: 52px;
             border-radius: 16px;
             background: var(--white);
             flex-shrink: 0;
@@ -388,20 +393,41 @@
         }
 
         /* ── FEATURES STRIP ─────────────────────────────────────── */
-        .features-wrap { overflow: hidden; position: relative; }
+        .features-wrap { position: relative; overflow: visible; height: 34px; }
         .features-strip-row {
             display: flex; align-items: center; gap: 0.5rem;
-            overflow-x: auto; scroll-behavior: smooth; padding-bottom: 4px;
+            overflow-x: auto; overflow-y: hidden; scroll-behavior: smooth;
+            height: 100%;
+            padding-right: 56px;
         }
         .features-strip-row::-webkit-scrollbar { display: none; }
+
         .features-arrow-btn {
-            width: 28px; height: 28px; border-radius: 50%;
-            border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.07);
-            display: flex; align-items: center; justify-content: center;
-            color: var(--white); flex-shrink: 0; cursor: pointer; font-size: 1rem;
-            transition: background 0.12s; line-height: 1;
+            position: absolute; top: 50%; transform: translateY(-50%);
+            width: 64px; height: 44px;
+            display: flex; align-items: center; border: none; cursor: pointer;
+            background: none; padding: 0; z-index: 2;
         }
-        .features-arrow-btn:hover { background: rgba(255,255,255,0.14); }
+        .features-arrow-btn img {
+            width: 94px; height: 60px; object-fit: contain;
+            transition: transform 0.12s, opacity 0.12s;
+            margin-right: -10px;
+            margin-left: -10px;
+        }
+        .features-arrow-btn:hover img { opacity: 0.85; }
+
+        .features-arrow-btn:not(.features-arrow-flip) {
+            right: 0; justify-content: flex-end; padding-right: 4px;
+            background: linear-gradient(to right, transparent 0%, rgba(26,35,50,0.85) 55%, #1a2332 100%);
+        }
+        .features-arrow-btn.features-arrow-flip {
+            left: 0; justify-content: flex-start; padding-left: 4px;
+            background: linear-gradient(to left, transparent 0%, rgba(26,35,50,0.85) 55%, #1a2332 100%);
+        }
+        .features-arrow-btn.features-arrow-flip img { transform: scaleX(-1); }
+        .features-arrow-btn:not(.features-arrow-flip):hover img { transform: scale(1.05); }
+        .features-arrow-btn.features-arrow-flip:hover img { transform: scaleX(-1) scale(1.05); }
+
         .feature-pill {
             display: inline-flex; align-items: center; gap: 0.3rem;
             padding: 0.35rem 0.85rem; background: rgb(0 0 0); border-radius: 6px;
@@ -416,19 +442,19 @@
         /* ── VIBE GRID (also used by SIX_GRID dynamic sections) ──── */
         .vibe-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; }
         .grid-card {
-            display: flex; align-items: center; gap: 0.65rem; padding: 0.75rem 1.4rem;
+            display: flex; align-items: center; gap: 0.65rem; padding: 1.4rem 1.4rem;
             cursor: pointer; transition: background 0.1s;
         }
         .grid-card:hover { background: rgba(255,255,255,0.04); }
         .grid-icon {
-            width: 36px; height: 36px; border-radius: var(--radius-md);
+            width: 52px; height: 52px; border-radius: var(--radius-md);
             background: rgba(255,255,255,0.08); flex-shrink: 0; overflow: hidden;
             display: flex; align-items: center; justify-content: center;
             font-size: 0.8rem; color: var(--gray-300);
         }
         .grid-icon img { width: 100%; height: 100%; object-fit: cover; }
-        .grid-name { font-size: 0.75rem; font-weight: 700; color: var(--white); margin-bottom: 0.06rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .grid-desc { font-size: 0.62rem; color: rgba(255,255,255,0.4); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.35; }
+        .grid-name { font-size: 0.9rem; font-weight: 700; color: var(--white); margin-bottom: 0.06rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .grid-desc { font-size: 0.77rem; color: rgba(255,255,255,0.4); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.35; }
 
         .empty-state { text-align: center; padding: 2rem; color: var(--gray-300); font-size: 0.78rem; opacity: 0.5; }
 
@@ -450,6 +476,29 @@
             .vibe-grid { grid-template-columns: 1fr; }
             .content { padding: 2rem 1rem 3rem; }
         }
+        .wish-band {
+            background: radial-gradient(130% 400% at 50% 0%, #2e4b5d 0%, #16232f 60%);
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+        .wish-band-text {
+            font-size: 0.85rem;
+            color: var(--white);
+            font-weight: 500;
+            margin-bottom: 1.1rem;
+        }
+        .btn-wish-band {
+            display: inline-block;
+            background: transparent;
+            border: 1.5px solid rgba(255, 75, 114, 1);
+            color: var(--white);
+            border-radius: var(--radius-pill);
+            font-size: 0.85rem;
+            /* font-weight: 700; */
+            padding: 0.55rem 2rem;
+            transition: background 0.12s;
+        }
+        .btn-wish-band:hover { background: rgba(255,255,255,0.1); }
     </style>
 </head>
 <body>
@@ -476,20 +525,6 @@
                     <input class="hero-search-input" id="heroSearch" placeholder="Find an app…" type="text"/>
                 </div>
             </div>
-            <div class="wish-card">
-                <div class="wish-card-label">Can't find the right app? No problem!</div>
-                <a class="btn-wish" href="/apps" th:href="@{/apps}">Wish an app</a>
-                <a class="nav-link" style="font-size:0.72rem;margin-top:0.5rem;display:block;opacity:0.6;"
-                   th:href="@{/admin/home-sections}" th:if="${isAdmin}">Edit homepage</a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Developer bar -->
-    <div class="dev-bar-outer">
-        <div class="dev-bar">
-            <span class="dev-bar-label">Developer?</span>
-            <a class="btn-submit-app" href="/submit" th:href="@{/submit}">Submit your app</a>
         </div>
     </div>
 
@@ -507,19 +542,15 @@
                     <div class="section-wrapper">
                         <div class="section-header">
                             <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
-                                <span class="section-title">Most popular features</span>
-                                <div style="display:flex;align-items:center;gap:0.4rem;">
-                                    <button class="features-arrow-btn" id="featuresScrollLeft">‹</button>
-                                    <button class="features-arrow-btn" id="featuresScrollRight">›</button>
-                                    <div class="block-move-handle" th:if="${isAdmin}" title="Drag to reorder this row">
-                                        <div class="drag-dots">
-                                            <span></span><span></span><span></span><span></span><span></span><span></span>
-                                        </div>
+                                <span class="section-title">Most popular tags</span>
+                                <div class="block-move-handle" th:if="${isAdmin}" title="Drag to reorder this row">
+                                    <div class="drag-dots">
+                                        <span></span><span></span><span></span><span></span><span></span><span></span>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="home-section" style="background:none;" th:if="${!#lists.isEmpty(popularFeatures)}">
+                        <div class="home-section" style="background:none; border-radius: 0px; overflow: visible;" th:if="${!#lists.isEmpty(popularFeatures)}">
                             <div class="features-wrap">
                                 <div class="features-strip-row" id="featuresStrip">
                                     <span class="feature-pill"
@@ -531,9 +562,15 @@
                                               th:text="'(' + ${entryAppCounts[feat.id]} + ')'"></span>
                                     </span>
                                 </div>
+                                <button class="features-arrow-btn features-arrow-flip" id="featuresScrollLeft" style="display:none;" aria-label="Scroll left">
+                                    <img alt="" src="/more_horizontal.png"/>
+                                </button>
+                                <button class="features-arrow-btn" id="featuresScrollRight" aria-label="Scroll right">
+                                    <img alt="" src="/more_horizontal.png"/>
+                                </button>
                             </div>
                         </div>
-                        <div class="home-section" style="background:none;" th:if="${#lists.isEmpty(popularFeatures)}">
+                        <div class="home-section" style="background:none; border-radius: 0px;" th:if="${#lists.isEmpty(popularFeatures)}">
                             <div class="empty-state">No popular features yet.</div>
                         </div>
                     </div>
@@ -612,16 +649,16 @@
                                                                  th:text="${app.description != null ? app.description : 'No description'}"></div>
                                                             <div class="app-indicators">
                                                                 <span
-                                                                      th:if="${appsWithVideo.contains(app.id)}"
-                                                                      title="Has video">
+                                                                        th:if="${appsWithVideo.contains(app.id)}"
+                                                                        title="Has video">
                                                                     <svg width="22" height="16" viewBox="0 0 26 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                                             <rect x="0.5" y="0.5" width="25" height="15" rx="2.5" fill="#D9D9D9" fill-opacity="0.01" stroke="white"/>
                                                                             <path d="M18 8L10.5 12.3301L10.5 3.66987L18 8Z" fill="white"/>
                                                                     </svg>
                                                                 </span>
                                                                 <span
-                                                                      th:if="${appsWithImages.contains(app.id)}"
-                                                                      title="Has screenshots">
+                                                                        th:if="${appsWithImages.contains(app.id)}"
+                                                                        title="Has screenshots">
                                                                     <svg width="22" height="16" viewBox="0 0 26 16" fill="none" xmlns="http://www.w3.org/2000/svg">
 <rect x="0.5" y="0.5" width="25" height="15" rx="2.5" fill="#D9D9D9" fill-opacity="0.01" stroke="white"/>
 <path d="M4 14L6.70888 11.3418C7.51226 10.5534 8.80773 10.583 9.57426 11.4073L9.61721 11.4535C10.4352 12.333 11.8384 12.2983 12.6119 11.3794L16.2694 7.03422C17.1265 6.01593 18.7206 6.10334 19.4613 7.20925L22 11" stroke="white" stroke-linecap="round"/>
@@ -629,8 +666,8 @@
 </svg>
                                                                 </span>
                                                                 <span
-                                                                      th:if="${appsWithWorkflows.contains(app.id)}"
-                                                                      title="Has workflows">
+                                                                        th:if="${appsWithWorkflows.contains(app.id)}"
+                                                                        title="Has workflows">
                                                                     <svg width="22" height="16" viewBox="0 0 26 16" fill="none" xmlns="http://www.w3.org/2000/svg">
 <rect x="0.5" y="0.5" width="25" height="15" rx="2.5" fill="#D9D9D9" fill-opacity="0.01" stroke="white"/>
 <path d="M4 5L8 5C9.10457 5 10 5.89543 10 7V9C10 10.1046 9.10457 11 8 11H4" stroke="white" stroke-linecap="round"/>
@@ -831,6 +868,10 @@
 
         </div>
     </main>
+    <section class="wish-band">
+        <p class="wish-band-text">Can't find the right app? No problem!</p>
+        <a class="btn-wish-band" th:href="@{/wish}" href="/wish">Wish an app</a>
+    </section>
     <footer th:replace="~{fragments/footer :: footer}"></footer>
 </div>
 
@@ -854,13 +895,19 @@
     }
 
     /* ── Features strip scroll ───────────────────────────────────── */
-    const strip = document.getElementById('featuresStrip');
-    document.getElementById('featuresScrollRight')?.addEventListener('click', () => {
-        strip?.scrollBy({ left: 200, behavior: 'smooth' });
-    });
-    document.getElementById('featuresScrollLeft')?.addEventListener('click', () => {
-        strip?.scrollBy({ left: -200, behavior: 'smooth' });
-    });
+    const featuresStrip     = document.getElementById('featuresStrip');
+    const featuresLeftBtn   = document.getElementById('featuresScrollLeft');
+    const featuresRightBtn  = document.getElementById('featuresScrollRight');
+
+    function updateFeatureArrows() {
+        if (!featuresStrip || !featuresLeftBtn) return;
+        featuresLeftBtn.style.display = featuresStrip.scrollLeft > 8 ? 'flex' : 'none';
+    }
+    featuresStrip?.addEventListener('scroll', updateFeatureArrows);
+    updateFeatureArrows();
+
+    featuresRightBtn?.addEventListener('click', () => featuresStrip?.scrollBy({ left: 240, behavior: 'smooth' }));
+    featuresLeftBtn?.addEventListener('click', () => featuresStrip?.scrollBy({ left: -240, behavior: 'smooth' }));
 
     /* ── Inline section title save ───────────────────────────────── */
     async function saveSectionTitle(el) {

@@ -44,6 +44,8 @@ public class HomeController {
         Map<UUID, List<App>> sectionListApps = homeSectionService.findAllListAppsBySection();
         Map<UUID, App> sectionFeatured = homeSectionService.findAllFeaturedAppsBySection();
 
+        Map<UUID, Long> entryAppCounts = categoryService.getAppCountByEntry();
+
         List<CategoryEntry> popularFeatures = new ArrayList<>();
         try {
             for (Category cat : categoryService.findAll()) {
@@ -51,7 +53,11 @@ public class HomeController {
                         categoryService.findVisibleEntriesByCategoryId(cat.getId())
                 );
             }
-            popularFeatures.sort(Comparator.comparingInt(CategoryEntry::getInterest).reversed());
+            popularFeatures.sort(
+                    Comparator.comparingLong((CategoryEntry e) -> entryAppCounts.getOrDefault(e.getId(), 0L))
+                            .thenComparingInt(CategoryEntry::getInterest)
+                            .reversed()
+            );
             if (popularFeatures.size() > 8) {
                 popularFeatures = popularFeatures.subList(0, 8);
             }
@@ -60,8 +66,6 @@ public class HomeController {
         List<App> vibeApps = new ArrayList<>(allApps);
         Collections.shuffle(vibeApps, new Random(Instant.now().getEpochSecond() / 3600));
         vibeApps = vibeApps.stream().limit(6).collect(Collectors.toList());
-
-        Map<UUID, Long> entryAppCounts = categoryService.getAppCountByEntry();
 
         List<String> blockOrder = resolveBlockOrder(sections);
 

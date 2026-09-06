@@ -36,7 +36,7 @@ nav {
 }
 .nav-left  { display: flex; align-items: center; gap: 2rem; }
 .nav-logo  {
-    width: 30px; height: 30px; border-radius: 50%;
+    width: 33px; height: 33px; border-radius: 50%;
     background: #fff; display: flex; align-items: center; justify-content: center;
     flex-shrink: 0; overflow: hidden;
 }
