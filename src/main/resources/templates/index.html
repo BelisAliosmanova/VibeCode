@@ -136,10 +136,14 @@
             padding-top: 4rem;
             gap: 0;
         }
-        .section-pair.layout-5-1 .section-wrapper[data-sub-slot="list"]     { flex: 60 60 0; }
-        .section-pair.layout-5-1 .section-wrapper[data-sub-slot="featured"] { flex: 40 40 0; }
-        .section-pair.layout-3-1 .section-wrapper[data-sub-slot="list"]     { flex: 55 55 0; }
-        .section-pair.layout-3-1 .section-wrapper[data-sub-slot="featured"] { flex: 45 45 0; }
+        /* Same width for every list side and every featured side, regardless of layout type */
+        .section-pair .section-wrapper[data-sub-slot="list"]     { flex: 0 0 60%; width: 60%; }
+        .section-pair .section-wrapper[data-sub-slot="featured"] { flex: 0 0 40%; width: 40%; }
+
+        /* Same height for every card, list or featured, across all pairs */
+        .section-pair .home-section { height: 420px; }
+        .section-pair .section-body,
+        .section-pair .featured-card-inner { overflow-y: auto; }
         .section-pair.layout-6-grid {
             display: grid;
             grid-template-columns: 1fr;
