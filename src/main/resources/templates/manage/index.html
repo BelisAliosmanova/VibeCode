@@ -2,7 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/springsecurity6">
 <head>
- <th:block th:fragment="favicons">
+    <th:block th:fragment="favicons">
         <link rel="icon" th:href="@{/favico-b.svg}" type="image/svg+xml" media="(prefers-color-scheme: light)"/>
         <link rel="icon" th:href="@{/favico-w.svg}" type="image/svg+xml" media="(prefers-color-scheme: dark)"/>
         <link rel="alternate icon" th:href="@{/favicon.ico}"/>
@@ -138,26 +138,27 @@
         #claimedFlash, #claimBanner { font-family: var(--font); }
 
         /* ── META / RATING ROWS ─────────────────────────────────── */
-        .meta-row { align-items: flex-start; gap: 1rem; padding: 0.95rem 0; border-top: 1px solid var(--border); flex-wrap: wrap; }
+        .meta-row { align-items: center; gap: 1rem; padding: 0.95rem 0; border-top: 1px solid var(--border); flex-wrap: wrap; }
         .meta-row:first-of-type { border-top: 1px solid var(--border); margin-top: 0.5rem; }
         .meta-label-col { min-width: 150px; flex-shrink: 0; padding-top: 0.15rem; }
         .meta-value-col { flex: 1; min-width: 0; }
         .meta-label { font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--gray-300); }
-        .stars { display: flex; gap: 2px; }
+        .stars { display: flex; gap: 2px; flex-shrink: 0; }
         .star { font-size: 0.95rem; color: var(--gray-400); }
+        .star.lit { color: var(--gold); }
         .score-val { font-size: 0.82rem; font-weight: 700; color: var(--white); }
-        .score-label { font-size: 0.75rem; color: var(--gray-300); margin-left: 0.5rem; }
+        .score-label { font-size: 0.75rem; color: var(--gray-300); margin-left: 0.5rem; flex-shrink: 0; }
         .btn-sm-disabled { opacity: 0.4; cursor: default; }
 
-        .edit-reviews-link { font-size: 0.7rem; color: var(--cyan); border: 1.5px solid rgba(0,212,255,0.35); padding: 0.22rem 0.85rem; border-radius: var(--radius-pill); background: rgba(0,212,255,0.08); text-decoration: none; white-space: nowrap; transition: background 0.12s, border-color 0.12s; }
+        .edit-reviews-link { font-size: 0.7rem; color: var(--cyan); border: 1.5px solid rgba(0,212,255,0.35); padding: 0.22rem 0.85rem; border-radius: var(--radius-pill); background: rgba(0,212,255,0.08); text-decoration: none; white-space: nowrap; transition: background 0.12s, border-color 0.12s; flex-shrink: 0; }
         .edit-reviews-link:hover { background: rgba(0,212,255,0.16); border-color: rgba(0,212,255,0.6); }
 
-        .review-chips-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.85rem; }
-        .review-chip { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; padding: 0.55rem 0.9rem; border: 1.5px solid var(--border); border-radius: var(--radius-md); min-width: 84px; text-align: center; background: var(--card-bg); }
+        .review-chips-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .review-chip { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; padding: 0.55rem 0.9rem; border: 1.5px solid rgba(245,158,11,0.45); border-radius: var(--radius-md); min-width: 84px; text-align: center; background: transparent; }
         .review-chip-label { font-size: 0.56rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gray-300); }
         .review-chip .stars-xs { display: flex; gap: 1px; }
         .star-xs { font-size: 0.62rem; color: var(--gray-400); }
-        .star-xs.lit-blue { color: var(--cyan); }
+        .star-xs.lit-gold { color: var(--gold); }
 
         /* ── MEDIA ──────────────────────────────────────────────── */
         .media-strip { border-radius: var(--radius-xl); overflow: hidden; margin-bottom: 1.75rem; }
@@ -534,27 +535,26 @@
     ════════════════════════════════════════════════════════════ -->
     <div class="section">
         <div class="section-title">Certified review</div>
-        <div class="meta-row" style="border-top:none;padding-top:0;">
+        <div class="meta-row" style="border-top:none;padding-top:0;display:flex;">
             <div class="stars">
             <span th:each="i : ${#numbers.sequence(1,5)}" class="star"
-                  th:style="${certifiedAvg >= i} ? 'font-size:0.95rem;color:var(--cyan);' : 'font-size:0.95rem;color:var(--gray-400);'">★</span>
+                  th:classappend="${certifiedAvg >= i} ? ' lit' : ''">★</span>
             </div>
             <span class="score-label"
                   th:text="${#numbers.formatDecimal(certifiedAvg,1,1)} + '/5'">0/5</span>
             <!-- Now visible to everyone — guests need this link to read/write reviews -->
             <a th:href="@{/apps/{id}/reviews(id=${app.id})}"
-               class="edit-reviews-link"
-               style="margin-left:auto;">
+               class="edit-reviews-link">
                 See all reviews
             </a>
-        </div>
-        <div th:if="${categoryAverages != null and !#lists.isEmpty(categoryAverages)}"
-             class="review-chips-row">
-            <div th:each="cs : ${categoryAverages}" class="review-chip">
-                <span class="review-chip-label" th:text="${cs.reviewCategory.name}"></span>
-                <div class="stars-xs">
-                <span th:each="i : ${#numbers.sequence(1,5)}" class="star-xs"
-                      th:classappend="${cs.score >= i} ? ' lit-blue' : ''">★</span>
+            <div th:if="${categoryAverages != null and !#lists.isEmpty(categoryAverages)}"
+                 class="review-chips-row">
+                <div th:each="cs : ${categoryAverages}" class="review-chip">
+                    <span class="review-chip-label" th:text="${cs.reviewCategory.name}"></span>
+                    <div class="stars-xs">
+                    <span th:each="i : ${#numbers.sequence(1,5)}" class="star-xs"
+                          th:classappend="${cs.score >= i} ? ' lit-gold' : ''">★</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -619,7 +619,7 @@
          CATEGORIES
     ════════════════════════════════════════════════════════════ -->
     <th:block th:each="ce : ${categorySelections.entrySet()}">
-        <div class="meta-row" th:id="'section-' + ${ce.key.id}">
+        <div class="meta-row" th:id="'section-' + ${ce.key.id}" style="display:flex;align-items:flex-start;">
             <div class="meta-label-col">
                 <div class="meta-label" th:text="${ce.key.name}">CATEGORY</div>
                 <div class="hint-text"

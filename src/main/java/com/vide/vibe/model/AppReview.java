@@ -17,7 +17,12 @@ import java.util.UUID;
         name = "app_reviews",
         indexes = {
                 @Index(name = "idx_app_review_submission_id", columnList = "app_review_submission_id"),
-                @Index(name = "idx_app_review_cat_id",         columnList = "review_category_id")
+                @Index(name = "idx_app_review_cat_id", columnList = "review_category_id"),
+                @Index(
+                        name = "idx_app_review_submission_cat",
+                        columnList = "app_review_submission_id, review_category_id",
+                        unique = true
+                )
         }
 )
 @Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor
