@@ -252,6 +252,26 @@
         .custom-entry-row span { color: var(--gray-400) !important; }
         .custom-entry-row button { color: var(--white) !important; }
 
+        /* ── CUSTOM ENTRY AUTOCOMPLETE ──────────────────────────── */
+        .custom-input-wrap { position: relative; flex: 1; min-width: 0; }
+        .custom-suggestions {
+            position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+            background: var(--card-bg); border: 1px solid var(--border);
+            border-radius: 8px; max-height: 170px; overflow-y: auto;
+            z-index: 20; display: none; box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+        }
+        .custom-suggestions.open { display: block; }
+        .custom-suggestion-item {
+            padding: 0.42rem 0.85rem; font-size: 0.75rem; color: var(--gray-200) !important;
+            cursor: pointer; display: flex; align-items: center; gap: 0.4rem;
+            transition: background 0.1s, color 0.1s;
+        }
+        .custom-suggestion-item:hover { background: rgba(255,255,255,0.06); color: var(--white) !important; }
+        .custom-suggestion-item img { width: 13px; height: 13px; object-fit: contain; border-radius: 2px; }
+        .custom-suggestion-empty {
+            padding: 0.42rem 0.85rem; font-size: 0.72rem; color: var(--gray-400) !important; font-style: italic;
+        }
+
         /* ── WORKFLOWS ─────────────────────────────────────────── */
         .workflows-container { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 1.5rem 1.5rem 1.1rem; }
         .workflow-block { margin-bottom: 1.75rem; padding-bottom: 1.75rem; border-bottom: 1px solid var(--border); }
@@ -663,8 +683,15 @@
                          th:text="${ce.key.maxSelected != null} ? 'Select up to ' + ${ce.key.maxSelected} + ' (' + ${#lists.size(ce.value)} + '/' + ${ce.key.maxSelected} + ' left)' : 'Click below to add or remove'">
                     </div>
                     <div class="picker-pills" th:id="'picker-pills-' + ${ce.key.id}">
+                        <!--
+                            "NEW" is a reserved/system entry name and must never be
+                            rendered as a selectable option pill — this keeps a
+                            determined user from selecting or re-adding it even by
+                            inspecting the DOM, since it simply isn't present.
+                        -->
                         <th:block th:each="entry : ${allEntries.get(ce.key.id)}">
-                            <span class="opt-pill"
+                            <span th:if="${!#strings.equalsIgnoreCase(entry.name, 'new')}"
+                                  class="opt-pill"
                                   th:classappend="${ce.value.contains(entry)} ? ' selected' : ''"
                                   th:data-entry-id="${entry.id}"
                                   th:data-entry-name="${entry.name}"
@@ -686,15 +713,25 @@
                         <span style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--gray-400);white-space:nowrap;flex-shrink:0;">
                             Custom
                         </span>
-                        <input type="text"
-                               th:id="'custom-input-' + ${ce.key.id}"
-                               style="flex:1;padding:0.3rem 0.85rem;border:1.5px solid var(--border);border-radius:var(--radius-pill);font-size:0.78rem;font-family:var(--font);outline:none;transition:border-color 0.15s;color:var(--white);background:var(--bg-darker);"
-                               placeholder="Type and press Enter or +"
-                               maxlength="100"
-                               th:data-category-id="${ce.key.id}"
-                               onkeydown="handleCustomEntryKey(event, this)"
-                               onfocus="this.style.borderColor='var(--cyan)'"
-                               onblur="this.style.borderColor='var(--border)'"/>
+                        <!--
+                            Wrapped in .custom-input-wrap so the autocomplete
+                            suggestions dropdown can be positioned relative to
+                            the input itself.
+                        -->
+                        <div class="custom-input-wrap">
+                            <input type="text"
+                                   th:id="'custom-input-' + ${ce.key.id}"
+                                   style="width:100%;padding:0.3rem 0.85rem;border:1.5px solid var(--border);border-radius:var(--radius-pill);font-size:0.78rem;font-family:var(--font);outline:none;transition:border-color 0.15s;color:var(--white);background:var(--bg-darker);"
+                                   placeholder="Type and press Enter or +"
+                                   maxlength="100"
+                                   autocomplete="off"
+                                   th:data-category-id="${ce.key.id}"
+                                   oninput="handleCustomInput(event, this)"
+                                   onkeydown="handleCustomEntryKey(event, this)"
+                                   onfocus="this.style.borderColor='var(--cyan)'; handleCustomInput(event, this);"
+                                   onblur="this.style.borderColor='var(--border)'"/>
+                            <div class="custom-suggestions" th:id="'custom-suggestions-' + ${ce.key.id}"></div>
+                        </div>
                         <button type="button"
                                 style="width:28px;height:28px;border-radius:50%;border:1.5px solid var(--green);background:transparent;color:var(--green);font-size:1rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background 0.12s,color 0.12s;font-family:var(--font);"
                                 th:data-category-id="${ce.key.id}"
@@ -881,6 +918,11 @@
     const CAN_EDIT = /*[[${canEdit}]]*/ false;
     const STEP_MAX = 70;
     const DESC_MAX_SENTENCES = 2;
+
+    // Reserved entry/tag names — these can never be selected or created by a
+    // user, in the picker, in the custom-entry autocomplete, or by direct
+    // creation. Compared case-insensitively.
+    const RESERVED_ENTRY_NAMES = ['new'];
 
     // ─── TOAST ──────────────────────────────────────────────────────────────
     function showToast(msg, err = false) {
@@ -1130,10 +1172,17 @@
     function closePicker(catId) {
         const el = document.getElementById('picker-' + catId);
         if (el) el.classList.remove('open');
+        const suggestions = document.getElementById('custom-suggestions-' + catId);
+        if (suggestions) suggestions.classList.remove('open');
     }
 
     function toggleOptPill(pill) {
         if (!CAN_EDIT) return;
+        // Reserved names should never be toggleable even if somehow present.
+        if (RESERVED_ENTRY_NAMES.includes((pill.dataset.entryName || '').toLowerCase())) {
+            showToast(`"${pill.dataset.entryName}" is a reserved tag and can't be selected`, true);
+            return;
+        }
         const catId = pill.dataset.categoryId;
         const max   = pill.dataset.max ? parseInt(pill.dataset.max) : null;
         const pickerPills = document.getElementById('picker-pills-' + catId);
@@ -1241,11 +1290,74 @@
         return span;
     }
 
+    // ─── CUSTOM ENTRY AUTOCOMPLETE ────────────────────────────────────────────
+    // As the user types in a category's "Custom" field, show a dropdown of
+    // already-existing entries in that category whose name starts with the
+    // typed text (e.g. typing "im" surfaces "Image", "Imagination", etc.).
+    // Picking a suggestion selects that existing entry instead of creating a
+    // duplicate. Reserved names (RESERVED_ENTRY_NAMES) are never suggested.
+    function handleCustomInput(e, input) {
+        const catId = input.dataset.categoryId;
+        const query = input.value.trim().toLowerCase();
+        const box = document.getElementById('custom-suggestions-' + catId);
+        if (!box) return;
+        box.innerHTML = '';
+
+        if (!query) { box.classList.remove('open'); return; }
+
+        const pickerPills = document.getElementById('picker-pills-' + catId);
+        if (!pickerPills) return;
+
+        const matches = [...pickerPills.querySelectorAll('.opt-pill')].filter(p => {
+            const name = (p.dataset.entryName || '').toLowerCase();
+            if (RESERVED_ENTRY_NAMES.includes(name)) return false; // never suggest reserved tags
+            if (p.classList.contains('selected')) return false;    // already selected
+            return name.startsWith(query);
+        });
+
+        if (!matches.length) { box.classList.remove('open'); return; }
+
+        matches.slice(0, 8).forEach(p => {
+            const item = document.createElement('div');
+            item.className = 'custom-suggestion-item';
+            const icon = p.dataset.entryIcon;
+            if (icon && icon !== 'null' && icon !== '') {
+                const img = document.createElement('img'); img.src = icon; img.alt = '';
+                item.appendChild(img);
+            }
+            const label = document.createElement('span'); label.textContent = p.dataset.entryName;
+            item.appendChild(label);
+            item.addEventListener('mousedown', (evt) => {
+                // mousedown (not click) so this fires before the input's blur
+                evt.preventDefault();
+                toggleOptPill(p);       // select the existing entry rather than creating a duplicate
+                input.value = '';
+                box.innerHTML = '';
+                box.classList.remove('open');
+            });
+            box.appendChild(item);
+        });
+        box.classList.add('open');
+    }
+
+    // Close any open suggestion dropdown when clicking outside its wrapper.
+    document.addEventListener('click', (e) => {
+        document.querySelectorAll('.custom-suggestions.open').forEach(box => {
+            if (!box.parentElement.contains(e.target)) box.classList.remove('open');
+        });
+    });
+
     async function addCustomEntry(catId) {
         if (!CAN_EDIT) return;
         const input = document.getElementById('custom-input-' + catId);
         const name  = input.value.trim();
         if (!name) return;
+
+        // Block creation of reserved tag names (e.g. "NEW").
+        if (RESERVED_ENTRY_NAMES.includes(name.toLowerCase())) {
+            showToast(`"${name}" is a reserved tag name and can't be created`, true);
+            return;
+        }
 
         const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
             + '-' + Date.now();
@@ -1290,12 +1402,18 @@
             selRow.insertBefore(buildSelPill(entryId, catId, name, null, null), addBtn);
 
             input.value = '';
+            const box = document.getElementById('custom-suggestions-' + catId);
+            if (box) { box.innerHTML = ''; box.classList.remove('open'); }
             showToast('Entry added');
         } catch (e) { showToast(e.message, true); }
     }
 
     function handleCustomEntryKey(event, input) {
         if (event.key === 'Enter') { event.preventDefault(); addCustomEntry(input.dataset.categoryId); }
+        if (event.key === 'Escape') {
+            const box = document.getElementById('custom-suggestions-' + input.dataset.categoryId);
+            if (box) box.classList.remove('open');
+        }
     }
 
     // ─── WORKFLOWS (editors only) ────────────────────────────────────────────
