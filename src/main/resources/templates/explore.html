@@ -126,9 +126,21 @@
         }
 
         .filter-group-header {
-            display: inline-flex; align-items: center; gap: 0.4rem;
+            display: flex; align-items: center; gap: 0.4rem;
+            width: 100%;
             border-radius: var(--radius-pill);
             padding: 0.22rem 0.55rem; margin-bottom: 0.75rem;
+            cursor: pointer; user-select: none;
+            transition: background 0.1s;
+        }
+        .filter-group-header:hover { background: rgba(255,255,255,0.05); }
+        /* Active = this category isn't filtering anything, i.e. "All" is
+           the effective selection for this group. Same visual language as
+           .filter-item.active, so it reads as "the selected pill" in place
+           of a dedicated All tag. Full-width (edge to edge of the card),
+           same as an active .filter-item row. */
+        .filter-group-header.active {
+            background: #0a0d12;
         }
         .filter-group-title {
             font-size: 0.82rem;
@@ -323,10 +335,17 @@
     <aside class="sidebar">
         <th:block th:each="cat, catStat : ${filterEntries.entrySet()}"
                   th:with="catId=${cat.key.id},
-                            catCount=${categoryAppCounts[cat.key.id]}">
+                            catCount=${categoryAppCounts[cat.key.id]},
+                            filteredEntries=${cat.value.?[name != 'NEW']}">
 
             <div class="filter-card" th:id="'fg-' + ${catId}">
-                <div class="filter-group-header">
+                <!-- The header itself doubles as the "All" control: click it to
+                     clear every selection in this category. It shows as active
+                     whenever nothing in the group below is currently selected. -->
+                <div class="filter-group-header active"
+                     th:id="'fgh-' + ${catId}"
+                     th:data-cat-id="${catId}"
+                     onclick="clearGroup(this.dataset.catId)">
                     <span class="filter-group-title" th:text="'ALL ' + ${cat.key.name.toUpperCase()}">ALL CATEGORIES</span>
                     <span class="filter-group-count"
                           th:if="${catCount != null and catCount > 0}"
@@ -338,7 +357,7 @@
                         onclick="clearGroup(this.dataset.catId)">Clear</button>
 
                 <div class="filter-items-wrap" th:id="'items-' + ${catId}">
-                    <div th:each="entry, entryStat : ${cat.value}"
+                    <div th:each="entry, entryStat : ${filteredEntries}"
                          class="filter-item"
                          th:id="'fi-' + ${entry.id}"
                          th:data-entry-id="${entry.id}"
@@ -346,7 +365,7 @@
                          th:title="${entry.description}"
                          th:data-cat-id="${catId}"
                          th:classappend="${(#lists.contains(selectedEntryIds, entry.id.toString()) ? ' active' : '')}
-                                          + ${(entryStat.index >= 20 ? ' filter-item-hidden' : '')}"
+                                          + ${(entryStat.index >= 10 ? ' filter-item-hidden' : '')}"
                          onclick="toggleFilter(this)">
                         <img th:if="${entry.iconUrl != null}"
                              th:src="${entry.iconUrl}"
@@ -360,9 +379,9 @@
                 </div>
 
                 <button class="filter-group-more"
-                        th:if="${#lists.size(cat.value) > 20}"
+                        th:if="${#lists.size(filteredEntries) > 10}"
                         th:data-cat-id="${catId}"
-                        data-shown="20"
+                        data-shown="10"
                         onclick="showMoreEntries(this)">Show more</button>
             </div>
         </th:block>
@@ -412,6 +431,7 @@
     let requestToken = 0; // guards against out-of-order responses
 
     buildEntryMetaCache();
+    syncAllGroups();
 
     function buildEntryMetaCache() {
         entryMeta = {};
@@ -420,9 +440,9 @@
         });
     }
 
-    // ── Sidebar: reveal 20 more entries at a time, no refresh, no fetch ──────
+    // ── Sidebar: reveal 10 more entries at a time, no refresh, no fetch ──────
     // All entries for a category are already rendered server-side; beyond the
-    // first 20 they just carry .filter-item-hidden. Clicking "Show more"
+    // first 10 they just carry .filter-item-hidden. Clicking "Show more"
     // simply un-hides the next batch already sitting in the DOM.
     function showMoreEntries(btn) {
         const catId = btn.dataset.catId;
@@ -430,8 +450,8 @@
         if (!wrap) return;
 
         const items = wrap.querySelectorAll('.filter-item');
-        const shown = parseInt(btn.dataset.shown, 10) || 20;
-        const nextShown = shown + 20;
+        const shown = parseInt(btn.dataset.shown, 10) || 10;
+        const nextShown = shown + 10;
 
         items.forEach((el, idx) => {
             if (idx < nextShown) el.classList.remove('filter-item-hidden');
@@ -451,15 +471,20 @@
             selectedIds.add(id);
             el.classList.add('active');
         }
+        syncAllHeader(el.dataset.catId);
         renderActiveStrip();
         updateResults();
     }
 
+    // The group header itself acts as "All": clicking it (or the text "Clear"
+    // button) drops every selection from this one category, putting the
+    // category back into its unfiltered state.
     function clearGroup(catId) {
         document.querySelectorAll(`.filter-item[data-cat-id="${catId}"]`).forEach(el => {
             selectedIds.delete(el.dataset.entryId);
             el.classList.remove('active');
         });
+        syncAllHeader(catId);
         renderActiveStrip();
         updateResults();
     }
@@ -467,6 +492,7 @@
     function clearAllFilters() {
         selectedIds.clear();
         document.querySelectorAll('.filter-item.active').forEach(el => el.classList.remove('active'));
+        syncAllGroups();
         renderActiveStrip();
         updateResults();
     }
@@ -475,8 +501,28 @@
         selectedIds.delete(id);
         const el = document.getElementById('fi-' + id);
         if (el) el.classList.remove('active');
+        syncAllHeader(entryMeta[id]?.catId);
         renderActiveStrip();
         updateResults();
+    }
+
+    // The header is "active" (looks selected) whenever nothing else in its
+    // group is selected — recomputed after every change rather than tracked
+    // as separate state, so it can never drift out of sync with the real
+    // selection.
+    function syncAllHeader(catId) {
+        if (!catId) return;
+        const wrap   = document.getElementById('items-' + catId);
+        const header = document.getElementById('fgh-' + catId);
+        if (!wrap || !header) return;
+        const anyActive = wrap.querySelectorAll('.filter-item.active').length > 0;
+        header.classList.toggle('active', !anyActive);
+    }
+
+    function syncAllGroups() {
+        document.querySelectorAll('.filter-group-header[data-cat-id]').forEach(header => {
+            syncAllHeader(header.dataset.catId);
+        });
     }
 
     // ── Build the /explore URL for the current filters ────────────────────────
@@ -516,6 +562,7 @@
             if (newMain)    document.getElementById('mainContent').replaceWith(newMain);
 
             buildEntryMetaCache();
+            syncAllGroups();
             renderActiveStrip();
 
             const newSearchInput = document.getElementById('searchInput');
@@ -535,6 +582,7 @@
         document.querySelectorAll('.filter-item[data-entry-id]').forEach(el => {
             el.classList.toggle('active', selectedIds.has(el.dataset.entryId));
         });
+        syncAllGroups();
 
         updateResults();
     });
