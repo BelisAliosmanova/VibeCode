@@ -865,12 +865,6 @@
                                                     <div class="grid-name" th:text="${app.name}">App Name</div>
                                                     <div class="grid-desc"
                                                          th:text="${app.description != null ? app.description : 'No description'}"></div>
-                                                    <!-- Certified review score: single gold star + number -->
-                                                    <div class="rating-row" style="margin-top:0.3rem;">
-                                                        <span class="rating-star">★</span>
-                                                        <span class="rating-num"
-                                                              th:text="${app.verifiedScore != null} ? ${#numbers.formatDecimal(app.verifiedScore,1,1)} : '—'">0.0</span>
-                                                    </div>
                                                 </div>
                                             </a>
                                         </div>
