@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
- <th:block th:fragment="favicons">
+    <th:block th:fragment="favicons">
         <link rel="icon" th:href="@{/favico-b.svg}" type="image/svg+xml" media="(prefers-color-scheme: light)"/>
         <link rel="icon" th:href="@{/favico-w.svg}" type="image/svg+xml" media="(prefers-color-scheme: dark)"/>
         <link rel="alternate icon" th:href="@{/favicon.ico}"/>
@@ -330,12 +330,12 @@
             opacity: 0.65;
         }
         .app-list-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.3rem; flex-shrink: 0; }
-        .stars-xs { display: flex; gap: 1px; }
-        .star-xs { font-size: 0.58rem; color: var(--gray-400); }
-        .star-xs.lit { color: var(--gold); }
-        .star-xs.lit-blue { color: var(--blue); }
-        .rating-row { display: flex; align-items: center; gap: 0.3rem; }
-        .rating-num { font-size: 0.6rem; color: var(--gray-200); opacity: 0.8; font-weight: 500; }
+
+        /* Rating row: one star + number, used everywhere a certified score shows */
+        .rating-row { display: flex; align-items: center; gap: 0.2rem; }
+        .rating-star { font-size: 0.72rem; color: var(--gold); line-height: 1; }
+        .rating-num { font-size: 0.6rem; color: #ff9e00; opacity: 0.8; font-weight: 500; }
+
         .price-tag { font-size: 0.7rem; font-weight: 700; border-radius: var(--radius-md); padding: 0.2rem 0.6rem; }
         .price-tag.free { background: var(--blue); color: var(--white); }
 
@@ -688,14 +688,21 @@
                                                             </div>
                                                         </div>
                                                         <div class="app-list-right">
+                                                            <!-- Certified review score: single gold star + number -->
                                                             <div class="rating-row">
-                                                                <div class="stars-xs">
-                                                                    <span class="star-xs"
-                                                                          th:classappend="${app.userRatingAvg >= i} ? ' lit' : ''"
-                                                                          th:each="i : ${#numbers.sequence(1,5)}">★</span>
-                                                                </div>
+                                                                <span class="rating-star">
+                                                                    <svg width="11" height="11" viewBox="0 0 15 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                        <path d="M6.38296 0.581216C6.74037 -0.193656 7.84166 -0.193658 8.19907 0.581213L9.5958 3.6093C9.74146 3.92511 10.0407 4.14255 10.3861 4.1835L13.6976 4.57613C14.545 4.67661 14.8853 5.72399 14.2588 6.30336L11.8105 8.56745C11.5552 8.80358 11.4409 9.15541 11.5087 9.49653L12.1586 12.7673C12.3249 13.6042 11.4339 14.2516 10.6893 13.8348L7.77946 12.206C7.47598 12.0361 7.10605 12.0361 6.80257 12.206L3.89274 13.8348C3.14812 14.2516 2.25716 13.6042 2.42347 12.7673L3.07336 9.49653C3.14114 9.15541 3.02682 8.80358 2.77149 8.56745L0.323215 6.30336C-0.303285 5.72399 0.0370306 4.67661 0.884424 4.57613L4.19592 4.1835C4.54128 4.14255 4.84057 3.92511 4.98624 3.6093L6.38296 0.581216Z" fill="url(#paint0_linear_1015_187)"/>
+                                                                        <defs>
+                                                                            <linearGradient id="paint0_linear_1015_187" x1="7.29102" y1="-1.38745" x2="7.29102" y2="16.6125" gradientUnits="userSpaceOnUse">
+                                                                                <stop stop-color="#FFD146"/>
+                                                                                <stop offset="1" stop-color="#FF5E00"/>
+                                                                            </linearGradient>
+                                                                        </defs>
+                                                                        </svg>
+                                                                </span>
                                                                 <span class="rating-num"
-                                                                      th:text="${#numbers.formatDecimal(app.userRatingAvg,1,1)}">0.0</span>
+                                                                      th:text="${app.verifiedScore != null} ? ${#numbers.formatDecimal(app.verifiedScore,1,1)} : '0'">0.0</span>
                                                             </div>
                                                         </div>
                                                     </a>
@@ -762,24 +769,33 @@
                                                         <div class="featured-name" th:text="${feat.name}">App name</div>
                                                         <div class="featured-desc"
                                                              th:text="${feat.description != null ? feat.description : 'A short description of your app.'}"></div>
-                                                        <div class="stars-xs">
-                            <span class="star-xs"
-                                  th:classappend="${feat.verifiedScore != null and feat.verifiedScore >= i} ? ' lit-blue' : (${feat.userRatingAvg >= i} ? ' lit' : '')"
-                                  th:each="i : ${#numbers.sequence(1,5)}">★</span>
-                                                        </div>
                                                     </div>
                                                 </div>
-
-                                                <hr class="featured-divider"/>
+                                                <div style="display:flex; align-items:center; gap:0.6rem; margin:0.5rem 0 0.7rem;">
+                                                    <div class="stars-xs" style="max-width:60px;">
+                                                        <svg th:each="i : ${#numbers.sequence(1,5)}"
+                                                             width="11" height="11" viewBox="0 0 15 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                            <path d="M6.38296 0.581216C6.74037 -0.193656 7.84166 -0.193658 8.19907 0.581213L9.5958 3.6093C9.74146 3.92511 10.0407 4.14255 10.3861 4.1835L13.6976 4.57613C14.545 4.67661 14.8853 5.72399 14.2588 6.30336L11.8105 8.56745C11.5552 8.80358 11.4409 9.15541 11.5087 9.49653L12.1586 12.7673C12.3249 13.6042 11.4339 14.2516 10.6893 13.8348L7.77946 12.206C7.47598 12.0361 7.10605 12.0361 6.80257 12.206L3.89274 13.8348C3.14812 14.2516 2.25716 13.6042 2.42347 12.7673L3.07336 9.49653C3.14114 9.15541 3.02682 8.80358 2.77149 8.56745L0.323215 6.30336C-0.303285 5.72399 0.0370306 4.67661 0.884424 4.57613L4.19592 4.1835C4.54128 4.14255 4.84057 3.92511 4.98624 3.6093L6.38296 0.581216Z"
+                                                                  th:fill="${feat.verifiedScore != null and feat.verifiedScore >= i} ? 'url(#starGradFeat' + i + ')' : '#4a5568'"/>
+                                                            <defs>
+                                                                <linearGradient th:id="'starGradFeat' + i" x1="7.29102" y1="-1.38745" x2="7.29102" y2="16.6125" gradientUnits="userSpaceOnUse">
+                                                                    <stop stop-color="#FFD146"/>
+                                                                    <stop offset="1" stop-color="#FF5E00"/>
+                                                                </linearGradient>
+                                                            </defs>
+                                                        </svg>
+                                                    </div>
+                                                    <hr class="featured-divider" style="flex:1; margin:0;"/>
+                                                </div>
 
                                                 <div class="featured-features-label">Top tags:</div>
 
                                                 <div class="featured-cat-pills"
                                                      th:if="${featuredAppCategories.get(feat.id) != null and !#lists.isEmpty(featuredAppCategories.get(feat.id))}">
-    <span class="featured-cat-pill"
-          th:each="cat, catStat : ${featuredAppCategories.get(feat.id)}"
-          th:if="${catStat.index < 6}"
-          th:text="${cat.name.toUpperCase()}">CATEGORY</span>
+                                                        <span class="featured-cat-pill"
+                                                              th:each="cat, catStat : ${featuredAppCategories.get(feat.id)}"
+                                                              th:if="${catStat.index < 6}"
+                                                              th:text="${cat.name.toUpperCase()}">CATEGORY</span>
                                                     <span class="featured-cat-pill-more"
                                                           th:if="${#lists.size(featuredAppCategories.get(feat.id)) > 6}"
                                                           th:text="'+' + (${#lists.size(featuredAppCategories.get(feat.id))} - 6) + ' more'">+2 more</span>
@@ -849,6 +865,12 @@
                                                     <div class="grid-name" th:text="${app.name}">App Name</div>
                                                     <div class="grid-desc"
                                                          th:text="${app.description != null ? app.description : 'No description'}"></div>
+                                                    <!-- Certified review score: single gold star + number -->
+                                                    <div class="rating-row" style="margin-top:0.3rem;">
+                                                        <span class="rating-star">★</span>
+                                                        <span class="rating-num"
+                                                              th:text="${app.verifiedScore != null} ? ${#numbers.formatDecimal(app.verifiedScore,1,1)} : '—'">0.0</span>
+                                                    </div>
                                                 </div>
                                             </a>
                                         </div>
