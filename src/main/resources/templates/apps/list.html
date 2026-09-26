@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
- <th:block th:fragment="favicons">
+    <th:block th:fragment="favicons">
         <link rel="icon" th:href="@{/favico-b.svg}" type="image/svg+xml" media="(prefers-color-scheme: light)"/>
         <link rel="icon" th:href="@{/favico-w.svg}" type="image/svg+xml" media="(prefers-color-scheme: dark)"/>
         <link rel="alternate icon" th:href="@{/favicon.ico}"/>
@@ -28,10 +28,49 @@
 
         .page { max-width: 1000px; margin: 2.5rem auto; padding: 0 1.5rem; }
 
-        .page-header { display: flex; align-items: center; margin-bottom: 2rem; gap: 0.6rem; }
+        .page-header { display: flex; align-items: center; margin-bottom: 1.5rem; gap: 0.6rem; }
         .page-title { font-size: 1.4rem; font-weight: 700; }
         .app-count { font-size: 0.85rem; color: #aaa; font-weight: 400; }
 
+        /* ---------- Filter bar ---------- */
+        .filter-bar {
+            display: flex; flex-wrap: wrap; align-items: center; gap: 1rem;
+            padding: 1rem 1.2rem; margin-bottom: 1.5rem;
+            border: 1.5px solid var(--border); border-radius: 14px; background: var(--light);
+        }
+        .filter-group { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+        .filter-label {
+            font-size: 0.68rem; color: #999; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.04em; margin-right: 0.15rem;
+        }
+        .filter-pill {
+            background: #fff; border: 1.5px solid var(--border); color: #666;
+            font-size: 0.76rem; font-weight: 500; padding: 0.28rem 0.75rem;
+            border-radius: var(--radius-pill); cursor: pointer; font-family: var(--font);
+            transition: all 0.12s; white-space: nowrap;
+        }
+        .filter-pill:hover { border-color: #aaa; color: var(--black); }
+        .filter-pill.active { background: var(--black); border-color: var(--black); color: #fff; }
+        .filter-pill.active[data-tone="success"] { background: var(--success); border-color: var(--success); }
+        .filter-pill.active[data-tone="danger"] { background: var(--danger); border-color: var(--danger); }
+
+        .filter-search {
+            border: 1.5px solid var(--border); border-radius: var(--radius-pill);
+            padding: 0.32rem 0.9rem; font-size: 0.8rem; font-family: var(--font);
+            min-width: 220px; background: #fff;
+        }
+        .filter-search:focus { outline: none; border-color: #999; }
+
+        .filter-clear {
+            background: none; border: none; color: #999; font-size: 0.76rem;
+            text-decoration: underline; cursor: pointer; font-family: var(--font);
+            margin-left: auto; padding: 0.2rem 0;
+        }
+        .filter-clear:hover { color: var(--black); }
+
+        .filter-divider { width: 1px; align-self: stretch; background: var(--border); }
+
+        /* ---------- App list ---------- */
         .app-list { display: flex; flex-direction: column; gap: 0.75rem; }
 
         .app-card {
@@ -39,6 +78,7 @@
             padding: 1.1rem 1.4rem; transition: border-color 0.12s;
         }
         .app-card:hover { border-color: #bbb; }
+        .app-card.is-hidden { display: none; }
 
         .app-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
 
@@ -79,6 +119,7 @@
         .badge-rejected  { border-color: #fca5a5; color: var(--danger); background: #fef2f2; }
         .badge-public    { border-color: #ddd; color: #666; }
         .badge-private   { border-color: #ebebeb; color: #ccc; }
+        .badge-role      { border-color: #ddd; color: #888; }
 
         .app-actions { display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
 
@@ -111,16 +152,82 @@
 
     <div class="page-header">
         <h1 class="page-title">Apps</h1>
-        <span class="app-count" th:text="'(' + ${#lists.size(apps)} + ')'"></span>
+        <span class="app-count"><span id="visibleCount" th:text="${#lists.size(apps)}"></span> / <span th:text="${#lists.size(apps)}"></span></span>
     </div>
 
-    <div class="app-list">
+    <!-- ---------- Filter bar ---------- -->
+    <div class="filter-bar" th:if="${not #lists.isEmpty(apps)}">
+
+        <input type="text" id="searchInput" class="filter-search" placeholder="Search name, email, slug…"/>
+
+        <div class="filter-divider"></div>
+
+        <div class="filter-group" data-filter-group="ownerRole">
+            <span class="filter-label">Owner</span>
+            <button type="button" class="filter-pill active" data-filter="ownerRole" data-value="ALL">All</button>
+            <button type="button" class="filter-pill" data-filter="ownerRole" data-value="ADMIN">Admin</button>
+            <button type="button" class="filter-pill" data-filter="ownerRole" data-value="MANAGER">Manager</button>
+            <button type="button" class="filter-pill" data-filter="ownerRole" data-value="USER">Regular user</button>
+            <button type="button" class="filter-pill" data-filter="ownerRole" data-value="NONE" data-tone="danger">No owner</button>
+        </div>
+
+        <div class="filter-divider"></div>
+
+        <div class="filter-group" data-filter-group="github">
+            <span class="filter-label">GitHub</span>
+            <button type="button" class="filter-pill active" data-filter="github" data-value="ALL">All</button>
+            <button type="button" class="filter-pill" data-filter="github" data-value="YES">Linked</button>
+            <button type="button" class="filter-pill" data-filter="github" data-value="NO">Not linked</button>
+        </div>
+
+        <div class="filter-divider"></div>
+
+        <div class="filter-group" data-filter-group="icon">
+            <span class="filter-label">Icon</span>
+            <button type="button" class="filter-pill active" data-filter="icon" data-value="ALL">All</button>
+            <button type="button" class="filter-pill" data-filter="icon" data-value="YES">Has icon</button>
+            <button type="button" class="filter-pill" data-filter="icon" data-value="NO">Missing</button>
+        </div>
+
+        <div class="filter-divider"></div>
+
+        <div class="filter-group" data-filter-group="description">
+            <span class="filter-label">Description</span>
+            <button type="button" class="filter-pill active" data-filter="description" data-value="ALL">All</button>
+            <button type="button" class="filter-pill" data-filter="description" data-value="YES">Written</button>
+            <button type="button" class="filter-pill" data-filter="description" data-value="NO">Missing</button>
+        </div>
+
+        <div class="filter-divider"></div>
+
+<!--        <div class="filter-group" data-filter-group="age">-->
+<!--            <span class="filter-label">Submitted</span>-->
+<!--            <button type="button" class="filter-pill active" data-filter="age" data-value="ALL">All time</button>-->
+<!--            <button type="button" class="filter-pill" data-filter="age" data-value="7">Last 7 days</button>-->
+<!--            <button type="button" class="filter-pill" data-filter="age" data-value="30">Last 30 days</button>-->
+<!--            <button type="button" class="filter-pill" data-filter="age" data-value="OLDER">Older</button>-->
+<!--        </div>-->
+
+        <button type="button" id="clearFilters" class="filter-clear">Clear filters</button>
+    </div>
+
+    <div class="app-list" id="appList">
 
         <div th:if="${#lists.isEmpty(apps)}" class="empty-state">
             No apps submitted yet.
         </div>
 
-        <div th:each="app : ${apps}" class="app-card">
+        <div id="noMatches" class="empty-state" style="display:none;">
+            No apps match the current filters.
+        </div>
+
+        <div th:each="app : ${apps}" class="app-card"
+             th:data-owner-role="${app.owner != null and app.owner.role != null ? app.owner.role : 'NONE'}"
+             th:data-github="${app.githubUrl != null and not #strings.isEmpty(app.githubUrl)} ? 'YES' : 'NO'"
+             th:data-icon="${app.iconUrl != null} ? 'YES' : 'NO'"
+             th:data-description="${app.description != null and not #strings.isEmpty(app.description)} ? 'YES' : 'NO'"
+             th:data-created="${#temporals.format(app.createdAt, 'yyyy-MM-dd')}"
+             th:data-search="${(app.name ?: '') + ' ' + (app.owner != null ? app.owner.email : '') + ' ' + (app.slug ?: '')}">
             <div class="app-card-top">
 
                 <div class="app-left">
@@ -144,6 +251,11 @@
                             <span class="badge"
                                   th:classappend="${app.visibility.name() == 'PUBLIC'} ? ' badge-public' : ' badge-private'"
                                   th:text="${app.visibility}">PRIVATE</span>
+
+                            <span th:if="${app.owner != null and app.owner.role != null}"
+                                  class="badge badge-role" th:text="${app.owner.role}">ROLE</span>
+                            <span th:if="${app.owner == null}"
+                                  class="badge badge-role" style="border-color:#fca5a5;color:var(--danger);">no owner</span>
                         </div>
 
                         <a th:if="${app.url != null}" th:href="${app.url}" th:text="${app.url}"
@@ -153,7 +265,8 @@
                            th:text="${app.description}"></p>
 
                         <div class="app-meta">
-                            <span class="meta-item" th:text="'👤 ' + ${app.owner.email}">owner</span>
+                            <span class="meta-item" th:if="${app.owner != null}" th:text="'👤 ' + ${app.owner.email}">owner</span>
+                            <span class="meta-item" th:if="${app.owner == null}" style="color:var(--danger);">⚠ no owner</span>
                             <span class="meta-sep">·</span>
                             <span class="meta-item" th:text="'submitted ' + ${#temporals.format(app.createdAt, 'dd MMM yyyy')}">date</span>
                             <span class="meta-sep">·</span>
@@ -188,6 +301,91 @@
 
     </div>
 </div>
+
+<script th:inline="none">
+    (function () {
+        var filters = { ownerRole: 'ALL', github: 'ALL', icon: 'ALL', description: 'ALL', age: 'ALL' };
+        var searchTerm = '';
+
+        var cards = Array.prototype.slice.call(document.querySelectorAll('.app-card'));
+        var noMatches = document.getElementById('noMatches');
+        var visibleCountEl = document.getElementById('visibleCount');
+        var searchInput = document.getElementById('searchInput');
+        var clearBtn = document.getElementById('clearFilters');
+
+        function daysSince(dateStr) {
+            if (!dateStr) return null;
+            var created = new Date(dateStr + 'T00:00:00');
+            var today = new Date();
+            today.setHours(0, 0, 0, 0);
+            return Math.floor((today - created) / (1000 * 60 * 60 * 24));
+        }
+
+        function matchesAge(card) {
+            if (filters.age === 'ALL') return true;
+            var days = daysSince(card.dataset.created);
+            if (days === null) return false;
+            if (filters.age === '7') return days <= 7;
+            if (filters.age === '30') return days <= 30;
+            if (filters.age === 'OLDER') return days > 30;
+            return true;
+        }
+
+        function matches(card) {
+            if (filters.ownerRole !== 'ALL' && card.dataset.ownerRole !== filters.ownerRole) return false;
+            if (filters.github !== 'ALL' && card.dataset.github !== filters.github) return false;
+            if (filters.icon !== 'ALL' && card.dataset.icon !== filters.icon) return false;
+            if (filters.description !== 'ALL' && card.dataset.description !== filters.description) return false;
+            if (!matchesAge(card)) return false;
+            if (searchTerm && card.dataset.search.toLowerCase().indexOf(searchTerm) === -1) return false;
+            return true;
+        }
+
+        function apply() {
+            var visible = 0;
+            cards.forEach(function (card) {
+                var ok = matches(card);
+                card.classList.toggle('is-hidden', !ok);
+                if (ok) visible++;
+            });
+            if (visibleCountEl) visibleCountEl.textContent = visible;
+            if (noMatches) noMatches.style.display = (visible === 0 && cards.length > 0) ? 'block' : 'none';
+        }
+
+        document.querySelectorAll('.filter-pill').forEach(function (pill) {
+            pill.addEventListener('click', function () {
+                var group = pill.dataset.filter;
+                var value = pill.dataset.value;
+                filters[group] = value;
+                document.querySelectorAll('.filter-pill[data-filter="' + group + '"]').forEach(function (p) {
+                    p.classList.toggle('active', p === pill);
+                });
+                apply();
+            });
+        });
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function () {
+                searchTerm = searchInput.value.trim().toLowerCase();
+                apply();
+            });
+        }
+
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function () {
+                filters = { ownerRole: 'ALL', github: 'ALL', icon: 'ALL', description: 'ALL', age: 'ALL' };
+                document.querySelectorAll('.filter-pill').forEach(function (p) {
+                    p.classList.toggle('active', p.dataset.value === 'ALL');
+                });
+                if (searchInput) searchInput.value = '';
+                searchTerm = '';
+                apply();
+            });
+        }
+
+        apply();
+    })();
+</script>
 
 </body>
 </html>
