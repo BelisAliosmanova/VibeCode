@@ -105,7 +105,7 @@
 
         /* ── APP HEADER ─────────────────────────────────────────── */
         .app-header-card { display: flex; align-items: flex-start; gap: 1.5rem; margin-bottom: 1.75rem; }
-        .app-icon-wrap { width: 120px; height: 120px; flex-shrink: 0; border-radius: var(--radius-xl); overflow: hidden; background: var(--white); display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; box-shadow: 0 4px 18px rgba(0,0,0,0.25); }
+        .app-icon-wrap { width: 110px; height: 110px; flex-shrink: 0; border-radius: var(--radius-xl); overflow: hidden; background: var(--white); display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; box-shadow: 0 4px 18px rgba(0,0,0,0.25); }
         .app-icon-wrap.readonly { cursor: default; }
         .app-icon-wrap img { width: 100%; height: 100%; object-fit: cover; }
         .app-icon-placeholder { width: 38px; height: 38px; object-fit: contain; opacity: 0.35; }
@@ -119,7 +119,7 @@
         .app-name-static { font-size: 1.45rem; font-weight: 800; color: var(--white); display: inline-block; }
         .app-desc-edit { font-size: 0.8rem; color: var(--gray-200); opacity: 0.75; line-height: 1.5; outline: none; border-radius: 6px; padding: 2px 6px; margin-left: -6px; display: block; min-height: 1.5em; margin-top: 0.3rem; max-width: 480px; }
         .app-desc-edit:focus { background: rgba(255,255,255,0.06); }
-        .app-desc-static { font-size: 0.8rem; color: var(--gray-200); opacity: 0.75; line-height: 1.5; display: block; margin-top: -0.1rem;}
+        .app-desc-static { font-size: 0.8rem; color: var(--gray-200); line-height: 1.5; display: block; margin-top: -0.1rem;}
         .desc-more-btn {
             background: none; border: none; color: var(--cyan); font-size: 0.72rem;
             font-weight: 600; cursor: pointer; padding: 0; margin-top: 0.15rem;
@@ -159,7 +159,7 @@
             font-weight: 400;
             font-size: 16px;
             line-height: 100%;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             text-transform: uppercase;
             outline: none;
             border-bottom: 1px solid transparent;
@@ -452,7 +452,6 @@
                       th:text="${app.githubUrl != null ? app.githubUrl : 'Add a GitHub URL...'}"></span>
             </div>
             <div class="app-badges-row">
-                <span class="pricing-badge">PRICING</span>
                 <button class="btn-sm" onclick="saveAppInfo()">Save changes</button>
             </div>
         </div>
@@ -470,7 +469,6 @@
             -->
             <span class="app-desc-static" id="appDescStatic" th:text="${app.description}"></span>
             <div class="app-badges-row">
-                <span class="pricing-badge">PRICING</span>
             </div>
         </div>
     </div>
@@ -669,9 +667,6 @@
         <div class="meta-row" th:id="'section-' + ${ce.key.id}" style="align-items:flex-start;">
             <div class="meta-label-col">
                 <div class="meta-label" th:text="${ce.key.name}">CATEGORY</div>
-                <div class="hint-text"
-                     th:if="${ce.key.description != null and !ce.key.description.isEmpty()}"
-                     th:text="${ce.key.description}"></div>
             </div>
 
             <div class="meta-value-col">
@@ -790,7 +785,7 @@
          WORKFLOWS
     ════════════════════════════════════════════════════════════ -->
     <div class="section">
-        <div class="meta-title">Main workflows</div>
+        <div class="meta-label">Main workflows</div>
         <div class="workflows-container" id="workflowsContainer">
             <div id="workflowsList">
                 <th:block th:each="wf : ${workflows}">
