@@ -23,9 +23,12 @@
                  th:src="@{/logo_sm.png}"/>
         </a>
         <a class="nav-link" href="/explore" th:href="@{/explore}">Explore</a>
-        <a class="nav-link" href="/apps" th:href="@{/apps}">Wish an app</a>
+        <a class="nav-link" href="/apps" th:href="@{/wish}">Wish an app</a>
     </div>
     <div class="nav-right">
+        <span sec:authorize="hasAnyRole('MANAGER','ADMIN')">
+        <a class="nav-link" th:href="@{/admin/wishes}">Wishes</a>
+    </span>
         <span sec:authorize="hasAnyRole('MANAGER','ADMIN')">
         <a class="nav-link" th:href="@{/review-categories}">Reviews</a>
     </span>
@@ -33,7 +36,7 @@
         <a class="nav-link" th:href="@{/admin/ranking}">Ranking Apps</a>
     </span>
         <span sec:authorize="hasAnyRole('MANAGER','ADMIN')">
-        <a class="nav-link" th:href="@{/apps}">Manage Apps</a>
+        <a class="nav-link" th:href="@{/apps}">Apps</a>
     </span>
         <span sec:authorize="hasAnyRole('MANAGER','ADMIN')">
         <a class="nav-link" th:href="@{/admin/home-sections}">Home Sections</a>
