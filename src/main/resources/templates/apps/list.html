@@ -32,6 +32,21 @@
         .page-title { font-size: 1.4rem; font-weight: 700; }
         .app-count { font-size: 0.85rem; color: #aaa; font-weight: 400; }
 
+        /* ---------- Status tabs ---------- */
+        .status-tabs { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem; border-bottom: 1.5px solid var(--border); }
+        .status-tab {
+            background: none; border: none; border-bottom: 3px solid transparent; margin-bottom: -1.5px;
+            padding: 0.55rem 1rem; font-family: var(--font); font-size: 0.85rem; font-weight: 600;
+            color: #888; cursor: pointer; display: flex; align-items: center; gap: 0.45rem;
+        }
+        .status-tab:hover { color: var(--black); }
+        .status-tab.active { color: var(--black); border-bottom-color: var(--black); }
+        .status-tab .count {
+            font-size: 0.7rem; font-weight: 700; background: var(--light); border: 1.5px solid var(--border);
+            border-radius: var(--radius-pill); padding: 0.05rem 0.5rem; color: #888;
+        }
+        .status-tab[data-status="SUBMITTED"] .count.has-items { background: #eff6ff; border-color: #93c5fd; color: #2563eb; }
+
         /* ---------- Filter bar ---------- */
         .filter-bar {
             display: flex; flex-wrap: wrap; align-items: center; gap: 1rem;
@@ -113,7 +128,6 @@
             padding: 0.18rem 0.65rem; border-radius: var(--radius-pill);
             font-size: 0.7rem; font-weight: 700; border: 1.5px solid;
         }
-        .badge-draft     { border-color: #ddd;   color: #aaa; }
         .badge-submitted { border-color: #93c5fd; color: #2563eb; background: #eff6ff; }
         .badge-approved  { border-color: #6ee7b7; color: var(--success); background: #f0fdf4; }
         .badge-rejected  { border-color: #fca5a5; color: var(--danger); background: #fef2f2; }
@@ -153,6 +167,14 @@
     <div class="page-header">
         <h1 class="page-title">Apps</h1>
         <span class="app-count"><span id="visibleCount" th:text="${#lists.size(apps)}"></span> / <span th:text="${#lists.size(apps)}"></span></span>
+    </div>
+
+    <!-- ---------- Status tabs ---------- -->
+    <div class="status-tabs" th:if="${not #lists.isEmpty(apps)}">
+        <button type="button" class="status-tab" data-status="SUBMITTED">Needs review <span class="count">0</span></button>
+        <button type="button" class="status-tab" data-status="APPROVED">Approved <span class="count">0</span></button>
+        <button type="button" class="status-tab" data-status="REJECTED">Rejected <span class="count">0</span></button>
+        <button type="button" class="status-tab" data-status="ALL">All <span class="count">0</span></button>
     </div>
 
     <!-- ---------- Filter bar ---------- -->
@@ -198,16 +220,6 @@
             <button type="button" class="filter-pill" data-filter="description" data-value="NO">Missing</button>
         </div>
 
-        <div class="filter-divider"></div>
-
-<!--        <div class="filter-group" data-filter-group="age">-->
-<!--            <span class="filter-label">Submitted</span>-->
-<!--            <button type="button" class="filter-pill active" data-filter="age" data-value="ALL">All time</button>-->
-<!--            <button type="button" class="filter-pill" data-filter="age" data-value="7">Last 7 days</button>-->
-<!--            <button type="button" class="filter-pill" data-filter="age" data-value="30">Last 30 days</button>-->
-<!--            <button type="button" class="filter-pill" data-filter="age" data-value="OLDER">Older</button>-->
-<!--        </div>-->
-
         <button type="button" id="clearFilters" class="filter-clear">Clear filters</button>
     </div>
 
@@ -222,6 +234,7 @@
         </div>
 
         <div th:each="app : ${apps}" class="app-card"
+             th:data-status="${app.status.name()}"
              th:data-owner-role="${app.owner != null and app.owner.role != null ? app.owner.role : 'NONE'}"
              th:data-github="${app.githubUrl != null and not #strings.isEmpty(app.githubUrl)} ? 'YES' : 'NO'"
              th:data-icon="${app.iconUrl != null} ? 'YES' : 'NO'"
@@ -241,12 +254,6 @@
                         <div class="app-name-row">
                             <span class="app-name" th:text="${app.name}">App Name</span>
                             <span class="app-version" th:text="'v' + ${app.version}">v1</span>
-
-                            <span class="badge"
-                                  th:classappend="${app.status.name() == 'DRAFT'} ? ' badge-draft' :
-                                                 (${app.status.name() == 'SUBMITTED'} ? ' badge-submitted' :
-                                                 (${app.status.name() == 'APPROVED'} ? ' badge-approved' : ' badge-rejected'))"
-                                  th:text="${app.status}">DRAFT</span>
 
                             <span class="badge"
                                   th:classappend="${app.visibility.name() == 'PUBLIC'} ? ' badge-public' : ' badge-private'"
@@ -277,13 +284,14 @@
 
                 <div class="app-actions">
                     <a th:href="@{/apps/{id}/manage(id=${app.id})}" class="btn btn-manage">Manage</a>
-                    <a th:href="@{/apps/{id}/edit(id=${app.id})}" class="btn">Edit</a>
 
-                    <form th:if="${app.status.name() == 'SUBMITTED'}"
+                    <!-- Approve: submitted or previously rejected -->
+                    <form th:if="${app.status.name() == 'SUBMITTED' or app.status.name() == 'REJECTED'}"
                           th:action="@{/apps/{id}/approve(id=${app.id})}" method="post" style="display:inline;">
                         <button type="submit" class="btn btn-approve">Approve</button>
                     </form>
 
+                    <!-- Reject: submitted or previously approved -->
                     <form th:if="${app.status.name() == 'SUBMITTED' or app.status.name() == 'APPROVED'}"
                           th:action="@{/apps/{id}/reject(id=${app.id})}" method="post" style="display:inline;">
                         <button type="submit" class="btn btn-reject">Reject</button>
@@ -304,10 +312,12 @@
 
 <script th:inline="none">
     (function () {
-        var filters = { ownerRole: 'ALL', github: 'ALL', icon: 'ALL', description: 'ALL', age: 'ALL' };
+        var filters = { status: 'ALL', ownerRole: 'ALL', github: 'ALL', icon: 'ALL', description: 'ALL', age: 'ALL' };
         var searchTerm = '';
+        var STORAGE_KEY = 'adminAppsStatusTab';
 
         var cards = Array.prototype.slice.call(document.querySelectorAll('.app-card'));
+        var tabs = Array.prototype.slice.call(document.querySelectorAll('.status-tab'));
         var noMatches = document.getElementById('noMatches');
         var visibleCountEl = document.getElementById('visibleCount');
         var searchInput = document.getElementById('searchInput');
@@ -332,6 +342,7 @@
         }
 
         function matches(card) {
+            if (filters.status !== 'ALL' && card.dataset.status !== filters.status) return false;
             if (filters.ownerRole !== 'ALL' && card.dataset.ownerRole !== filters.ownerRole) return false;
             if (filters.github !== 'ALL' && card.dataset.github !== filters.github) return false;
             if (filters.icon !== 'ALL' && card.dataset.icon !== filters.icon) return false;
@@ -352,6 +363,29 @@
             if (noMatches) noMatches.style.display = (visible === 0 && cards.length > 0) ? 'block' : 'none';
         }
 
+        // ---- status tabs ----
+        tabs.forEach(function (tab) {
+            var s = tab.dataset.status;
+            var n = s === 'ALL'
+                ? cards.length
+                : cards.filter(function (c) { return c.dataset.status === s; }).length;
+            var badge = tab.querySelector('.count');
+            badge.textContent = n;
+            if (n > 0) badge.classList.add('has-items');
+        });
+
+        function setStatus(s) {
+            filters.status = s;
+            tabs.forEach(function (t) { t.classList.toggle('active', t.dataset.status === s); });
+            try { sessionStorage.setItem(STORAGE_KEY, s); } catch (e) {}
+            apply();
+        }
+
+        tabs.forEach(function (tab) {
+            tab.addEventListener('click', function () { setStatus(tab.dataset.status); });
+        });
+
+        // ---- filter pills ----
         document.querySelectorAll('.filter-pill').forEach(function (pill) {
             pill.addEventListener('click', function () {
                 var group = pill.dataset.filter;
@@ -371,9 +405,10 @@
             });
         }
 
+        // Clear filters keeps the current status tab (tabs act as navigation)
         if (clearBtn) {
             clearBtn.addEventListener('click', function () {
-                filters = { ownerRole: 'ALL', github: 'ALL', icon: 'ALL', description: 'ALL', age: 'ALL' };
+                filters = { status: filters.status, ownerRole: 'ALL', github: 'ALL', icon: 'ALL', description: 'ALL', age: 'ALL' };
                 document.querySelectorAll('.filter-pill').forEach(function (p) {
                     p.classList.toggle('active', p.dataset.value === 'ALL');
                 });
@@ -383,7 +418,11 @@
             });
         }
 
-        apply();
+        // Initial tab: remembered one, else "Needs review" if any, else All
+        var saved = null;
+        try { saved = sessionStorage.getItem(STORAGE_KEY); } catch (e) {}
+        var hasSubmitted = cards.some(function (c) { return c.dataset.status === 'SUBMITTED'; });
+        setStatus(saved || (hasSubmitted ? 'SUBMITTED' : 'ALL'));
     })();
 </script>
 

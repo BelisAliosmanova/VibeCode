@@ -49,21 +49,6 @@ public class AppController {
         return "apps/view";
     }
 
-    @GetMapping("/{id}/edit")
-    public String editForm(@PathVariable UUID id, Model model) {
-        model.addAttribute("app", appService.findById(id));
-        model.addAttribute("users", userService.findAll());
-        model.addAttribute("statuses", App.Status.values());
-        model.addAttribute("visibilities", App.Visibility.values());
-        return "apps/form";
-    }
-
-    @PostMapping("/{id}")
-    public String update(@PathVariable UUID id, @ModelAttribute App app) {
-        appService.update(id, app);
-        return "redirect:/apps";
-    }
-
     /**
      * Inline admin edit: reassign app owner by email. Locked to
      * MANAGER/ADMIN — this is more sensitive than a homepage title edit,
@@ -86,6 +71,8 @@ public class AppController {
         }
     }
 
+    // Approve works from SUBMITTED or REJECTED; reject works from SUBMITTED or APPROVED.
+    // The service does not restrict the previous state, so decisions can be reversed freely.
     @PostMapping("/{id}/approve")
     public String approve(@PathVariable UUID id) {
         appService.approve(id);

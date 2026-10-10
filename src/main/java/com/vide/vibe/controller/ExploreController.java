@@ -132,6 +132,8 @@ public class ExploreController {
      * There are no more tabs — every list (initial page and every "load more"
      * batch) is sorted by the ranking score, always, using whatever filters
      * (category entries) are currently selected.
+     *
+     * Rejected apps are never shown on Explore.
      */
     private List<App> computeRankedApps(List<UUID> entries) {
         List<UUID> selectedUuids = entries != null ? entries : new ArrayList<>();
@@ -146,7 +148,10 @@ public class ExploreController {
             }
         }
 
-        List<App> allApps = appService.findAll();
+        List<App> allApps = appService.findAll().stream()
+                .filter(app -> app.getStatus() != App.Status.REJECTED)
+                .collect(Collectors.toList());
+
         List<App> pool;
         if (selectedByCategoryId.isEmpty()) {
             pool = allApps;

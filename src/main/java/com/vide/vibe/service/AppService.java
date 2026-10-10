@@ -134,6 +134,7 @@ public class AppService {
         return appRepository.save(app);
     }
 
+    /** Can be called from any state (SUBMITTED, REJECTED, ...). Makes the app public. */
     @Transactional
     public App approve(UUID id) {
         App app = findById(id);
@@ -142,10 +143,12 @@ public class AppService {
         return appRepository.save(app);
     }
 
+    /** Can be called from any state (SUBMITTED, APPROVED, ...). Hides the app from public view. */
     @Transactional
     public App reject(UUID id) {
         App app = findById(id);
         app.setStatus(App.Status.REJECTED);
+        app.setVisibility(App.Visibility.PRIVATE);
         return appRepository.save(app);
     }
 
