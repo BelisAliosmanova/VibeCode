@@ -13,30 +13,37 @@
         body { background:#233141; color:var(--white); font-size:13px; line-height:1.5; -webkit-font-smoothing:antialiased; }
         a { text-decoration:none; color:inherit; }
 
-/* ── Page hero: one banner that sits behind the transparent navbar ── */
-        .page-hero {
-            position:relative; z-index:0; overflow:hidden;
-            height:calc(var(--nav-h) + 85px);
-            background:linear-gradient(100deg, #101a27 0%, #16212f 45%, #1b2838 100%);
+        /* ── HERO (identical to the Explore / homepage hero — only the heading text differs) ── */
+        .hero {
+            position: relative; height: 380px; overflow: hidden; background: #0d1520;
         }
-        .hero-tiles { position:absolute; inset:0; }
-        .hero-tile {
-            position:absolute; border-radius:16px;
-            transform:rotate(-22deg) skewX(-8deg);
-            box-shadow:0 6px 18px rgba(0,0,0,.35);
+        .hero-bg {
+            position: absolute; inset: 0; z-index: 1;
+            background-image: url(HOME-hero3.png);
+            background-size: 50%; background-position: center right; background-repeat: no-repeat; opacity: 0.9;
         }
-        .t1 { left:57%; top:22%; width:60px; height:44px; background:linear-gradient(135deg,#6b7a99,#3d4a63); filter:blur(7px); opacity:.45; }
-        .t2 { left:61%; top:46%; width:66px; height:46px; background:linear-gradient(135deg,#8a5cf0,#4b2a9a); filter:blur(3px); opacity:.85; }
-        .t3 { left:75%; top:40%; width:70px; height:48px; background:linear-gradient(135deg,#6fd145,#2f8a3a); filter:blur(3px); opacity:.85; }
-        .t4 { left:85%; top:34%; width:78px; height:52px; background:linear-gradient(135deg,#f0e04a,#c9a82a); filter:blur(1px); }
-        .t5 { left:55%; top:92%; width:66px; height:46px; background:linear-gradient(135deg,#ff3aa0,#ffb02e); filter:blur(.5px); }
-        .t6 { left:73%; top:96%; width:78px; height:54px; background:linear-gradient(135deg,#ffc42e,#e8481c); }
-        .t7 { left:91%; top:100%; width:84px; height:58px; background:linear-gradient(135deg,#ff6a5a,#d41f2a); }
-        .t8 { left:84%; top:132%; width:60px; height:44px; background:linear-gradient(135deg,#4fe0ff,#2b7fe0); filter:blur(4px); opacity:.8; }
-        .page-hero-inner { position:relative; height:100%; max-width:1100px; margin:0 auto; padding:0 2rem; display:flex; align-items:flex-end; justify-content:space-between; }
-        .page-hero-title { font-size:2.4rem; font-weight:700; line-height:1.05; letter-spacing:.5px; padding-bottom:1.6rem; }
-        .hero-count { padding-bottom:1.9rem; font-size:.8rem; color:var(--gray-200); }
-        .hero-count b { color:var(--accent-green); }
+        .hero-overlay {
+            position: absolute; inset: 0;
+            background: linear-gradient(to right, rgba(13,21,32,0.88) 0%, rgba(13,21,32,0.65) 35%, rgba(13,21,32,0.15) 65%, transparent 100%);
+        }
+        .hero-fade {
+            position: absolute; bottom: 0; left: 0; right: 0; height: 45%;
+            background: linear-gradient(to bottom, transparent, #1a2332); pointer-events: none;
+        }
+        .hero-inner {
+            position: relative; height: 100%; max-width: 1100px; margin: 0 auto; padding: 0 2rem;
+        }
+        .hero-content {
+            position: relative; height: 100%; display: flex; flex-direction: column;
+            justify-content: center; padding-top: calc(var(--nav-h) + 0.5rem); max-width: 560px;
+        }
+        .hero-heading {
+            font-size: 3rem; font-weight: 700; color: var(--white);
+            line-height: 1.05; letter-spacing: 0.5px;
+        }
+        /* admin-only extra: open / total counter under the heading */
+        .hero-count { margin-top: .9rem; font-size: .8rem; color: var(--gray-200); }
+        .hero-count b { color: var(--accent-green); }
 
         .content { max-width:1100px; margin:0 auto; padding:2rem 2rem 5rem; }
 
@@ -78,68 +85,76 @@
 
         .empty-state { text-align:center; padding:3rem 2rem; color:var(--gray-300); opacity:.7; }
         form.inline { display:inline; }
+
+        @media (max-width: 768px) {
+            .hero { height: 280px; }
+            .hero-content { max-width: 100%; }
+            .hero-heading { font-size: 2rem; }
+        }
     </style>
 </head>
 <body>
 
 <nav th:replace="~{fragments/navbar :: navbar}"></nav>
 
-<div>
-
-    <div class="page-hero">
-        <div class="hero-tiles"><span class="hero-tile t1"></span><span class="hero-tile t2"></span><span class="hero-tile t3"></span><span class="hero-tile t4"></span><span class="hero-tile t5"></span><span class="hero-tile t6"></span><span class="hero-tile t7"></span><span class="hero-tile t8"></span></div>
-        <div class="page-hero-inner">
-            <h1 class="page-hero-title">Wished apps</h1>
+<!-- ── HERO (identical to Explore / homepage, only the heading text differs) ────── -->
+<div class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-overlay"></div>
+    <div class="hero-fade"></div>
+    <div class="hero-inner">
+        <div class="hero-content">
+            <h1 class="hero-heading">Wished apps</h1>
             <div class="hero-count">
                 <b th:text="${openCount}">0</b> open · <span th:text="${#lists.size(wishes)}">0</span> total
             </div>
         </div>
     </div>
-
-    <main class="content">
-        <div class="table-card">
-            <div class="table-scroll">
-                <table th:if="${!#lists.isEmpty(wishes)}">
-                    <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Wished app</th>
-                        <th>Budget</th>
-                        <th>Email</th>
-                        <th>Status</th>
-                        <th></th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="w : ${wishes}" th:classappend="${w.handled} ? 'handled'">
-                        <td class="col-date" th:text="${#temporals.format(w.createdAt, 'dd MMM yyyy HH:mm')}">01 Jan 2026</td>
-                        <td class="col-desc" th:text="${w.description}">Description</td>
-                        <td>
-                            <span th:if="${w.budget != null}" th:text="${w.budget}"></span>
-                            <span class="muted" th:if="${w.budget == null}">—</span>
-                        </td>
-                        <td><a class="email-link" th:href="'mailto:' + ${w.email}" th:text="${w.email}">a@b.com</a></td>
-                        <td>
-                            <span class="badge badge-open" th:if="${!w.handled}">Open</span>
-                            <span class="badge badge-done" th:if="${w.handled}">Handled</span>
-                        </td>
-                        <td class="col-actions">
-                            <form class="inline" method="post" th:action="@{/admin/wishes/{id}/toggle(id=${w.id})}">
-                                <button class="btn-mini" type="submit" th:text="${w.handled} ? 'Reopen' : 'Mark handled'">Mark handled</button>
-                            </form>
-                            <form class="inline" method="post" th:action="@{/admin/wishes/{id}/delete(id=${w.id})}"
-                                  onsubmit="return confirm('Delete this wish? This cannot be undone.')">
-                                <button class="btn-mini danger" type="submit" title="Delete">🗑</button>
-                            </form>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div class="empty-state" th:if="${#lists.isEmpty(wishes)}">No wishes submitted yet.</div>
-        </div>
-    </main>
 </div>
+
+<main class="content">
+    <div class="table-card">
+        <div class="table-scroll">
+            <table th:if="${!#lists.isEmpty(wishes)}">
+                <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Wished app</th>
+                    <th>Budget</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="w : ${wishes}" th:classappend="${w.handled} ? 'handled'">
+                    <td class="col-date" th:text="${#temporals.format(w.createdAt, 'dd MMM yyyy HH:mm')}">01 Jan 2026</td>
+                    <td class="col-desc" th:text="${w.description}">Description</td>
+                    <td>
+                        <span th:if="${w.budget != null}" th:text="${w.budget}"></span>
+                        <span class="muted" th:if="${w.budget == null}">—</span>
+                    </td>
+                    <td><a class="email-link" th:href="'mailto:' + ${w.email}" th:text="${w.email}">a@b.com</a></td>
+                    <td>
+                        <span class="badge badge-open" th:if="${!w.handled}">Open</span>
+                        <span class="badge badge-done" th:if="${w.handled}">Handled</span>
+                    </td>
+                    <td class="col-actions">
+                        <form class="inline" method="post" th:action="@{/admin/wishes/{id}/toggle(id=${w.id})}">
+                            <button class="btn-mini" type="submit" th:text="${w.handled} ? 'Reopen' : 'Mark handled'">Mark handled</button>
+                        </form>
+                        <form class="inline" method="post" th:action="@{/admin/wishes/{id}/delete(id=${w.id})}"
+                              onsubmit="return confirm('Delete this wish? This cannot be undone.')">
+                            <button class="btn-mini danger" type="submit" title="Delete">🗑</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="empty-state" th:if="${#lists.isEmpty(wishes)}">No wishes submitted yet.</div>
+    </div>
+</main>
 
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 </body>
