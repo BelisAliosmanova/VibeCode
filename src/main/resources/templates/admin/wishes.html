@@ -139,14 +139,17 @@
                         <span class="badge badge-open" th:if="${!w.handled}">Open</span>
                         <span class="badge badge-done" th:if="${w.handled}">Handled</span>
                     </td>
-                    <td class="col-actions">
-                        <form class="inline" method="post" th:action="@{/admin/wishes/{id}/toggle(id=${w.id})}">
-                            <button class="btn-mini" type="submit" th:text="${w.handled} ? 'Reopen' : 'Mark handled'">Mark handled</button>
-                        </form>
-                        <form class="inline" method="post" th:action="@{/admin/wishes/{id}/delete(id=${w.id})}"
-                              onsubmit="return confirm('Delete this wish? This cannot be undone.')">
-                            <button class="btn-mini danger" type="submit" title="Delete">🗑</button>
-                        </form>
+                    <td class="col-desc">
+                        <div th:if="${w.app != null}" style="margin-bottom:.4rem">
+                            Like: <b th:text="${w.app.name}">App</b>
+                        </div>
+                        <div th:if="${w.app == null and w.customAppName != null}" style="margin-bottom:.4rem">
+                            Like (not in catalog): <b th:text="${w.customAppName}">Some app</b>
+                        </div>
+                        <div th:text="${w.description}">Description</div>
+                        <div style="display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.5rem" th:if="${!#lists.isEmpty(w.features)}">
+                            <span class="badge badge-open" th:each="f : ${w.features}" th:text="${f}">feature</span>
+                        </div>
                     </td>
                 </tr>
                 </tbody>

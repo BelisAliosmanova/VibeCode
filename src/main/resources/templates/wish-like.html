@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{index :: favicons}"></th:block> <!-- TODO: point to your favicons fragment or delete -->
+    <meta charset="UTF-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Wish an app like [[${app.name}]] — Vibe</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@100;200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link th:replace="~{fragments/navbar :: navbar-css}"/>
+    <style th:replace="~{fragments/wish-common :: css}"></style>
+    <style>
+        .like-wrap { max-width:760px; margin:0 auto; padding:3rem 1.5rem 6rem; }
+        .section-title { font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; margin-bottom:.8rem; }
+        .section-title small { color:var(--gray-300); text-transform:none; margin-left:.4rem; }
+        .empty { color:var(--gray-300); }
+
+        .alert { border-radius:14px; padding:.85rem 1.1rem; font-size:.8rem; margin-bottom:1.5rem; background:#1a2332; border:1px solid rgba(255,255,255,.2); }
+        .alert-error   { background:rgba(255,75,114,.12); border-color:rgba(255,75,114,.6); }
+        .alert-success { background:rgba(143,230,4,.1);  border-color:var(--accent-green); }
+
+        /* the two ways to wish */
+        .choices { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:2rem; }
+        .choice { background:#1a2332; border-radius:var(--radius-xl); padding:1.2rem; display:flex; flex-direction:column; gap:.6rem; }
+        .choice-title { font-weight:700; font-size:.9rem; }
+        .choice-sub { font-size:.7rem; flex:1; }
+        .choice .btn-green { padding:.55rem 1.6rem; font-size:.8rem; text-align:center; }
+        .wish-field { width:100%; background:#233141; border:1px solid rgba(255,255,255,.12); border-radius:12px; color:var(--white);
+                      font-family:var(--font); font-size:.78rem; padding:.7rem .9rem; outline:none; }
+        .wish-field:focus { border-color:rgba(255,255,255,.4); }
+        .hp { position:absolute; left:-9999px; opacity:0; height:0; width:0; }
+
+        .apps { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:1.6rem 2.5rem; margin-top:3.5rem; }
+        .app-card { display:flex; gap:.8rem; align-items:flex-start; }
+        .app-card .app-icon { width:52px; height:52px; border-radius:12px; }
+        .app-card .name { font-weight:600; font-size:.82rem; }
+        .app-card .desc { font-size:.68rem; color:var(--gray-300); }
+        .app-card .wishes { font-size:.66rem; color:var(--gray-200); margin-top:.2rem; }
+        .app-card:hover .name { text-decoration:underline; }
+
+        @media (max-width:640px) { .choices { grid-template-columns:1fr; } }
+    </style>
+</head>
+<body>
+
+<nav th:replace="~{fragments/navbar :: navbar}"></nav>
+<div th:replace="~{fragments/wish-common :: hero(title='Wish an app like ' + ${app.name})}"></div>
+
+<main class="like-wrap">
+
+    <div class="alert alert-success" th:if="${plusOne == 'added'}">Thanks! Your +1 is in. We'll let you know when an app like this pops up.</div>
+    <div class="alert" th:if="${plusOne == 'exists'}">You've already added your +1 for this app with that email.</div>
+    <div class="alert alert-error" th:if="${plusOneError}" th:text="${plusOneError}"></div>
+
+    <div class="section-title">Most popular wishes <small>(select the ones you care about)</small></div>
+    <div class="chips" id="chips">
+        <button type="button" class="chip" th:each="f : ${topFeatures}" th:data-tag="${f}" th:text="${f}">local storage</button>
+        <span class="empty" th:if="${#lists.isEmpty(topFeatures)}">Nobody picked features for this app yet.</span>
+    </div>
+    <div class="muted" style="font-size:.7rem;margin-top:.8rem" th:if="${wishCount > 0}"
+         th:text="${wishCount == 1 ? '1 person wished an app like this' : wishCount + ' people wished an app like this'}"></div>
+
+    <div class="choices">
+        <!-- Option A: quick +1 -->
+        <form class="choice" method="post" th:action="@{/wish/like/{slug}/plus-one(slug=${app.slug})}" autocomplete="off">
+            <div class="choice-title">+1 · I want this too</div>
+            <div class="choice-sub muted">Add your vote to the count. Any features you selected above are added too.</div>
+            <input type="hidden" name="features" id="plusFeatures"/>
+            <input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true"/>
+            <input class="wish-field" type="email" name="email" required maxlength="255" placeholder="Your email (to notify you)"/>
+            <button class="btn-green" type="submit">+1</button>
+        </form>
+
+        <!-- Option B: full form -->
+        <div class="choice">
+            <div class="choice-title">Need something specific?</div>
+            <div class="choice-sub muted">Describe exactly what you're looking for. We'll pre-fill this app and your selected features.</div>
+            <a class="btn-green" id="wishThis" th:href="@{/wish(like=${app.slug})}">Fill in a new wish</a>
+        </div>
+    </div>
+
+    <div class="apps" th:if="${!#lists.isEmpty(others)}">
+        <a class="app-card" th:each="o : ${others}" th:href="@{/wish/like/{slug}(slug=${o.app.slug})}">
+            <img class="app-icon" th:if="${o.app.iconUrl != null}" th:src="${o.app.iconUrl}" alt=""/>
+            <div class="app-icon ph" th:if="${o.app.iconUrl == null}" th:text="${#strings.toUpperCase(#strings.substring(o.app.name,0,1))}">A</div>
+            <div>
+                <div class="name" th:text="${o.app.name}">App name</div>
+                <div class="desc" th:if="${o.app.description != null}" th:text="${#strings.abbreviate(o.app.description, 60)}">A short description…</div>
+                <div class="wishes" th:text="${o.count + (o.count == 1 ? ' wish' : ' wishes')}">28 wishes</div>
+            </div>
+        </a>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<script th:inline="javascript">
+    (function () {
+        const base = /*[[@{/wish}]]*/ '/wish';
+        const slug = /*[[${app.slug}]]*/ '';
+        const link = document.getElementById('wishThis');
+        const plus = document.getElementById('plusFeatures');
+        const chips = document.querySelectorAll('#chips .chip');
+        function update() {
+            const sel = [...chips].filter(c => c.classList.contains('on')).map(c => c.dataset.tag);
+            link.href = base + '?like=' + encodeURIComponent(slug) + sel.map(t => '&features=' + encodeURIComponent(t)).join('');
+            plus.value = sel.join(',');
+        }
+        chips.forEach(c => c.addEventListener('click', () => { c.classList.toggle('on'); update(); }));
+        update();
+    })();
+</script>
+</body>
+</html>

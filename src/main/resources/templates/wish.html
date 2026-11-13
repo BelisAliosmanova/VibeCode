@@ -1,145 +1,271 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <th:block th:replace="~{index :: favicons}"></th:block> <!-- TODO: point to the template that defines your favicons fragment, or delete this line -->
+    <th:block th:replace="~{index :: favicons}"></th:block> <!-- TODO: point to your favicons fragment or delete -->
     <meta charset="UTF-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>Wish an app — Vibe</title>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@100;200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
     <link th:replace="~{fragments/navbar :: navbar-css}"/>
+    <style th:replace="~{fragments/wish-common :: css}"></style>
     <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        :root {
-            --white: #ffffff;
-            --gray-200: #b0b8c4;
-            --gray-300: #7a8494;
-            --accent-green: rgba(143,230,4,1);
-            --radius-xl: 16px;
-            --radius-pill: 999px;
-            --font: 'Sora', sans-serif;
-        }
-        * { font-family: 'Sora', sans-serif; }
-        body { background:#233141; color:var(--white); font-size:13px; line-height:1.5; -webkit-font-smoothing:antialiased; }
-        a { text-decoration:none; color:inherit; }
+        .wish-wrap { max-width:560px; margin:0 auto; padding:3rem 1.5rem 6rem; }
+        .wish-form { display:flex; flex-direction:column; gap:1.3rem; }
+        .field-label { display:block; font-size:.72rem; margin-bottom:.4rem; }
+        .wish-field { width:100%; background:#1a2332; border:1px solid rgba(255,255,255,.12); border-radius:14px; color:var(--white);
+                      font-family:var(--font); font-size:.78rem; padding:.85rem 1rem; outline:none; transition:border-color .12s, box-shadow .12s; }
+        .wish-field::placeholder { color:rgba(255,255,255,.7); }
+        .wish-field:focus, .tag-box:focus-within { border-color:rgba(255,255,255,.4); box-shadow:0 0 0 3px rgba(255,255,255,.05); }
+        textarea.wish-field { min-height:130px; resize:vertical; }
 
-        /* ── HERO (identical to the Explore / homepage hero — only the heading text differs) ── */
-        .hero {
-            position: relative; height: 380px; overflow: hidden; background: #0d1520;
-        }
-        .hero-bg {
-            position: absolute; inset: 0; z-index: 1;
-            background-image: url(HOME-hero3.png);
-            background-size: 50%; background-position: center right; background-repeat: no-repeat; opacity: 0.9;
-        }
-        .hero-overlay {
-            position: absolute; inset: 0;
-            background: linear-gradient(to right, rgba(13,21,32,0.88) 0%, rgba(13,21,32,0.65) 35%, rgba(13,21,32,0.15) 65%, transparent 100%);
-        }
-        .hero-fade {
-            position: absolute; bottom: 0; left: 0; right: 0; height: 45%;
-            background: linear-gradient(to bottom, transparent, #1a2332); pointer-events: none;
-        }
-        .hero-inner {
-            position: relative; height: 100%; max-width: 1100px; margin: 0 auto; padding: 0 2rem;
-        }
-        .hero-content {
-            position: relative; height: 100%; display: flex; flex-direction: column;
-            justify-content: center; padding-top: calc(var(--nav-h) + 0.5rem); max-width: 560px;
-        }
-        .hero-heading {
-            font-size: 3rem; font-weight: 700; color: var(--white);
-            line-height: 1.05; letter-spacing: 0.5px;
-        }
+        /* app dropdown */
+        .combo { position:relative; }
+        .combo-list { position:absolute; left:0; right:0; top:calc(100% + 6px); z-index:20; list-style:none; background:#1a2332;
+                      border:1px solid rgba(255,255,255,.2); border-radius:14px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,.4);
+                      max-height:280px; overflow-y:auto; margin:0; padding:0; }
+        .combo-list li { display:flex; align-items:center; gap:.7rem; padding:.55rem .9rem; cursor:pointer; font-size:.78rem; }
+        .combo-list li .app-icon { width:28px; height:28px; border-radius:7px; font-size:.7rem; flex-shrink:0; object-fit:cover; }
+        .combo-list li .app-icon.ph { display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,.12); font-weight:600; }
+        .combo-list li.active, .combo-list li:hover { background:rgba(255,255,255,.08); }
+        .combo-hint { font-size:.66rem; color:var(--gray-300); margin-top:.4rem; }
 
-        /* ── Form ── */
-        .wish-wrap { max-width:620px; margin:0 auto; padding:3rem 1.5rem 6rem; }
-        .wish-form { display:flex; flex-direction:column; gap:.85rem; }
-        .wish-field {
-            width:100%;
-            background:#1a2332;
-            border:1px solid rgba(255,255,255,.12);
-            border-radius:14px;
-            color:var(--white);
-            font-family:var(--font);
-            font-size:.8rem;
-            padding:.85rem 1rem;
-            outline:none;
-            transition:border-color .12s, box-shadow .12s;
-        }
-        .wish-field::placeholder { color:rgba(255,255,255,.75); }
-        .wish-field:focus { border-color:rgba(255,255,255,.4); box-shadow:0 0 0 3px rgba(255,255,255,.05); }
-        textarea.wish-field { min-height:150px; resize:vertical; }
+        .combo .wish-field { padding-right:2.6rem; }
+        .combo.has-icon .wish-field { padding-left:3rem; }
+        .combo-toggle { position:absolute; right:.5rem; top:0; height:48px; width:2.2rem; background:none; border:none;
+                        color:rgba(255,255,255,.7); cursor:pointer; display:flex; align-items:center; justify-content:center; }
+        .combo-toggle svg { transition:transform .15s; }
+        .combo-toggle[aria-expanded="true"] svg { transform:rotate(180deg); }
+        .combo-selected-icon { position:absolute; left:.75rem; top:12px; width:24px; height:24px; z-index:1; pointer-events:none; }
+        .combo-selected-icon .app-icon { width:24px; height:24px; border-radius:6px; font-size:.65rem; object-fit:cover; }
+        .combo-selected-icon .app-icon.ph { display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,.12); font-weight:600; }
+
+        /* features / tags */
+        .tag-box { display:flex; flex-wrap:wrap; gap:.4rem; align-items:center; background:#1a2332; border:1px solid rgba(255,255,255,.12);
+                   border-radius:14px; padding:.6rem .8rem; min-height:48px; transition:border-color .12s, box-shadow .12s; }
+        .tag-box input { flex:1; min-width:140px; background:transparent; border:none; outline:none; color:var(--white); font-size:.78rem; padding:.25rem; }
+        .tag-box input::placeholder { color:rgba(255,255,255,.7); }
+        .chip .x { margin-left:.45rem; cursor:pointer; opacity:.7; }
+        .chip .x:hover { opacity:1; }
+        .suggest { margin-top:.6rem; }
+        .suggest .hint { font-size:.66rem; color:var(--gray-300); margin-bottom:.4rem; }
+
+        .row-center { display:flex; justify-content:center; margin-top:.6rem; }
+        .back-link { background:none; border:none; color:var(--gray-200); font-size:.72rem; cursor:pointer; margin-top:.9rem; font-family:var(--font); }
         .hp { position:absolute; left:-9999px; opacity:0; height:0; width:0; }
-
-        .wish-submit-row { display:flex; justify-content:center; margin-top:1.2rem; }
-        .btn-wish-submit {
-            background:var(--accent-green);
-            color:#000;
-            border:none;
-            border-radius:var(--radius-pill);
-            font-size:.9rem;
-            font-weight:800;
-            text-transform:uppercase;
-            padding:.7rem 2.6rem;
-            cursor:pointer;
-            transition:filter .12s, transform .12s;
-        }
-        .btn-wish-submit:hover { filter:brightness(1.08); transform:translateY(-1px); }
-
         .alert { border-radius:14px; padding:.85rem 1.1rem; font-size:.8rem; margin-bottom:1rem; }
         .alert-error   { background:rgba(255,75,114,.12); border:1px solid rgba(255,75,114,.6); }
         .alert-success { background:rgba(143,230,4,.1);  border:1px solid var(--accent-green); }
-
-        @media (max-width: 768px) {
-            .hero { height: 280px; }
-            .hero-content { max-width: 100%; }
-            .hero-heading { font-size: 2rem; }
-        }
+        .alert a { color:var(--accent-green); text-decoration:underline; }
+        .step2-wrap { margin-top:1.5rem; }
     </style>
 </head>
 <body>
 
 <nav th:replace="~{fragments/navbar :: navbar}"></nav>
-
-<!-- ── HERO (identical to Explore / homepage, only the heading text differs) ────── -->
-<div class="hero">
-    <div class="hero-bg"></div>
-    <div class="hero-overlay"></div>
-    <div class="hero-fade"></div>
-    <div class="hero-inner">
-        <div class="hero-content">
-            <h1 class="hero-heading">Wish an app</h1>
-        </div>
-    </div>
-</div>
+<div th:replace="~{fragments/wish-common :: hero(title='Wish an app')}"></div>
 
 <main class="wish-wrap">
 
     <div class="alert alert-success" th:if="${success}">
-        Thanks! Your wish has been sent. We'll contact you if we find a match.
+        Thanks! Your wish has been sent. We'll contact you when an app like this pops up.
+        <br/><a th:href="@{/wishes}">See all app wishes</a>
     </div>
     <div class="alert alert-error" th:if="${error}" th:text="${error}"></div>
+    <div class="alert alert-error" id="stepError" hidden>Tell us which app you want one like, or describe your app in a bit more detail.</div>
 
-    <form class="wish-form" method="post" th:action="@{/wish}" th:object="${wishForm}" autocomplete="off">
+    <form class="wish-form" id="wishForm" method="post" th:action="@{/wish}" th:object="${wishForm}" autocomplete="off" th:unless="${success}">
 
-        <textarea class="wish-field" th:field="*{description}" maxlength="4000" required
-                  placeholder="Please, describe the app you are looking for.&#10;Use as much details as you can…"></textarea>
+        <!-- ── STEP 1 ───────────────────────────────────────────── -->
+        <section class="wish-form" id="step1">
+            <div>
+                <div class="combo">
+                    <span class="combo-selected-icon" id="selIcon" hidden></span>
+                    <input class="wish-field" type="text" id="appName" th:field="*{appName}" maxlength="120" autocomplete="off"
+                           role="combobox" aria-expanded="false" aria-controls="appList" aria-label="An app like"
+                           placeholder="An app like (i.e. Photoshop, Excel, Word, etc.)"/>
+                    <button type="button" class="combo-toggle" id="appToggle" tabindex="-1" aria-label="Show apps" aria-expanded="false">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <input type="hidden" id="appId" th:field="*{appId}"/>
+                    <ul class="combo-list" id="appList" role="listbox" hidden></ul>
+                </div>
+                <div class="combo-hint">Pick one of our apps from the list, or just type the name if it's not there.</div>
+            </div>
 
-        <input class="wish-field" type="text" th:field="*{budget}" maxlength="255"
-               placeholder="How much are you willing to pay for this app?"/>
+            <div>
+                <label class="field-label" for="description">Description / comments</label>
+                <textarea class="wish-field" id="description" th:field="*{description}" maxlength="4000"
+                          placeholder="If not an app like another, describe your app"></textarea>
+            </div>
 
-        <input class="wish-field" type="email" th:field="*{email}" maxlength="255" required
-               placeholder="Your email (we will contact you only in this context)"/>
+            <div>
+                <label class="field-label" for="tagInput">Desired Features</label>
+                <div class="tag-box" id="tagBox">
+                    <input type="text" id="tagInput" maxlength="40" placeholder="Type a feature and press Enter…"/>
+                </div>
+                <input type="hidden" id="featuresInput" th:field="*{features}"/>
+                <div class="suggest" th:if="${!#lists.isEmpty(suggested)}">
+                    <div class="hint">Popular features — tap to add</div>
+                    <div class="chips" id="suggestions">
+                        <button type="button" class="chip" th:each="s : ${suggested}" th:data-tag="${s}" th:text="${s}">local storage</button>
+                    </div>
+                </div>
+            </div>
 
-        <!-- honeypot -->
-        <input class="hp" type="text" th:field="*{website}" tabindex="-1" autocomplete="off" aria-hidden="true"/>
+            <div class="row-center"><button type="button" class="btn-green" id="nextBtn">Next</button></div>
+        </section>
 
-        <div class="wish-submit-row">
-            <button class="btn-wish-submit" type="submit">Wish an app</button>
-        </div>
+        <!-- ── STEP 2 ───────────────────────────────────────────── -->
+        <section id="step2" hidden>
+            <div class="step2-wrap">
+                <label class="field-label" for="email">Type your email if you want to be notified when apps like this pop</label>
+                <input class="wish-field" id="email" type="email" th:field="*{email}" maxlength="255" placeholder="Your email"/>
+            </div>
+
+            <!-- honeypot -->
+            <input class="hp" type="text" th:field="*{website}" tabindex="-1" autocomplete="off" aria-hidden="true"/>
+
+            <div class="row-center" style="margin-top:1.6rem"><button type="submit" class="btn-green">Wish an app</button></div>
+            <div class="row-center"><button type="button" class="back-link" id="backBtn">← Back</button></div>
+        </section>
     </form>
 </main>
 
 <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<script th:inline="javascript">
+    (function () {
+        const $ = id => document.getElementById(id);
+        if (!$('wishForm')) return;
+
+        /* ── steps ── */
+        const startStep = /*[[${startStep}]]*/ 1;
+        function go(n) {
+            $('step1').hidden = n !== 1;
+            $('step2').hidden = n !== 2;
+            if ($('stepTag')) $('stepTag').textContent = n === 2 ? ' (2/2)' : '';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        $('nextBtn').addEventListener('click', () => {
+            const ok = $('appName').value.trim() || $('description').value.trim().length >= 10;
+            $('stepError').hidden = !!ok;
+            if (ok) go(2);
+        });
+        $('backBtn').addEventListener('click', () => go(1));
+        if (startStep === 2) go(2);
+
+        /* ── "An app like…" dropdown (free text allowed) ── */
+        const apps = /*[[${appOptions}]]*/ [];
+        const nameIn = $('appName'), idIn = $('appId'), list = $('appList'),
+              toggle = $('appToggle'), selIcon = $('selIcon'), combo = nameIn.closest('.combo');
+        let shown = [], active = -1;
+        const norm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+        function makeIcon(a) {
+            let ic;
+            if (a.icon) { ic = document.createElement('img'); ic.src = a.icon; ic.alt = ''; ic.className = 'app-icon'; }
+            else { ic = document.createElement('div'); ic.className = 'app-icon ph'; ic.textContent = a.name.charAt(0).toUpperCase(); }
+            return ic;
+        }
+        function matches(q) {
+            q = norm(q.trim());
+            if (!q) return apps.slice();               // empty → show all apps
+            const starts = [], has = [];
+            apps.forEach(a => { const n = norm(a.name); if (n.startsWith(q)) starts.push(a); else if (n.includes(q)) has.push(a); });
+            return starts.concat(has);
+        }
+        function closeList() {
+            list.hidden = true; active = -1;
+            nameIn.setAttribute('aria-expanded', 'false');
+            toggle.setAttribute('aria-expanded', 'false');
+        }
+        function setSelectedIcon(a) {
+            selIcon.innerHTML = '';
+            if (a) { selIcon.appendChild(makeIcon(a)); selIcon.hidden = false; }
+            else selIcon.hidden = true;
+            combo.classList.toggle('has-icon', !!a);
+        }
+        function pick(a) { nameIn.value = a.name; idIn.value = a.id; setSelectedIcon(a); closeList(); }
+        function setActive(i) {
+            active = i;
+            [...list.children].forEach((li, k) => li.classList.toggle('active', k === i));
+            if (list.children[i]) list.children[i].scrollIntoView({ block: 'nearest' });
+        }
+        function openList(items) {
+            shown = items; list.innerHTML = ''; active = -1;
+            items.forEach(a => {
+                const li = document.createElement('li');
+                li.setAttribute('role', 'option');
+                const t = document.createElement('span'); t.textContent = a.name;
+                li.append(makeIcon(a), t);
+                li.addEventListener('mousedown', e => { e.preventDefault(); pick(a); });
+                list.appendChild(li);
+            });
+            const open = items.length > 0;
+            list.hidden = !open;
+            nameIn.setAttribute('aria-expanded', String(open));
+            toggle.setAttribute('aria-expanded', String(open));
+        }
+
+        nameIn.addEventListener('input', () => { idIn.value = ''; setSelectedIcon(null); openList(matches(nameIn.value)); });
+        nameIn.addEventListener('focus', () => openList(idIn.value ? apps.slice() : matches(nameIn.value)));
+        nameIn.addEventListener('click', () => { if (list.hidden) openList(idIn.value ? apps.slice() : matches(nameIn.value)); });
+        nameIn.addEventListener('blur', closeList);
+        toggle.addEventListener('mousedown', e => {
+            e.preventDefault();
+            if (list.hidden) { nameIn.focus(); openList(idIn.value ? apps.slice() : matches(nameIn.value)); }
+            else closeList();
+        });
+        nameIn.addEventListener('keydown', e => {
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (list.hidden) openList(matches(nameIn.value));
+                if (shown.length) setActive((active + 1) % shown.length);
+            }
+            else if (e.key === 'ArrowUp' && shown.length) { e.preventDefault(); setActive((active - 1 + shown.length) % shown.length); }
+            else if (e.key === 'Enter') { e.preventDefault(); if (active >= 0) pick(shown[active]); else closeList(); }
+            else if (e.key === 'Escape') closeList();
+        });
+
+        /* restore icon if the form re-renders with a preselected app (e.g. validation error) */
+        if (idIn.value) { const a = apps.find(x => String(x.id) === String(idIn.value)); if (a) setSelectedIcon(a); }
+
+        /* ── feature tags ── */
+        const hidden = $('featuresInput'), box = $('tagBox'), input = $('tagInput');
+        let tags = hidden.value ? hidden.value.split(',').map(t => t.trim().toLowerCase()).filter(Boolean) : [];
+
+        function render() {
+            box.querySelectorAll('.chip').forEach(c => c.remove());
+            tags.forEach(t => {
+                const c = document.createElement('span');
+                c.className = 'chip';
+                c.textContent = t;
+                const x = document.createElement('span');
+                x.className = 'x'; x.textContent = '×';
+                x.addEventListener('click', () => { tags = tags.filter(v => v !== t); render(); });
+                c.appendChild(x);
+                box.insertBefore(c, input);
+            });
+            hidden.value = tags.join(',');
+            document.querySelectorAll('#suggestions .chip').forEach(b => b.classList.toggle('on', tags.includes(b.dataset.tag)));
+        }
+        function add(t) {
+            t = t.trim().toLowerCase().replace(/,/g, '');
+            if (!t || t.length > 40 || tags.includes(t) || tags.length >= 10) return;
+            tags.push(t); render();
+        }
+        input.addEventListener('keydown', e => {
+            if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); add(input.value); input.value = ''; }
+            else if (e.key === 'Backspace' && !input.value && tags.length) { tags.pop(); render(); }
+        });
+        input.addEventListener('blur', () => { add(input.value); input.value = ''; });
+        document.querySelectorAll('#suggestions .chip').forEach(b => b.addEventListener('click', () => {
+            const t = b.dataset.tag;
+            tags = tags.includes(t) ? tags.filter(v => v !== t) : (tags.length < 10 ? [...tags, t] : tags);
+            render();
+        }));
+        render();
+    })();
+</script>
 </body>
 </html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{index :: favicons}"></th:block> <!-- TODO: point to your favicons fragment or delete -->
+    <meta charset="UTF-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>All app wishes — Vibe</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@100;200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link th:replace="~{fragments/navbar :: navbar-css}"/>
+    <style th:replace="~{fragments/wish-common :: css}"></style>
+    <style>
+        .list-wrap { max-width:560px; margin:0 auto; padding:3rem 1.5rem 6rem; }
+        .list-title { font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; color:var(--gray-200); margin-bottom:1rem; }
+        .wish-row { background:#1a2332; border-radius:12px; margin-bottom:.8rem; overflow:hidden; }
+        .wish-row summary { list-style:none; cursor:pointer; display:flex; align-items:center; gap:.8rem; padding:.7rem 1rem; }
+        .wish-row summary::-webkit-details-marker { display:none; }
+        .wish-row .name { font-weight:600; font-size:.8rem; flex:1; }
+        .wish-row .count { font-size:.66rem; color:var(--gray-200); }
+        .wish-row .chev { color:var(--gray-200); transition:transform .15s; }
+        .wish-row[open] .chev { transform:rotate(180deg); }
+        .wish-body { padding:.2rem 1rem 1rem; border-top:1px solid rgba(255,255,255,.06); }
+        .wish-body .sub { font-size:.66rem; color:var(--gray-300); margin:.8rem 0 .5rem; }
+        .see { display:block; text-align:right; font-size:.66rem; color:var(--gray-200); margin-top:.9rem; }
+        .see:hover { color:var(--white); text-decoration:underline; }
+        .empty { color:var(--gray-300); text-align:center; padding:2rem 0; }
+        .cta { text-align:center; margin-top:2rem; }
+    </style>
+</head>
+<body>
+
+<nav th:replace="~{fragments/navbar :: navbar}"></nav>
+<div th:replace="~{fragments/wish-common :: hero(title='All app wishes')}"></div>
+
+<main class="list-wrap">
+    <div class="list-title">List of wishes</div>
+
+    <details class="wish-row" th:each="s : ${stats}">
+        <summary>
+            <img class="app-icon" th:if="${s.app.iconUrl != null}" th:src="${s.app.iconUrl}" alt=""/>
+            <div class="app-icon ph" th:if="${s.app.iconUrl == null}" th:text="${#strings.toUpperCase(#strings.substring(s.app.name,0,1))}">A</div>
+            <span class="name">Like: <span th:text="${s.app.name}">App name</span></span>
+            <span class="count" th:text="${s.count == 1 ? '1 person wished an app like this' : s.count + ' people wished an app like this'}">58 people</span>
+            <span class="chev">⌄</span>
+        </summary>
+        <div class="wish-body">
+            <div class="sub">Most popular wishes (top 10)</div>
+            <div class="chips">
+                <span class="chip" th:each="f : ${s.topFeatures}" th:text="${f}">feature</span>
+                <span class="muted" th:if="${#lists.isEmpty(s.topFeatures)}">No features picked yet.</span>
+            </div>
+            <a class="see" th:href="@{/wish/like/{slug}(slug=${s.app.slug})}">See all details</a>
+        </div>
+    </details>
+
+    <div class="empty" th:if="${#lists.isEmpty(stats)}">No wishes yet. Be the first!</div>
+
+    <div class="cta"><a class="btn-green" th:href="@{/wish}">Wish an app</a></div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<style th:fragment="css">
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    [hidden] { display: none !important; }
+    :root { --white:#fff; --gray-200:#b0b8c4; --gray-300:#7a8494; --accent-green:rgba(143,230,4,1); --radius-xl:16px; --radius-pill:999px; --font:'Sora',sans-serif; }
+    * { font-family:'Sora',sans-serif; }
+    body { background:#233141; color:var(--white); font-size:13px; line-height:1.5; -webkit-font-smoothing:antialiased; }
+    a { text-decoration:none; color:inherit; }
+    .muted { color:var(--gray-200); }
+
+    /* HERO */
+    .hero { position:relative; height:380px; overflow:hidden; background:#0d1520; }
+    .hero-bg { position:absolute; inset:0; z-index:1; background-image:url(HOME-hero3.png); background-size:50%; background-position:center right; background-repeat:no-repeat; opacity:.9; }
+    .hero-overlay { position:absolute; inset:0; background:linear-gradient(to right, rgba(13,21,32,.88) 0%, rgba(13,21,32,.65) 35%, rgba(13,21,32,.15) 65%, transparent 100%); }
+    .hero-fade { position:absolute; bottom:0; left:0; right:0; height:45%; background:linear-gradient(to bottom, transparent, #1a2332); pointer-events:none; }
+    .hero-inner { position:relative; height:100%; max-width:1100px; margin:0 auto; padding:0 2rem; }
+    .hero-content { position:relative; height:100%; display:flex; flex-direction:column; justify-content:center; padding-top:calc(var(--nav-h) + .5rem); max-width:760px; }
+    .hero-heading { font-size:3rem; font-weight:700; line-height:1.05; letter-spacing:.5px; }
+    .hero-heading .step-tag { color:var(--gray-300); }
+
+    /* wish chips (black / green, like the Figma tags) */
+    .chips { display:flex; flex-wrap:wrap; gap:.5rem; }
+    .chip { background:#000; color:var(--accent-green); font-size:.62rem; font-weight:800; text-transform:uppercase; letter-spacing:.05em;
+            padding:.32rem .7rem; border-radius:4px; border:1px solid transparent; cursor:default; font-family:var(--font); }
+    button.chip, .chip.selectable { cursor:pointer; }
+    button.chip.on, .chip.selectable.on { border-color:var(--accent-green); background:rgba(143,230,4,.15); }
+
+    .btn-green { background:var(--accent-green); color:#000; border:none; border-radius:var(--radius-pill); font-size:.9rem; font-weight:800;
+                 text-transform:uppercase; padding:.7rem 2.6rem; cursor:pointer; transition:filter .12s, transform .12s; font-family:var(--font); display:inline-block; }
+    .btn-green:hover { filter:brightness(1.08); transform:translateY(-1px); }
+
+    .app-icon { width:40px; height:40px; border-radius:10px; object-fit:cover; background:#000; flex:none; }
+    .app-icon.ph { display:flex; align-items:center; justify-content:center; font-weight:800; color:var(--accent-green); }
+
+    @media (max-width:768px) { .hero { height:280px; } .hero-content { max-width:100%; } .hero-heading { font-size:2rem; } }
+</style>
+
+<div th:fragment="hero(title)" class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-overlay"></div>
+    <div class="hero-fade"></div>
+    <div class="hero-inner">
+        <div class="hero-content">
+            <h1 class="hero-heading"><span th:text="${title}">Wish an app</span><span class="step-tag" id="stepTag"></span></h1>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
