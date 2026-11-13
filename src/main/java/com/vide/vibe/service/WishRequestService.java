@@ -4,6 +4,7 @@ import com.vide.vibe.model.App;
 import com.vide.vibe.model.WishRequest;
 import com.vide.vibe.repository.AppRepository;
 import com.vide.vibe.repository.WishRequestRepository;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -84,10 +85,12 @@ public class WishRequestService {
                 .collect(Collectors.toMap(s -> s.getApp().getId(), s -> s));
     }
 
-    /** Top features for the form: most-wished first, padded with the curated list up to 10. */
+    /** Top features for the form: most-wished first (one aggregate query), padded with the curated list up to 10. */
     @Transactional(readOnly = true)
     public List<String> suggestedFeatures() {
-        LinkedHashSet<String> out = new LinkedHashSet<>(topFeatures(repo.findAll(), 10));
+        LinkedHashSet<String> out = repo.topFeatureCounts(PageRequest.of(0, 10)).stream()
+                .map(r -> (String) r[0])
+                .collect(Collectors.toCollection(LinkedHashSet::new));
         for (String c : CURATED) { if (out.size() >= 10) break; out.add(c); }
         return new ArrayList<>(out);
     }

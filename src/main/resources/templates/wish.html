@@ -21,12 +21,14 @@
         /* app dropdown */
         .combo { position:relative; }
         .combo-list { position:absolute; left:0; right:0; top:calc(100% + 6px); z-index:20; list-style:none; background:#1a2332;
-                      border:1px solid rgba(255,255,255,.2); border-radius:14px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,.4);
+                      border:1px solid rgba(255,255,255,.2); border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.4);
                       max-height:280px; overflow-y:auto; margin:0; padding:0; }
         .combo-list li { display:flex; align-items:center; gap:.7rem; padding:.55rem .9rem; cursor:pointer; font-size:.78rem; }
         .combo-list li .app-icon { width:28px; height:28px; border-radius:7px; font-size:.7rem; flex-shrink:0; object-fit:cover; }
         .combo-list li .app-icon.ph { display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,.12); font-weight:600; }
         .combo-list li.active, .combo-list li:hover { background:rgba(255,255,255,.08); }
+        .combo-list li.combo-more { cursor:default; font-size:.66rem; color:var(--gray-300); justify-content:center; }
+        .combo-list li.combo-more:hover { background:none; }
         .combo-hint { font-size:.66rem; color:var(--gray-300); margin-top:.4rem; }
 
         .combo .wish-field { padding-right:2.6rem; }
@@ -154,27 +156,34 @@
         $('backBtn').addEventListener('click', () => go(1));
         if (startStep === 2) go(2);
 
-        /* ── "An app like…" dropdown (free text allowed) ── */
-        const apps = /*[[${appOptions}]]*/ [];
+        /* ── "An app like…" dropdown: results come from the server (/wish/apps), free text allowed ── */
+        const searchUrl = /*[[@{/wish/apps}]]*/ '/wish/apps';
+        const preselected = /*[[${selectedApp}]]*/ null;
+
         const nameIn = $('appName'), idIn = $('appId'), list = $('appList'),
               toggle = $('appToggle'), selIcon = $('selIcon'), combo = nameIn.closest('.combo');
-        let shown = [], active = -1;
-        const norm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        let shown = [], active = -1, seq = 0, timer = null;
+        const cache = new Map();   // query -> {items, more}
 
+        function placeholder(a) {
+            const d = document.createElement('div');
+            d.className = 'app-icon ph';
+            d.textContent = a.name.charAt(0).toUpperCase();
+            return d;
+        }
         function makeIcon(a) {
-            let ic;
-            if (a.icon) { ic = document.createElement('img'); ic.src = a.icon; ic.alt = ''; ic.className = 'app-icon'; }
-            else { ic = document.createElement('div'); ic.className = 'app-icon ph'; ic.textContent = a.name.charAt(0).toUpperCase(); }
+            if (!a.icon) return placeholder(a);
+            const ic = document.createElement('img');
+            ic.className = 'app-icon';
+            ic.alt = '';
+            ic.loading = 'lazy';
+            ic.decoding = 'async';
+            ic.src = a.icon;
+            ic.onerror = () => ic.replaceWith(placeholder(a));   // broken icon -> letter
             return ic;
         }
-        function matches(q) {
-            q = norm(q.trim());
-            if (!q) return apps.slice();               // empty → show all apps
-            const starts = [], has = [];
-            apps.forEach(a => { const n = norm(a.name); if (n.startsWith(q)) starts.push(a); else if (n.includes(q)) has.push(a); });
-            return starts.concat(has);
-        }
         function closeList() {
+            seq++;                         // ignore any response still in flight
             list.hidden = true; active = -1;
             nameIn.setAttribute('aria-expanded', 'false');
             toggle.setAttribute('aria-expanded', 'false');
@@ -191,7 +200,7 @@
             [...list.children].forEach((li, k) => li.classList.toggle('active', k === i));
             if (list.children[i]) list.children[i].scrollIntoView({ block: 'nearest' });
         }
-        function openList(items) {
+        function render(items, more) {
             shown = items; list.innerHTML = ''; active = -1;
             items.forEach(a => {
                 const li = document.createElement('li');
@@ -201,40 +210,69 @@
                 li.addEventListener('mousedown', e => { e.preventDefault(); pick(a); });
                 list.appendChild(li);
             });
+            if (more) {
+                const li = document.createElement('li');
+                li.className = 'combo-more';
+                li.textContent = 'Keep typing to narrow it down…';
+                list.appendChild(li);
+            }
             const open = items.length > 0;
             list.hidden = !open;
             nameIn.setAttribute('aria-expanded', String(open));
             toggle.setAttribute('aria-expanded', String(open));
         }
+        async function search(q) {
+            if (cache.has(q)) { const c = cache.get(q); seq++; render(c.items, c.more); return; }
+            const mine = ++seq;
+            try {
+                const r = await fetch(searchUrl + '?q=' + encodeURIComponent(q), { headers: { 'Accept': 'application/json' } });
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                const data = await r.json();
+                cache.set(q, data);
+                if (mine !== seq) return;          // a newer request / close happened meanwhile
+                render(data.items, data.more);
+            } catch (e) {
+                if (mine === seq) closeList();     // fail quietly: free text still works
+            }
+        }
+        const currentQuery = () => (idIn.value ? '' : nameIn.value.trim());
+        const openNow = () => search(currentQuery());
 
-        nameIn.addEventListener('input', () => { idIn.value = ''; setSelectedIcon(null); openList(matches(nameIn.value)); });
-        nameIn.addEventListener('focus', () => openList(idIn.value ? apps.slice() : matches(nameIn.value)));
-        nameIn.addEventListener('click', () => { if (list.hidden) openList(idIn.value ? apps.slice() : matches(nameIn.value)); });
-        nameIn.addEventListener('blur', closeList);
+        // keep the input focused while the user drags the list's scrollbar
+        list.addEventListener('mousedown', e => e.preventDefault());
+
+        nameIn.addEventListener('input', () => {
+            idIn.value = ''; setSelectedIcon(null);
+            clearTimeout(timer);
+            timer = setTimeout(() => search(nameIn.value.trim()), 150);
+        });
+        nameIn.addEventListener('focus', openNow);
+        nameIn.addEventListener('click', () => { if (list.hidden) openNow(); });
+        nameIn.addEventListener('blur', () => { clearTimeout(timer); closeList(); });
         toggle.addEventListener('mousedown', e => {
             e.preventDefault();
-            if (list.hidden) { nameIn.focus(); openList(idIn.value ? apps.slice() : matches(nameIn.value)); }
+            if (list.hidden) { nameIn.focus(); openNow(); }
             else closeList();
         });
         nameIn.addEventListener('keydown', e => {
             if (e.key === 'ArrowDown') {
                 e.preventDefault();
-                if (list.hidden) openList(matches(nameIn.value));
-                if (shown.length) setActive((active + 1) % shown.length);
+                if (list.hidden) openNow();
+                else if (shown.length) setActive((active + 1) % shown.length);
             }
             else if (e.key === 'ArrowUp' && shown.length) { e.preventDefault(); setActive((active - 1 + shown.length) % shown.length); }
-            else if (e.key === 'Enter') { e.preventDefault(); if (active >= 0) pick(shown[active]); else closeList(); }
+            else if (e.key === 'Enter') { e.preventDefault(); if (active >= 0 && shown[active]) pick(shown[active]); else closeList(); }
             else if (e.key === 'Escape') closeList();
         });
 
-        /* restore icon if the form re-renders with a preselected app (e.g. validation error) */
-        if (idIn.value) { const a = apps.find(x => String(x.id) === String(idIn.value)); if (a) setSelectedIcon(a); }
+        /* preselected app (?like=slug, or the form re-rendered after a validation error) */
+        if (preselected && idIn.value) setSelectedIcon(preselected);
 
         /* ── feature tags ── */
         const hidden = $('featuresInput'), box = $('tagBox'), input = $('tagInput');
         let tags = hidden.value ? hidden.value.split(',').map(t => t.trim().toLowerCase()).filter(Boolean) : [];
 
-        function render() {
+        function renderTags() {
             box.querySelectorAll('.chip').forEach(c => c.remove());
             tags.forEach(t => {
                 const c = document.createElement('span');
@@ -242,7 +280,7 @@
                 c.textContent = t;
                 const x = document.createElement('span');
                 x.className = 'x'; x.textContent = '×';
-                x.addEventListener('click', () => { tags = tags.filter(v => v !== t); render(); });
+                x.addEventListener('click', () => { tags = tags.filter(v => v !== t); renderTags(); });
                 c.appendChild(x);
                 box.insertBefore(c, input);
             });
@@ -252,19 +290,19 @@
         function add(t) {
             t = t.trim().toLowerCase().replace(/,/g, '');
             if (!t || t.length > 40 || tags.includes(t) || tags.length >= 10) return;
-            tags.push(t); render();
+            tags.push(t); renderTags();
         }
         input.addEventListener('keydown', e => {
             if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); add(input.value); input.value = ''; }
-            else if (e.key === 'Backspace' && !input.value && tags.length) { tags.pop(); render(); }
+            else if (e.key === 'Backspace' && !input.value && tags.length) { tags.pop(); renderTags(); }
         });
         input.addEventListener('blur', () => { add(input.value); input.value = ''; });
         document.querySelectorAll('#suggestions .chip').forEach(b => b.addEventListener('click', () => {
             const t = b.dataset.tag;
             tags = tags.includes(t) ? tags.filter(v => v !== t) : (tags.length < 10 ? [...tags, t] : tags);
-            render();
+            renderTags();
         }));
-        render();
+        renderTags();
     })();
 </script>
 </body>

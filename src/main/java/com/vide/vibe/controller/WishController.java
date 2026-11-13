@@ -9,15 +9,23 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.text.Normalizer;
 import java.util.*;
 
 @Controller
 public class WishController {
 
     private static final String EMAIL_RE = "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$";
+    private static final int SEARCH_LIMIT = 40;
+    private static final long CACHE_MS = 2 * 60 * 1000;
 
     private final WishRequestService service;
     private final AppService appService;
+
+    /** Lightweight copy of an app, just what the dropdown needs. */
+    private record AppOpt(UUID id, String name, String icon, String key) {}
+    private record Snapshot(long at, List<AppOpt> items) {}
+    private volatile Snapshot snapshot;
 
     public WishController(WishRequestService service, AppService appService) {
         this.service = service;
@@ -47,6 +55,28 @@ public class WishController {
         public void setWebsite(String w) { this.website = w; }
     }
 
+    // ── Dropdown search (JSON) ────────────────────────────────────────────────
+    @GetMapping("/wish/apps")
+    @ResponseBody
+    public Map<String, Object> searchApps(@RequestParam(defaultValue = "") String q) {
+        String n = norm(q.trim());
+        List<AppOpt> starts = new ArrayList<>(), has = new ArrayList<>();
+        for (AppOpt a : appOptions()) {
+            if (n.isEmpty() || a.key().startsWith(n)) starts.add(a);
+            else if (a.key().contains(n)) has.add(a);
+        }
+        List<AppOpt> all = new ArrayList<>(starts);
+        all.addAll(has);
+
+        List<Map<String, String>> items = new ArrayList<>();
+        for (AppOpt a : all.subList(0, Math.min(SEARCH_LIMIT, all.size()))) items.add(toMap(a));
+
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("items", items);
+        out.put("more", all.size() > SEARCH_LIMIT);
+        return out;
+    }
+
     // ── Step 1 + 2: the wish form ─────────────────────────────────────────────
     @GetMapping("/wish")
     public String form(@RequestParam(required = false) String like,
@@ -59,6 +89,11 @@ public class WishController {
                     App a = appService.findBySlug(like);
                     f.setAppId(a.getId().toString());
                     f.setAppName(a.getName());
+                    Map<String, String> sel = new LinkedHashMap<>();
+                    sel.put("id", a.getId().toString());
+                    sel.put("name", a.getName());
+                    sel.put("icon", a.getIconUrl() == null ? "" : a.getIconUrl());
+                    model.addAttribute("selectedApp", sel);
                 } catch (RuntimeException ignored) {}
             }
             if (features != null) f.setFeatures(String.join(",", features));
@@ -83,17 +118,17 @@ public class WishController {
 
         // 1) one of our apps (picked from suggestions, or typed exactly) -> link it
         //    2) anything else typed -> keep as free text
-        List<App> apps = visibleApps();
-        App linked = null;
+        List<AppOpt> apps = appOptions();
+        AppOpt linked = null;
         if (form.getAppId() != null && !form.getAppId().isBlank()) {
             try {
                 UUID id = UUID.fromString(form.getAppId());
-                linked = apps.stream().filter(a -> a.getId().equals(id)).findFirst().orElse(null);
+                linked = apps.stream().filter(a -> a.id().equals(id)).findFirst().orElse(null);
             } catch (IllegalArgumentException ignored) {}
-            if (linked != null && !typed.isEmpty() && !typed.equalsIgnoreCase(linked.getName())) linked = null; // edited after picking
+            if (linked != null && !typed.isEmpty() && !typed.equalsIgnoreCase(linked.name())) linked = null; // edited after picking
         }
         if (linked == null && !typed.isEmpty()) {
-            linked = apps.stream().filter(a -> a.getName().equalsIgnoreCase(typed)).findFirst().orElse(null);
+            linked = apps.stream().filter(a -> a.name().equalsIgnoreCase(typed)).findFirst().orElse(null);
         }
         String custom = linked == null && !typed.isEmpty() ? typed : null;
 
@@ -114,11 +149,12 @@ public class WishController {
         if (error != null) {
             model.addAttribute("error", error);
             model.addAttribute("startStep", step);
+            if (linked != null) model.addAttribute("selectedApp", toMap(linked));
             populate(model);
             return "wish";
         }
 
-        service.submit(linked == null ? null : linked.getId(), custom, desc, email,
+        service.submit(linked == null ? null : linked.id(), custom, desc, email,
                 WishRequestService.parseFeatures(form.getFeatures()));
         ra.addFlashAttribute("success", true);
         return "redirect:/wish";
@@ -180,16 +216,35 @@ public class WishController {
 
     // ── helpers ───────────────────────────────────────────────────────────────
     private void populate(Model model) {
-        List<Map<String, String>> options = new ArrayList<>();
-        for (App a : visibleApps()) {
-            Map<String, String> m = new LinkedHashMap<>();
-            m.put("id", a.getId().toString());
-            m.put("name", a.getName());
-            m.put("icon", a.getIconUrl() == null ? "" : a.getIconUrl());
-            options.add(m);
-        }
-        model.addAttribute("appOptions", options);   // used by the autocomplete
+        // NOTE: the apps are no longer inlined into the page; the dropdown calls /wish/apps
         model.addAttribute("suggested", service.suggestedFeatures());
+    }
+
+    /** Cached for a couple of minutes so typing in the dropdown doesn't hit the DB for all apps each time. */
+    private List<AppOpt> appOptions() {
+        Snapshot s = snapshot;
+        long now = System.currentTimeMillis();
+        if (s == null || now - s.at() > CACHE_MS) {
+            List<AppOpt> items = visibleApps().stream()
+                    .map(a -> new AppOpt(a.getId(), a.getName(),
+                            a.getIconUrl() == null ? "" : a.getIconUrl(), norm(a.getName())))
+                    .toList();
+            s = new Snapshot(now, items);
+            snapshot = s;
+        }
+        return s.items();
+    }
+
+    private static Map<String, String> toMap(AppOpt a) {
+        Map<String, String> m = new LinkedHashMap<>();
+        m.put("id", a.id().toString());
+        m.put("name", a.name());
+        m.put("icon", a.icon());
+        return m;
+    }
+
+    private static String norm(String s) {
+        return Normalizer.normalize(s.toLowerCase(Locale.ROOT), Normalizer.Form.NFD).replaceAll("\\p{M}", "");
     }
 
     private List<App> visibleApps() {
