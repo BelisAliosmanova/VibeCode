@@ -1,9 +1,12 @@
 package com.vide.vibe.controller;
 
 import com.vide.vibe.model.App;
+import com.vide.vibe.repository.AppOptRepository;
+import com.vide.vibe.repository.AppOptView;
 import com.vide.vibe.service.AppService;
 import com.vide.vibe.service.WishRequestService;
 import com.vide.vibe.service.WishRequestService.AppWishStats;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -17,19 +20,15 @@ public class WishController {
 
     private static final String EMAIL_RE = "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$";
     private static final int SEARCH_LIMIT = 40;
-    private static final long CACHE_MS = 2 * 60 * 1000;
 
     private final WishRequestService service;
     private final AppService appService;
+    private final AppOptRepository optRepo;
 
-    /** Lightweight copy of an app, just what the dropdown needs. */
-    private record AppOpt(UUID id, String name, String icon, String key) {}
-    private record Snapshot(long at, List<AppOpt> items) {}
-    private volatile Snapshot snapshot;
-
-    public WishController(WishRequestService service, AppService appService) {
+    public WishController(WishRequestService service, AppService appService, AppOptRepository optRepo) {
         this.service = service;
         this.appService = appService;
+        this.optRepo = optRepo;
     }
 
     /** Form backing object (separate from the entity so users can't bind id/createdAt/handled). */
@@ -59,21 +58,20 @@ public class WishController {
     @GetMapping("/wish/apps")
     @ResponseBody
     public Map<String, Object> searchApps(@RequestParam(defaultValue = "") String q) {
-        String n = norm(q.trim());
-        List<AppOpt> starts = new ArrayList<>(), has = new ArrayList<>();
-        for (AppOpt a : appOptions()) {
-            if (n.isEmpty() || a.key().startsWith(n)) starts.add(a);
-            else if (a.key().contains(n)) has.add(a);
-        }
-        List<AppOpt> all = new ArrayList<>(starts);
-        all.addAll(has);
+        String n = escapeLike(norm(q.trim()));
+        if (n.length() > 120) n = n.substring(0, 120);
 
+        // Ask for one extra row so we know whether there are more than SEARCH_LIMIT
+        List<AppOptView> rows = optRepo.search(n, App.Status.APPROVED, App.Visibility.PUBLIC,
+                PageRequest.of(0, SEARCH_LIMIT + 1));
+
+        boolean more = rows.size() > SEARCH_LIMIT;
         List<Map<String, String>> items = new ArrayList<>();
-        for (AppOpt a : all.subList(0, Math.min(SEARCH_LIMIT, all.size()))) items.add(toMap(a));
+        for (AppOptView a : rows.subList(0, Math.min(SEARCH_LIMIT, rows.size()))) items.add(toMap(a));
 
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("items", items);
-        out.put("more", all.size() > SEARCH_LIMIT);
+        out.put("more", more);
         return out;
     }
 
@@ -118,17 +116,18 @@ public class WishController {
 
         // 1) one of our apps (picked from suggestions, or typed exactly) -> link it
         //    2) anything else typed -> keep as free text
-        List<AppOpt> apps = appOptions();
-        AppOpt linked = null;
-        if (form.getAppId() != null && !form.getAppId().isBlank()) {
+        // Only small, targeted queries here (no loading of all apps).
+        AppOptView linked = null;
+        if (form.getAppId() != null && !form.getAppId().isBlank() && typed.length() <= 120) {
             try {
-                UUID id = UUID.fromString(form.getAppId());
-                linked = apps.stream().filter(a -> a.id().equals(id)).findFirst().orElse(null);
+                linked = optRepo.findById(UUID.fromString(form.getAppId()),
+                        App.Status.APPROVED, App.Visibility.PUBLIC).orElse(null);
             } catch (IllegalArgumentException ignored) {}
-            if (linked != null && !typed.isEmpty() && !typed.equalsIgnoreCase(linked.name())) linked = null; // edited after picking
+            if (linked != null && !typed.isEmpty() && !typed.equalsIgnoreCase(linked.getName())) linked = null; // edited after picking
         }
-        if (linked == null && !typed.isEmpty()) {
-            linked = apps.stream().filter(a -> a.name().equalsIgnoreCase(typed)).findFirst().orElse(null);
+        if (linked == null && !typed.isEmpty() && typed.length() <= 120) {
+            linked = optRepo.findByName(typed, App.Status.APPROVED, App.Visibility.PUBLIC, PageRequest.of(0, 1))
+                    .stream().findFirst().orElse(null);
         }
         String custom = linked == null && !typed.isEmpty() ? typed : null;
 
@@ -154,7 +153,7 @@ public class WishController {
             return "wish";
         }
 
-        service.submit(linked == null ? null : linked.id(), custom, desc, email,
+        service.submit(linked == null ? null : linked.getId(), custom, desc, email,
                 WishRequestService.parseFeatures(form.getFeatures()));
         ra.addFlashAttribute("success", true);
         return "redirect:/wish";
@@ -216,37 +215,29 @@ public class WishController {
 
     // ── helpers ───────────────────────────────────────────────────────────────
     private void populate(Model model) {
-        // NOTE: the apps are no longer inlined into the page; the dropdown calls /wish/apps
+        // NOTE: the apps are not inlined into the page; the dropdown calls /wish/apps
         model.addAttribute("suggested", service.suggestedFeatures());
     }
 
-    /** Cached for a couple of minutes so typing in the dropdown doesn't hit the DB for all apps each time. */
-    private List<AppOpt> appOptions() {
-        Snapshot s = snapshot;
-        long now = System.currentTimeMillis();
-        if (s == null || now - s.at() > CACHE_MS) {
-            List<AppOpt> items = visibleApps().stream()
-                    .map(a -> new AppOpt(a.getId(), a.getName(),
-                            a.getIconUrl() == null ? "" : a.getIconUrl(), norm(a.getName())))
-                    .toList();
-            s = new Snapshot(now, items);
-            snapshot = s;
-        }
-        return s.items();
-    }
-
-    private static Map<String, String> toMap(AppOpt a) {
+    private static Map<String, String> toMap(AppOptView a) {
         Map<String, String> m = new LinkedHashMap<>();
-        m.put("id", a.id().toString());
-        m.put("name", a.name());
-        m.put("icon", a.icon());
+        m.put("id", a.getId().toString());
+        m.put("name", a.getName());
+        m.put("icon", a.getIconUrl() == null ? "" : a.getIconUrl());
         return m;
     }
 
+    /** Lowercase + strip accents. */
     private static String norm(String s) {
         return Normalizer.normalize(s.toLowerCase(Locale.ROOT), Normalizer.Form.NFD).replaceAll("\\p{M}", "");
     }
 
+    /** Escape LIKE wildcards so user input like "%" or "_" is matched literally. */
+    private static String escapeLike(String s) {
+        return s.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+    }
+
+    /** Still used by the "wish like X" page only (not by the dropdown). */
     private List<App> visibleApps() {
         return appService.findAll().stream()
                 .filter(a -> a.getStatus() == App.Status.APPROVED && a.getVisibility() == App.Visibility.PUBLIC)
