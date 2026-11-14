@@ -1,6 +1,7 @@
 package com.vide.vibe.model;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.BatchSize;
 import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -30,10 +31,12 @@ public class WishRequest {
     @Column(length = 255)
     private String budget;
 
+    /** Optional for the person; stored as "" when not given (keeps the existing NOT NULL column valid). */
     @Column(nullable = false, length = 255)
     private String email;
 
     /** Desired features / tags (lowercase). */
+    @BatchSize(size = 50)
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "wish_request_features", joinColumns = @JoinColumn(name = "wish_request_id"))
     @Column(name = "feature", length = 40)

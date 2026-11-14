@@ -53,7 +53,7 @@
             overflow:hidden;
         }
         .table-scroll { overflow-x:auto; }
-        table { width:100%; border-collapse:collapse; min-width:820px; }
+        table { width:100%; border-collapse:collapse; min-width:760px; }
         thead th {
             text-align:left; font-size:.68rem; font-weight:600; text-transform:uppercase; letter-spacing:.06em;
             color:var(--gray-200); padding:1rem 1.2rem; background:rgba(0,0,0,.25);
@@ -119,8 +119,7 @@
                 <thead>
                 <tr>
                     <th>Date</th>
-                    <th>Wished app</th>
-                    <th>Budget</th>
+                    <th>Wish</th>
                     <th>Email</th>
                     <th>Status</th>
                     <th></th>
@@ -129,27 +128,33 @@
                 <tbody>
                 <tr th:each="w : ${wishes}" th:classappend="${w.handled} ? 'handled'">
                     <td class="col-date" th:text="${#temporals.format(w.createdAt, 'dd MMM yyyy HH:mm')}">01 Jan 2026</td>
-                    <td class="col-desc" th:text="${w.description}">Description</td>
-                    <td>
-                        <span th:if="${w.budget != null}" th:text="${w.budget}"></span>
-                        <span class="muted" th:if="${w.budget == null}">—</span>
+                    <td class="col-desc">
+                        <div th:if="${w.app != null}" style="margin-bottom:.4rem">Like: <b th:text="${w.app.name}">App</b></div>
+                        <div th:if="${w.app == null and w.customAppName != null}" style="margin-bottom:.4rem">
+                            Like (not in catalog): <b th:text="${w.customAppName}">Some app</b>
+                        </div>
+                        <div th:if="${w.description != null and w.description != ''}" th:text="${w.description}">Description</div>
+                        <div class="muted" th:if="${w.description == null or w.description == ''}">(+1, no description)</div>
+                        <div style="display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.5rem" th:if="${!#lists.isEmpty(w.features)}">
+                            <span class="badge badge-open" th:each="f : ${w.features}" th:text="${f}">feature</span>
+                        </div>
                     </td>
-                    <td><a class="email-link" th:href="'mailto:' + ${w.email}" th:text="${w.email}">a@b.com</a></td>
+                    <td>
+                        <a class="email-link" th:if="${w.email != null and w.email != ''}" th:href="'mailto:' + ${w.email}" th:text="${w.email}">a@b.com</a>
+                        <span class="muted" th:if="${w.email == null or w.email == ''}">—</span>
+                    </td>
                     <td>
                         <span class="badge badge-open" th:if="${!w.handled}">Open</span>
                         <span class="badge badge-done" th:if="${w.handled}">Handled</span>
                     </td>
-                    <td class="col-desc">
-                        <div th:if="${w.app != null}" style="margin-bottom:.4rem">
-                            Like: <b th:text="${w.app.name}">App</b>
-                        </div>
-                        <div th:if="${w.app == null and w.customAppName != null}" style="margin-bottom:.4rem">
-                            Like (not in catalog): <b th:text="${w.customAppName}">Some app</b>
-                        </div>
-                        <div th:text="${w.description}">Description</div>
-                        <div style="display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.5rem" th:if="${!#lists.isEmpty(w.features)}">
-                            <span class="badge badge-open" th:each="f : ${w.features}" th:text="${f}">feature</span>
-                        </div>
+                    <td class="col-actions">
+                        <form class="inline" method="post" th:action="@{/admin/wishes/{id}/toggle(id=${w.id})}">
+                            <button class="btn-mini" type="submit" th:text="${w.handled} ? 'Reopen' : 'Mark handled'">Mark handled</button>
+                        </form>
+                        <form class="inline" method="post" th:action="@{/admin/wishes/{id}/delete(id=${w.id})}"
+                              onsubmit="return confirm('Delete this wish? This cannot be undone.')">
+                            <button class="btn-mini danger" type="submit" title="Delete">🗑</button>
+                        </form>
                     </td>
                 </tr>
                 </tbody>

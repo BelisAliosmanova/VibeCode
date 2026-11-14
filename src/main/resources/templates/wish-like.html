@@ -48,7 +48,7 @@
 <main class="like-wrap">
 
     <div class="alert alert-success" th:if="${plusOne == 'added'}">Thanks! Your +1 is in. We'll let you know when an app like this pops up.</div>
-    <div class="alert" th:if="${plusOne == 'exists'}">You've already added your +1 for this app with that email.</div>
+    <div class="alert" th:if="${plusOne == 'exists'}">You've already added your +1 for this app.</div>
     <div class="alert alert-error" th:if="${plusOneError}" th:text="${plusOneError}"></div>
 
     <div class="section-title">Most popular wishes <small>(select the ones you care about)</small></div>
@@ -63,10 +63,10 @@
         <!-- Option A: quick +1 -->
         <form class="choice" method="post" th:action="@{/wish/like/{slug}/plus-one(slug=${app.slug})}" autocomplete="off">
             <div class="choice-title">+1 · I want this too</div>
-            <div class="choice-sub muted">Add your vote to the count. Any features you selected above are added too.</div>
+            <div class="choice-sub muted">Add your vote to the count. Any features you selected above are added too. Email is optional, add it if you want to be notified.</div>
             <input type="hidden" name="features" id="plusFeatures"/>
             <input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true"/>
-            <input class="wish-field" type="email" name="email" required maxlength="255" placeholder="Your email (to notify you)"/>
+            <input class="wish-field" type="email" name="email" maxlength="255" placeholder="Your email (optional)"/>
             <button class="btn-green" type="submit">+1</button>
         </form>
 
@@ -78,13 +78,14 @@
         </div>
     </div>
 
-    <div class="apps" th:if="${!#lists.isEmpty(others)}">
-        <a class="app-card" th:each="o : ${others}" th:href="@{/wish/like/{slug}(slug=${o.app.slug})}">
-            <img class="app-icon" th:if="${o.app.iconUrl != null}" th:src="${o.app.iconUrl}" alt=""/>
-            <div class="app-icon ph" th:if="${o.app.iconUrl == null}" th:text="${#strings.toUpperCase(#strings.substring(o.app.name,0,1))}">A</div>
+    <div class="section-title" style="margin-top:3.5rem" th:if="${!#lists.isEmpty(others)}">People also wished an app like</div>
+    <div class="apps" th:if="${!#lists.isEmpty(others)}" style="margin-top:1rem">
+        <a class="app-card" th:each="o : ${others}" th:href="@{/wish/like/{slug}(slug=${o.slug})}">
+            <img class="app-icon" th:if="${o.iconUrl != null and o.iconUrl != ''}" th:src="${o.iconUrl}" alt=""/>
+            <div class="app-icon ph" th:if="${o.iconUrl == null or o.iconUrl == ''}" th:text="${o.letter}">A</div>
             <div>
-                <div class="name" th:text="${o.app.name}">App name</div>
-                <div class="desc" th:if="${o.app.description != null}" th:text="${#strings.abbreviate(o.app.description, 60)}">A short description…</div>
+                <div class="name" th:text="${o.title}">App name</div>
+                <div class="desc" th:if="${o.description != null and o.description != ''}" th:text="${#strings.abbreviate(o.description, 60)}">A short description…</div>
                 <div class="wishes" th:text="${o.count + (o.count == 1 ? ' wish' : ' wishes')}">28 wishes</div>
             </div>
         </a>

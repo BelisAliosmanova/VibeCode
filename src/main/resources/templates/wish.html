@@ -91,7 +91,7 @@
                     <input type="hidden" id="appId" th:field="*{appId}"/>
                     <ul class="combo-list" id="appList" role="listbox" hidden></ul>
                 </div>
-                <div class="combo-hint">Pick one of our apps from the list, or just type the name if it's not there.</div>
+                <div class="combo-hint">Optional: pick an app that's similar to the one you wish for, or type any name. You can also just describe your app below.</div>
             </div>
 
             <div>
@@ -120,8 +120,8 @@
         <!-- ── STEP 2 ───────────────────────────────────────────── -->
         <section id="step2" hidden>
             <div class="step2-wrap">
-                <label class="field-label" for="email">Type your email if you want to be notified when apps like this pop</label>
-                <input class="wish-field" id="email" type="email" th:field="*{email}" maxlength="255" placeholder="Your email"/>
+                <label class="field-label" for="email">Type your email if you want to be notified when apps like this pop <span style="color:var(--gray-300)">(optional)</span></label>
+                <input class="wish-field" id="email" type="email" th:field="*{email}" maxlength="255" placeholder="Your email (optional)"/>
             </div>
 
             <!-- honeypot -->
@@ -200,7 +200,7 @@
             [...list.children].forEach((li, k) => li.classList.toggle('active', k === i));
             if (list.children[i]) list.children[i].scrollIntoView({ block: 'nearest' });
         }
-        function render(items, more) {
+        function render(items, more, q) {
             shown = items; list.innerHTML = ''; active = -1;
             items.forEach(a => {
                 const li = document.createElement('li');
@@ -216,13 +216,19 @@
                 li.textContent = 'Keep typing to narrow it down…';
                 list.appendChild(li);
             }
-            const open = items.length > 0;
+            if (!items.length && q) {
+                const li = document.createElement('li');
+                li.className = 'combo-more';
+                li.textContent = "Not in our list. We'll save it as you typed it.";
+                list.appendChild(li);
+            }
+            const open = items.length > 0 || !!q;
             list.hidden = !open;
             nameIn.setAttribute('aria-expanded', String(open));
             toggle.setAttribute('aria-expanded', String(open));
         }
         async function search(q) {
-            if (cache.has(q)) { const c = cache.get(q); seq++; render(c.items, c.more); return; }
+            if (cache.has(q)) { const c = cache.get(q); seq++; render(c.items, c.more, q); return; }
             const mine = ++seq;
             try {
                 const r = await fetch(searchUrl + '?q=' + encodeURIComponent(q), { headers: { 'Accept': 'application/json' } });
@@ -230,7 +236,7 @@
                 const data = await r.json();
                 cache.set(q, data);
                 if (mine !== seq) return;          // a newer request / close happened meanwhile
-                render(data.items, data.more);
+                render(data.items, data.more, q);
             } catch (e) {
                 if (mine === seq) closeList();     // fail quietly: free text still works
             }
