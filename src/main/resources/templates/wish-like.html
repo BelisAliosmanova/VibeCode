@@ -17,10 +17,14 @@
         .desc-block { margin-bottom:2rem; }
         .desc-text { background:#1a2332; border-radius:12px; padding:.9rem 1.1rem; font-size:.78rem; margin-bottom:.6rem;
                      white-space:pre-wrap; word-break:break-word; }
+        .desc-empty { background:#1a2332; border-radius:12px; padding:.9rem 1.1rem; font-size:.78rem; margin-bottom:.6rem; }
 
         .alert { border-radius:14px; padding:.85rem 1.1rem; font-size:.8rem; margin-bottom:1.5rem; background:#1a2332; border:1px solid rgba(255,255,255,.2); }
         .alert-error   { background:rgba(255,75,114,.12); border-color:rgba(255,75,114,.6); }
         .alert-success { background:rgba(143,230,4,.1);  border-color:var(--accent-green); }
+
+        .all-link { display:inline-block; margin-top:1.2rem; font-size:.78rem; color:var(--gray-200); text-decoration:underline; }
+        .all-link:hover { color:var(--white); }
 
         /* the two ways to wish */
         .choices { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:2rem; }
@@ -51,15 +55,18 @@
 
 <main class="like-wrap">
 
+    <a class="all-link" style="margin:0 0 1.2rem" th:href="@{/wishes}">← See all wishes</a>
+
     <div class="alert alert-success" th:if="${wishSent}">Thanks! Your wish is in. This is its page, everyone can see it in the list of wishes.</div>
     <div class="alert alert-success" th:if="${plusOne == 'added'}">Thanks! Your +1 is in.</div>
     <div class="alert" th:if="${plusOne == 'exists'}">You've already added your +1 for this wish.</div>
     <div class="alert alert-error" th:if="${plusOneError}" th:text="${plusOneError}"></div>
 
-    <!-- what people wrote (plain wishes and typed apps) -->
-    <div class="desc-block" th:if="${!#lists.isEmpty(descriptions)}">
-        <div class="section-title" th:text="${descLabel}">The wish</div>
+    <!-- the wish description: always visible -->
+    <div class="desc-block">
+        <div class="section-title" th:text="${descLabel != null ? descLabel : 'The wish'}">The wish</div>
         <p class="desc-text" th:each="d : ${descriptions}" th:text="${d}">text</p>
+        <p class="desc-empty empty" th:if="${#lists.isEmpty(descriptions)}">Nobody has described this wish yet. Be the first with "Fill in a new wish" below.</p>
     </div>
 
     <div class="section-title"><span th:text="${featuresLabel}">Most popular wishes</span> <small>(select the ones you care about)</small></div>
@@ -88,6 +95,10 @@
             <div class="choice-sub muted">Describe exactly what you're looking for. We'll pre-fill what we can and your selected features.</div>
             <a class="btn-green" id="wishThis" th:href="@{/wish}">Fill in a new wish</a>
         </div>
+    </div>
+
+    <div style="text-align:center">
+        <a class="all-link" th:href="@{/wishes}">See all wishes →</a>
     </div>
 
     <div class="section-title" style="margin-top:3.5rem" th:if="${!#lists.isEmpty(others)}">People also wished</div>
