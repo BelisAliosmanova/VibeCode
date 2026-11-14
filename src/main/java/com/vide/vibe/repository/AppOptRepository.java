@@ -10,6 +10,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Same visibility rule as the Explore page: every non-deleted app that is not REJECTED.
+ * (Pass App.Status.REJECTED as "rejected".)
+ */
 public interface AppOptRepository extends JpaRepository<App, UUID> {
 
     /**
@@ -17,25 +21,20 @@ public interface AppOptRepository extends JpaRepository<App, UUID> {
      * "abc%"  -> prefix match (can use an index on lower(name))
      * "%abc%" -> contains match
      */
-    @Query("select a.id as id, a.name as name, a.iconUrl as iconUrl from App a " +
-           "where a.deletedAt is null and a.status = :status and a.visibility = :vis " +
+    @Query("select a.id as id, a.name as name, a.slug as slug, a.iconUrl as iconUrl from App a " +
+           "where a.deletedAt is null and a.status <> :rejected " +
            "and lower(a.name) like :pattern escape '!' order by a.name")
     List<AppOptView> searchLike(@Param("pattern") String pattern,
-                                @Param("status") App.Status status,
-                                @Param("vis") App.Visibility vis,
+                                @Param("rejected") App.Status rejected,
                                 Pageable pageable);
 
-    @Query("select a.id as id, a.name as name, a.iconUrl as iconUrl from App a " +
-           "where a.id = :id and a.deletedAt is null and a.status = :status and a.visibility = :vis")
-    Optional<AppOptView> findOpt(@Param("id") UUID id,
-                                 @Param("status") App.Status status,
-                                 @Param("vis") App.Visibility vis);
+    @Query("select a.id as id, a.name as name, a.slug as slug, a.iconUrl as iconUrl from App a " +
+           "where a.id = :id and a.deletedAt is null and a.status <> :rejected")
+    Optional<AppOptView> findOpt(@Param("id") UUID id, @Param("rejected") App.Status rejected);
 
-    @Query("select a.id as id, a.name as name, a.iconUrl as iconUrl from App a " +
-           "where lower(a.name) = lower(:name) and a.deletedAt is null and a.status = :status and a.visibility = :vis " +
-           "order by a.name")
+    @Query("select a.id as id, a.name as name, a.slug as slug, a.iconUrl as iconUrl from App a " +
+           "where lower(a.name) = lower(:name) and a.deletedAt is null and a.status <> :rejected order by a.name")
     List<AppOptView> findByNameIgnoreCase(@Param("name") String name,
-                                          @Param("status") App.Status status,
-                                          @Param("vis") App.Visibility vis,
+                                          @Param("rejected") App.Status rejected,
                                           Pageable pageable);
 }

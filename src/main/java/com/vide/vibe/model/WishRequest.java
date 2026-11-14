@@ -42,6 +42,10 @@ public class WishRequest {
     @Column(name = "feature", length = 40)
     private Set<String> features = new LinkedHashSet<>();
 
+    /** Set when this row is a "+1" on a plain wish (a wish with no app): the id of that wish. */
+    @Column(name = "supports_id")
+    private Long supportsId;
+
     @Column(nullable = false)
     private boolean handled = false;
 
@@ -64,6 +68,15 @@ public class WishRequest {
     public void setEmail(String email) { this.email = email; }
     public Set<String> getFeatures() { return features; }
     public void setFeatures(Set<String> features) { this.features = features; }
+    public Long getSupportsId() { return supportsId; }
+    public void setSupportsId(Long supportsId) { this.supportsId = supportsId; }
+    /** "vote" (quick +1, no text) | "app" | "custom" (typed app) | "idea" (plain wish). Used by the admin page. */
+    public String getKind() {
+        if (description == null || description.isEmpty()) return "vote";
+        if (app != null) return "app";
+        if (customAppName != null) return "custom";
+        return "idea";
+    }
     public boolean isHandled() { return handled; }
     public void setHandled(boolean handled) { this.handled = handled; }
     public LocalDateTime getCreatedAt() { return createdAt; }

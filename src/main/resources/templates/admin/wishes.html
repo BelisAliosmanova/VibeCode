@@ -8,88 +8,90 @@
     <link th:replace="~{fragments/navbar :: navbar-css}"/>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        :root { --white:#fff; --gray-200:#b0b8c4; --gray-300:#7a8494; --accent-green:rgba(143,230,4,1); --radius-xl:16px; --radius-pill:999px; --font:'Sora',sans-serif; }
+        :root { --white:#fff; --gray-200:#b0b8c4; --gray-300:#7a8494; --accent-green:rgba(143,230,4,1); --accent-blue:rgba(83,184,255,1); --danger:rgba(255,75,114,1); --radius-xl:16px; --radius-pill:999px; --font:'Sora',sans-serif; }
         * { font-family:'Sora',sans-serif; }
         body { background:#233141; color:var(--white); font-size:13px; line-height:1.5; -webkit-font-smoothing:antialiased; }
         a { text-decoration:none; color:inherit; }
+        .muted { color:var(--gray-300); }
 
-        /* ── HERO (identical to the Explore / homepage hero — only the heading text differs) ── */
-        .hero {
-            position: relative; height: 380px; overflow: hidden; background: #0d1520;
-        }
-        .hero-bg {
-            position: absolute; inset: 0; z-index: 1;
-            background-image: url(HOME-hero3.png);
-            background-size: 50%; background-position: center right; background-repeat: no-repeat; opacity: 0.9;
-        }
-        .hero-overlay {
-            position: absolute; inset: 0;
-            background: linear-gradient(to right, rgba(13,21,32,0.88) 0%, rgba(13,21,32,0.65) 35%, rgba(13,21,32,0.15) 65%, transparent 100%);
-        }
-        .hero-fade {
-            position: absolute; bottom: 0; left: 0; right: 0; height: 45%;
-            background: linear-gradient(to bottom, transparent, #1a2332); pointer-events: none;
-        }
-        .hero-inner {
-            position: relative; height: 100%; max-width: 1100px; margin: 0 auto; padding: 0 2rem;
-        }
-        .hero-content {
-            position: relative; height: 100%; display: flex; flex-direction: column;
-            justify-content: center; padding-top: calc(var(--nav-h) + 0.5rem); max-width: 560px;
-        }
-        .hero-heading {
-            font-size: 3rem; font-weight: 700; color: var(--white);
-            line-height: 1.05; letter-spacing: 0.5px;
-        }
-        /* admin-only extra: open / total counter under the heading */
-        .hero-count { margin-top: .9rem; font-size: .8rem; color: var(--gray-200); }
-        .hero-count b { color: var(--accent-green); }
+        /* HERO (same as Explore / homepage) */
+        .hero { position:relative; height:300px; overflow:hidden; background:#0d1520; }
+        .hero-bg { position:absolute; inset:0; z-index:1; background-image:url(HOME-hero3.png); background-size:50%; background-position:center right; background-repeat:no-repeat; opacity:.9; }
+        .hero-overlay { position:absolute; inset:0; background:linear-gradient(to right, rgba(13,21,32,.88) 0%, rgba(13,21,32,.65) 35%, rgba(13,21,32,.15) 65%, transparent 100%); }
+        .hero-fade { position:absolute; bottom:0; left:0; right:0; height:45%; background:linear-gradient(to bottom, transparent, #1a2332); pointer-events:none; }
+        .hero-inner { position:relative; height:100%; max-width:1100px; margin:0 auto; padding:0 2rem; }
+        .hero-content { position:relative; height:100%; display:flex; flex-direction:column; justify-content:center; padding-top:calc(var(--nav-h) + .5rem); max-width:560px; }
+        .hero-heading { font-size:3rem; font-weight:700; line-height:1.05; letter-spacing:.5px; }
 
-        .content { max-width:1100px; margin:0 auto; padding:2rem 2rem 5rem; }
+        .content { max-width:1100px; margin:0 auto; padding:1.5rem 2rem 5rem; }
 
-        .table-card {
-            background:radial-gradient(77.26% 147.49% at 63.01% 100%, #475b72 0%, #233141 100%);
-            border-radius:var(--radius-xl);
-            overflow:hidden;
-        }
+        /* stat cards */
+        .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:1.2rem; }
+        .stat { background:#1a2332; border-radius:var(--radius-xl); padding:1rem 1.2rem; border:1.5px solid transparent; transition:border-color .12s; }
+        .stat:hover, .stat.on { border-color:rgba(255,255,255,.25); }
+        .stat .n { font-size:1.7rem; font-weight:700; line-height:1.1; }
+        .stat .l { font-size:.68rem; text-transform:uppercase; letter-spacing:.06em; color:var(--gray-200); }
+        .stat.open .n { color:var(--accent-green); }
+
+        /* most wished */
+        .top { margin-bottom:1.2rem; }
+        .top .t { font-size:.68rem; text-transform:uppercase; letter-spacing:.06em; color:var(--gray-200); margin-bottom:.5rem; }
+        .top .row { display:flex; flex-wrap:wrap; gap:.5rem; }
+        .pill { display:inline-flex; align-items:center; gap:.5rem; background:#1a2332; border-radius:var(--radius-pill); padding:.3rem .8rem; font-size:.72rem; }
+        .pill b { color:var(--accent-green); }
+        .pill:hover { background:#222f42; }
+
+        /* toolbar */
+        .toolbar { display:flex; flex-wrap:wrap; gap:.7rem; align-items:center; background:#1a2332; border-radius:var(--radius-xl); padding:.8rem 1rem; margin-bottom:1rem; }
+        .toolbar .tabs { display:flex; gap:.4rem; }
+        .tabs a { font-size:.7rem; font-weight:700; padding:.3rem .85rem; border-radius:var(--radius-pill); border:1.5px solid rgba(255,255,255,.18); color:var(--gray-200); }
+        .tabs a.on { border-color:var(--accent-green); color:var(--white); }
+        .toolbar form { display:flex; gap:.5rem; flex:1; min-width:260px; justify-content:flex-end; }
+        .field { background:#233141; border:1px solid rgba(255,255,255,.12); border-radius:10px; color:var(--white); font-size:.74rem; padding:.45rem .8rem; outline:none; }
+        .field:focus { border-color:rgba(255,255,255,.4); }
+        input.field { flex:1; max-width:280px; }
+        .btn-mini { background:transparent; color:var(--white); font-size:.7rem; font-weight:700; cursor:pointer; border:1.5px solid var(--accent-green); border-radius:var(--radius-pill); padding:.28rem .85rem; transition:background .12s; display:inline-block; }
+        .btn-mini:hover { background:rgba(255,255,255,.08); }
+        .btn-mini.danger { border-color:var(--danger); }
+        .btn-mini.ghost { border-color:rgba(255,255,255,.25); color:var(--gray-200); }
+
+        /* table */
+        .table-card { background:radial-gradient(77.26% 147.49% at 63.01% 100%, #475b72 0%, #233141 100%); border-radius:var(--radius-xl); overflow:hidden; }
         .table-scroll { overflow-x:auto; }
-        table { width:100%; border-collapse:collapse; min-width:760px; }
-        thead th {
-            text-align:left; font-size:.68rem; font-weight:600; text-transform:uppercase; letter-spacing:.06em;
-            color:var(--gray-200); padding:1rem 1.2rem; background:rgba(0,0,0,.25);
-            border-bottom:1px solid rgba(255,255,255,.08);
-        }
-        tbody td { padding:.95rem 1.2rem; vertical-align:top; border-bottom:1px solid rgba(255,255,255,.06); font-size:.78rem; }
+        table { width:100%; border-collapse:collapse; min-width:820px; }
+        thead th { text-align:left; font-size:.66rem; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--gray-200); padding:.9rem 1.1rem; background:rgba(0,0,0,.25); border-bottom:1px solid rgba(255,255,255,.08); }
+        tbody td { padding:.9rem 1.1rem; vertical-align:top; border-bottom:1px solid rgba(255,255,255,.06); font-size:.76rem; }
         tbody tr:last-child td { border-bottom:none; }
         tbody tr:hover { background:rgba(255,255,255,.03); }
         tr.handled td { opacity:.5; }
-
-        .col-date  { white-space:nowrap; color:var(--gray-200); width:130px; }
-        .col-desc  { width:42%; white-space:pre-wrap; word-break:break-word; }
-        .col-actions { white-space:nowrap; text-align:right; width:190px; }
-        .email-link { color:rgba(83,184,255,1); }
+        tr.handled td:last-child { opacity:1; }
+        .col-date { white-space:nowrap; color:var(--gray-200); width:120px; }
+        .col-actions { white-space:nowrap; text-align:right; width:210px; }
+        .col-contact { width:210px; word-break:break-all; }
+        .email-link { color:var(--accent-blue); }
         .email-link:hover { text-decoration:underline; }
-        .muted { color:var(--gray-300); }
-
-        .badge { display:inline-block; font-size:.62rem; font-weight:800; text-transform:uppercase; letter-spacing:.05em; padding:.25rem .7rem; border-radius:8px; background:#000; }
-        .badge-open { color:var(--accent-green); }
-        .badge-done { color:var(--gray-300); }
-
-        .btn-mini {
-            background:transparent; color:var(--white); font-size:.7rem; font-weight:700; cursor:pointer;
-            border:1.5px solid var(--accent-green); border-radius:var(--radius-pill); padding:.25rem .85rem;
-            transition:background .12s;
-        }
-        .btn-mini:hover { background:rgba(255,255,255,.08); }
-        .btn-mini.danger { border-color:rgba(255,75,114,1); }
-
-        .empty-state { text-align:center; padding:3rem 2rem; color:var(--gray-300); opacity:.7; }
         form.inline { display:inline; }
 
-        @media (max-width: 768px) {
-            .hero { height: 280px; }
-            .hero-content { max-width: 100%; }
-            .hero-heading { font-size: 2rem; }
+        .wish-head { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem; margin-bottom:.35rem; }
+        .kind { font-size:.58rem; font-weight:800; text-transform:uppercase; letter-spacing:.06em; padding:.15rem .55rem; border-radius:6px; background:#000; }
+        .kind.app { color:var(--accent-green); } .kind.custom { color:var(--accent-blue); } .kind.idea { color:#ffd166; } .kind.vote { color:var(--gray-200); }
+        .like { font-size:.76rem; }
+        .clamp { white-space:pre-wrap; word-break:break-word; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; cursor:pointer; }
+        .clamp.open { display:block; }
+        .chips { display:flex; flex-wrap:wrap; gap:.35rem; margin-top:.5rem; }
+        .chip { background:#000; color:var(--accent-green); font-size:.58rem; font-weight:800; text-transform:uppercase; letter-spacing:.05em; padding:.2rem .55rem; border-radius:4px; }
+        .badge { display:inline-block; font-size:.6rem; font-weight:800; text-transform:uppercase; letter-spacing:.05em; padding:.22rem .65rem; border-radius:8px; background:#000; }
+        .badge-open { color:var(--accent-green); } .badge-done { color:var(--gray-300); }
+
+        .pager { display:flex; justify-content:space-between; align-items:center; margin-top:1rem; font-size:.74rem; color:var(--gray-200); }
+        .pager .btns { display:flex; gap:.5rem; }
+        .btn-mini.disabled { opacity:.35; pointer-events:none; }
+        .empty-state { text-align:center; padding:3rem 2rem; color:var(--gray-300); }
+
+        @media (max-width:768px) {
+            .hero { height:240px; } .hero-content { max-width:100%; } .hero-heading { font-size:2rem; }
+            .stats { grid-template-columns:1fr 1fr 1fr; } .content { padding:1rem; }
+            .toolbar form { justify-content:flex-start; }
         }
     </style>
 </head>
@@ -97,62 +99,103 @@
 
 <nav th:replace="~{fragments/navbar :: navbar}"></nav>
 
-<!-- ── HERO (identical to Explore / homepage, only the heading text differs) ────── -->
 <div class="hero">
-    <div class="hero-bg"></div>
-    <div class="hero-overlay"></div>
-    <div class="hero-fade"></div>
-    <div class="hero-inner">
-        <div class="hero-content">
-            <h1 class="hero-heading">Wished apps</h1>
-            <div class="hero-count">
-                <b th:text="${openCount}">0</b> open · <span th:text="${#lists.size(wishes)}">0</span> total
-            </div>
-        </div>
-    </div>
+    <div class="hero-bg"></div><div class="hero-overlay"></div><div class="hero-fade"></div>
+    <div class="hero-inner"><div class="hero-content"><h1 class="hero-heading">Wished apps</h1></div></div>
 </div>
 
 <main class="content">
+
+    <!-- counters double as status filters -->
+    <div class="stats">
+        <a class="stat open" th:classappend="${status == 'open'} ? 'on'" th:href="@{/admin/wishes(status='open',type=${type},q=${q})}">
+            <div class="n" th:text="${openCount}">0</div><div class="l">Open</div>
+        </a>
+        <a class="stat" th:classappend="${status == 'handled'} ? 'on'" th:href="@{/admin/wishes(status='handled',type=${type},q=${q})}">
+            <div class="n" th:text="${handledCount}">0</div><div class="l">Handled</div>
+        </a>
+        <a class="stat" th:classappend="${status == 'all'} ? 'on'" th:href="@{/admin/wishes(status='all',type=${type},q=${q})}">
+            <div class="n" th:text="${totalCount}">0</div><div class="l">Total</div>
+        </a>
+    </div>
+
+    <div class="top" th:if="${!#lists.isEmpty(topWishes)}">
+        <div class="t">Most wished</div>
+        <div class="row">
+            <a class="pill" th:each="t : ${topWishes}" th:href="@{/admin/wishes(q=${t.title})}" title="Show these wishes">
+                <span th:text="${t.title}">App</span> <b th:text="${t.count}">3</b>
+            </a>
+        </div>
+    </div>
+
+    <div class="toolbar">
+        <div class="tabs">
+            <a th:classappend="${status == 'all'} ? 'on'" th:href="@{/admin/wishes(status='all',type=${type},q=${q})}">All</a>
+            <a th:classappend="${status == 'open'} ? 'on'" th:href="@{/admin/wishes(status='open',type=${type},q=${q})}">Open</a>
+            <a th:classappend="${status == 'handled'} ? 'on'" th:href="@{/admin/wishes(status='handled',type=${type},q=${q})}">Handled</a>
+        </div>
+        <form method="get" th:action="@{/admin/wishes}">
+            <input type="hidden" name="status" th:value="${status}"/>
+            <select class="field" name="type" onchange="this.form.submit()" aria-label="Type">
+                <option value="all"    th:selected="${type == 'all'}">All types</option>
+                <option value="app"    th:selected="${type == 'app'}">Like an app of ours</option>
+                <option value="custom" th:selected="${type == 'custom'}">Like a typed app</option>
+                <option value="idea"   th:selected="${type == 'idea'}">Plain wishes</option>
+                <option value="votes"  th:selected="${type == 'votes'}">Quick +1s</option>
+            </select>
+            <input class="field" type="search" name="q" th:value="${q}" placeholder="Search text, app, email…"/>
+            <button class="btn-mini" type="submit">Search</button>
+            <a class="btn-mini ghost" th:href="@{/admin/wishes}" th:if="${q != '' or status != 'all' or type != 'all'}">Reset</a>
+            <a class="btn-mini ghost" th:href="@{/admin/wishes/export.csv(status=${status},type=${type},q=${q})}" title="Download what is listed (max 5000)">CSV</a>
+        </form>
+    </div>
+
     <div class="table-card">
         <div class="table-scroll">
             <table th:if="${!#lists.isEmpty(wishes)}">
                 <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Wish</th>
-                    <th>Email</th>
-                    <th>Status</th>
-                    <th></th>
-                </tr>
+                <tr><th>Date</th><th>Wish</th><th>Contact</th><th>Status</th><th></th></tr>
                 </thead>
                 <tbody>
                 <tr th:each="w : ${wishes}" th:classappend="${w.handled} ? 'handled'">
                     <td class="col-date" th:text="${#temporals.format(w.createdAt, 'dd MMM yyyy HH:mm')}">01 Jan 2026</td>
-                    <td class="col-desc">
-                        <div th:if="${w.app != null}" style="margin-bottom:.4rem">Like: <b th:text="${w.app.name}">App</b></div>
-                        <div th:if="${w.app == null and w.customAppName != null}" style="margin-bottom:.4rem">
-                            Like (not in catalog): <b th:text="${w.customAppName}">Some app</b>
-                        </div>
-                        <div th:if="${w.description != null and w.description != ''}" th:text="${w.description}">Description</div>
-                        <div class="muted" th:if="${w.description == null or w.description == ''}">(+1, no description)</div>
-                        <div style="display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.5rem" th:if="${!#lists.isEmpty(w.features)}">
-                            <span class="badge badge-open" th:each="f : ${w.features}" th:text="${f}">feature</span>
-                        </div>
-                    </td>
+
                     <td>
-                        <a class="email-link" th:if="${w.email != null and w.email != ''}" th:href="'mailto:' + ${w.email}" th:text="${w.email}">a@b.com</a>
-                        <span class="muted" th:if="${w.email == null or w.email == ''}">—</span>
+                        <div class="wish-head">
+                            <span class="kind" th:classappend="${w.kind}"
+                                  th:text="${w.kind == 'app' ? 'Like our app' : w.kind == 'custom' ? 'Like typed app' : w.kind == 'vote' ? '+1' : 'Plain wish'}">Plain wish</span>
+                            <span class="like" th:if="${w.app != null}">Like <b th:text="${w.app.name}">App</b></span>
+                            <span class="like" th:if="${w.app == null and w.customAppName != null}">Like <b th:text="${w.customAppName}">Typed</b></span>
+                            <span class="muted" th:if="${w.supportsId != null}">on wish #<span th:text="${w.supportsId}">1</span></span>
+                        </div>
+                        <div class="clamp" th:if="${w.description != null and w.description != ''}"
+                             onclick="this.classList.toggle('open')" title="Click to expand" th:text="${w.description}">Description</div>
+                        <div class="muted" th:if="${w.description == null or w.description == ''}">Quick +1, no text</div>
+                        <div class="chips" th:if="${!#lists.isEmpty(w.features)}">
+                            <span class="chip" th:each="f : ${w.features}" th:text="${f}">feature</span>
+                        </div>
                     </td>
+
+                    <td class="col-contact">
+                        <a class="email-link" th:if="${w.email != null and w.email != ''}" th:href="'mailto:' + ${w.email}" th:text="${w.email}">a@b.com</a>
+                        <span class="muted" th:if="${w.email == null or w.email == ''}">No email</span>
+                    </td>
+
                     <td>
                         <span class="badge badge-open" th:if="${!w.handled}">Open</span>
                         <span class="badge badge-done" th:if="${w.handled}">Handled</span>
                     </td>
+
                     <td class="col-actions">
                         <form class="inline" method="post" th:action="@{/admin/wishes/{id}/toggle(id=${w.id})}">
+                            <input type="hidden" name="status" th:value="${status}"/><input type="hidden" name="type" th:value="${type}"/>
+                            <input type="hidden" name="q" th:value="${q}"/><input type="hidden" name="page" th:value="${page}"/>
                             <button class="btn-mini" type="submit" th:text="${w.handled} ? 'Reopen' : 'Mark handled'">Mark handled</button>
                         </form>
                         <form class="inline" method="post" th:action="@{/admin/wishes/{id}/delete(id=${w.id})}"
                               onsubmit="return confirm('Delete this wish? This cannot be undone.')">
+                            <input type="hidden" name="status" th:value="${status}"/><input type="hidden" name="type" th:value="${type}"/>
+                            <input type="hidden" name="q" th:value="${q}"/><input type="hidden" name="page" th:value="${page}"/>
                             <button class="btn-mini danger" type="submit" title="Delete">🗑</button>
                         </form>
                     </td>
@@ -160,7 +203,18 @@
                 </tbody>
             </table>
         </div>
-        <div class="empty-state" th:if="${#lists.isEmpty(wishes)}">No wishes submitted yet.</div>
+        <div class="empty-state" th:if="${#lists.isEmpty(wishes)}">
+            <span th:if="${totalCount == 0}">No wishes submitted yet.</span>
+            <span th:if="${totalCount > 0}">Nothing matches these filters.</span>
+        </div>
+    </div>
+
+    <div class="pager" th:if="${totalPages > 0}">
+        <span><span th:text="${found}">0</span> wishes · page <span th:text="${page + 1}">1</span> of <span th:text="${totalPages}">1</span></span>
+        <span class="btns">
+            <a class="btn-mini ghost" th:classappend="${page == 0} ? 'disabled'" th:href="@{/admin/wishes(status=${status},type=${type},q=${q},page=${page - 1})}">← Newer</a>
+            <a class="btn-mini ghost" th:classappend="${page + 1 >= totalPages} ? 'disabled'" th:href="@{/admin/wishes(status=${status},type=${type},q=${q},page=${page + 1})}">Older →</a>
+        </span>
     </div>
 </main>
 

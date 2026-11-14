@@ -6,5 +6,6 @@ import java.util.UUID;
 public interface AppOptView {
     UUID getId();
     String getName();
+    String getSlug();
     String getIconUrl();
 }

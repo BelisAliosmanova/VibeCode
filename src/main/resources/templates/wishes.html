@@ -25,6 +25,9 @@
         .see { display:block; text-align:right; font-size:.66rem; color:var(--gray-200); margin-top:.9rem; }
         .see:hover { color:var(--white); text-decoration:underline; }
         .empty { color:var(--gray-300); text-align:center; padding:2rem 0; }
+        .tabs { display:flex; gap:.5rem; margin-bottom:1.2rem; }
+        .tabs a { font-size:.7rem; font-weight:700; padding:.3rem .9rem; border-radius:999px; border:1.5px solid rgba(255,255,255,.2); color:var(--gray-200); }
+        .tabs a.on { border-color:var(--accent-green); color:var(--white); }
         .cta { text-align:center; margin-top:2rem; }
     </style>
 </head>
@@ -35,6 +38,10 @@
 
 <main class="list-wrap">
     <div class="list-title">List of wishes</div>
+    <div class="tabs">
+        <a th:classappend="${sort != 'new'} ? 'on'" th:href="@{/wishes}">Most wished</a>
+        <a th:classappend="${sort == 'new'} ? 'on'" th:href="@{/wishes(sort='new')}">Newest</a>
+    </div>
 
     <details class="wish-row" th:each="i : ${items}">
         <summary>
@@ -52,7 +59,7 @@
                 <div class="sub">Most popular wishes (top 10)</div>
                 <div class="chips"><span class="chip" th:each="f : ${i.features}" th:text="${f}">feature</span></div>
             </div>
-            <a class="see" th:if="${i.kind == 'app'}" th:href="@{/wish/like/{slug}(slug=${i.slug})}">See all details</a>
+            <a class="see" th:href="@{${i.path}}">See all details</a>
         </div>
     </details>
 
