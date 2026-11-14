@@ -27,6 +27,7 @@ public class WishController {
     private static final String EMAIL_RE = "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$";
     private static final int SEARCH_LIMIT = 40;
     private static final int OTHERS_LIMIT = 12;
+    private static final int FEATURE_LIMIT = 500;   // effectively "all features"; the dropdown scrolls
     private static final String VOTE_COOKIE = "wish_plus";
 
     private final WishRequestService service;
@@ -100,11 +101,11 @@ public class WishController {
         return out;
     }
 
-    /** JSON: feature suggestions from the category entries (same ones as the Explore filters). */
+    /** JSON: feature suggestions from the category entries (same ones as the Explore filters). Empty query = all of them. */
     @GetMapping("/wish/features")
     @ResponseBody
     public List<String> searchFeatures(@RequestParam(defaultValue = "") String q) {
-        return featureCatalog.search(q.length() > 60 ? q.substring(0, 60) : q, 8);
+        return featureCatalog.search(q.length() > 60 ? q.substring(0, 60) : q, FEATURE_LIMIT);
     }
 
     // ── Step 1 + 2: the wish form ─────────────────────────────────────────────
@@ -206,8 +207,11 @@ public class WishController {
     public String like(@PathVariable String slug, Model model) {
         App app = publicApp(slug);
         if (app == null) return "redirect:/wish";
+        // NOTE: assumes App has getDescription(); adjust if the getter is named differently
+        String appDesc = app.getDescription();
+        List<String> descriptions = (appDesc == null || appDesc.isBlank()) ? List.of() : List.of(appDesc);
         detail(model, "Wish an app like " + app.getName(),
-                null, List.of(), "Most popular wishes", service.statsFor(app.getId()),
+                "About " + app.getName(), descriptions, "Most popular wishes", service.statsFor(app.getId()),
                 "/wish/like/" + app.getSlug() + "/plus-one", null,
                 "like=" + enc(app.getSlug()), "/wish/like/" + app.getSlug());
         return "wish-like";

@@ -43,7 +43,7 @@
 
         /* features / tags */
         .tag-box { display:flex; flex-wrap:wrap; gap:.4rem; align-items:center; background:#1a2332; border:1px solid rgba(255,255,255,.12);
-                   border-radius:14px; padding:.6rem .8rem; min-height:48px; transition:border-color .12s, box-shadow .12s; }
+                   border-radius:14px; padding:.6rem 2.6rem .6rem .8rem; min-height:48px; transition:border-color .12s, box-shadow .12s; }
         .tag-box input { flex:1; min-width:140px; background:transparent; border:none; outline:none; color:var(--white); font-size:.78rem; padding:.25rem; }
         .tag-box input::placeholder { color:rgba(255,255,255,.7); }
         .chip .x { margin-left:.45rem; cursor:pointer; opacity:.7; }
@@ -104,11 +104,16 @@
                 <label class="field-label" for="tagInput">Desired Features</label>
                 <div class="combo">
                     <div class="tag-box" id="tagBox">
-                        <input type="text" id="tagInput" maxlength="40" autocomplete="off" placeholder="Type a feature (we'll suggest ones from Explore) and press Enter…"/>
+                        <input type="text" id="tagInput" maxlength="40" autocomplete="off" aria-controls="featList" aria-expanded="false"
+                               placeholder="Type a feature or open the list to browse all of them…"/>
                     </div>
+                    <button type="button" class="combo-toggle" id="featToggle" tabindex="-1" aria-label="Show all features" aria-expanded="false">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
                     <ul class="combo-list" id="featList" role="listbox" hidden></ul>
                 </div>
                 <input type="hidden" id="featuresInput" th:field="*{features}"/>
+                <div class="combo-hint">Pick from every feature on Explore, or type your own and press Enter.</div>
                 <div class="suggest" th:if="${!#lists.isEmpty(suggested)}">
                     <div class="hint">Popular features on Explore — tap to add</div>
                     <div class="chips" id="suggestions">
@@ -309,13 +314,25 @@
             if (!t || t.length > 40 || tags.includes(t) || tags.length >= 10) return;
             tags.push(t); renderTags();
         }
-        /* feature typeahead: suggestions come from the same category entries as the Explore filters */
-        const featList = $('featList'), featUrl = /*[[@{/wish/features}]]*/ '/wish/features';
+        /* feature dropdown: ALL features from the same category entries as the Explore filters.
+           Empty input (or the arrow) lists every feature; typing narrows the list. The list scrolls. */
+        const featList = $('featList'), featToggle = $('featToggle'),
+              featUrl = /*[[@{/wish/features}]]*/ '/wish/features';
         let fShown = [], fActive = -1, fTimer = null, fSeq = 0;
-        function fClose() { fSeq++; featList.hidden = true; fActive = -1; }
-        function fSetActive(i) { fActive = i; [...featList.children].forEach((li, k) => li.classList.toggle('active', k === i)); }
+        const fCache = new Map();   // query -> [names]
+
+        function fClose() {
+            fSeq++; featList.hidden = true; fActive = -1;
+            input.setAttribute('aria-expanded', 'false');
+            featToggle.setAttribute('aria-expanded', 'false');
+        }
+        function fSetActive(i) {
+            fActive = i;
+            [...featList.children].forEach((li, k) => li.classList.toggle('active', k === i));
+            if (featList.children[i]) featList.children[i].scrollIntoView({ block: 'nearest' });
+        }
         function fRender(names) {
-            fShown = names.filter(n => !tags.includes(n));
+            fShown = names.filter(n => !tags.includes(n.toLowerCase()));
             featList.innerHTML = ''; fActive = -1;
             fShown.forEach(n => {
                 const li = document.createElement('li');
@@ -325,32 +342,50 @@
                 featList.appendChild(li);
             });
             featList.hidden = !fShown.length;
+            const open = String(!featList.hidden);
+            input.setAttribute('aria-expanded', open);
+            featToggle.setAttribute('aria-expanded', open);
         }
         async function fSearch(q) {
+            if (fCache.has(q)) { fSeq++; fRender(fCache.get(q)); return; }
             const mine = ++fSeq;
             try {
                 const r = await fetch(featUrl + '?q=' + encodeURIComponent(q), { headers: { 'Accept': 'application/json' } });
                 if (!r.ok) throw new Error('HTTP ' + r.status);
                 const d = await r.json();
+                fCache.set(q, d);
                 if (mine === fSeq) fRender(d);
             } catch (err) { console.error('feature suggestions failed', err); if (mine === fSeq) fClose(); }
         }
+        // keep the input focused while the user drags the list's scrollbar
+        featList.addEventListener('mousedown', e => e.preventDefault());
+
         input.addEventListener('input', () => {
             clearTimeout(fTimer);
-            const q = input.value.trim();
-            if (!q) { fClose(); return; }
-            fTimer = setTimeout(() => fSearch(q), 150);
+            // empty input = show everything again, not close the list
+            fTimer = setTimeout(() => fSearch(input.value.trim()), 150);
         });
-        input.addEventListener('focus', () => { if (!input.value.trim()) fSearch(''); });
+        input.addEventListener('focus', () => fSearch(input.value.trim()));
+        input.addEventListener('click', () => { if (featList.hidden) fSearch(input.value.trim()); });
+        featToggle.addEventListener('mousedown', e => {
+            e.preventDefault();
+            if (featList.hidden) { input.focus(); fSearch(input.value.trim()); }
+            else fClose();
+        });
         input.addEventListener('keydown', e => {
-            if (e.key === 'ArrowDown' && fShown.length && !featList.hidden) { e.preventDefault(); fSetActive((fActive + 1) % fShown.length); return; }
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (featList.hidden) fSearch(input.value.trim());
+                else if (fShown.length) fSetActive((fActive + 1) % fShown.length);
+                return;
+            }
             if (e.key === 'ArrowUp' && fShown.length && !featList.hidden) { e.preventDefault(); fSetActive((fActive - 1 + fShown.length) % fShown.length); return; }
             if (e.key === 'Escape') { fClose(); return; }
             if (e.key === 'Enter' && fActive >= 0 && fShown[fActive]) { e.preventDefault(); add(fShown[fActive]); input.value = ''; fClose(); return; }
             if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); add(input.value); input.value = ''; fClose(); }
             else if (e.key === 'Backspace' && !input.value && tags.length) { tags.pop(); renderTags(); }
         });
-        input.addEventListener('blur', () => { fClose(); add(input.value); input.value = ''; });
+        input.addEventListener('blur', () => { clearTimeout(fTimer); fClose(); add(input.value); input.value = ''; });
         document.querySelectorAll('#suggestions .chip').forEach(b => b.addEventListener('click', () => {
             const t = b.dataset.tag;
             tags = tags.includes(t) ? tags.filter(v => v !== t) : (tags.length < 10 ? [...tags, t] : tags);
